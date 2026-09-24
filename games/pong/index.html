@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Pong — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #131c33, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #e8f0ff; text-shadow: 0 0 18px rgba(147, 165, 200, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; }
+  .stat .val.you { color: #00e5a0; } .stat .val.cpu { color: #ff5470; }
+  #stage { position: relative; }
+  canvas { display: block; border-radius: 14px; border: 2px solid #1d2a47; box-shadow: 0 14px 50px rgba(0, 0, 0, .5); max-width: 94vw; touch-action: none; }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 14px; z-index: 5;
+    background: rgba(5, 9, 18, .75); backdrop-filter: blur(3px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center;
+    opacity: 0; pointer-events: none; transition: .25s;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .overlay h2 { margin: 0; font-size: 30px; }
+  .overlay p { margin: 0; color: #93a5c8; font-size: 14px; }
+  button {
+    background: linear-gradient(92deg, #00e5a0, #00b3ff); color: #04121c;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer; margin-top: 8px;
+    box-shadow: 0 6px 22px rgba(0, 229, 160, .3);
+  }
+  .hint { color: #93a5c8; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>🏓 PONG<span>0xB0 GAMES</span></h1>
+    <div class="stat"><div class="lbl">YOU</div><div class="val you" id="sy">0</div></div>
+    <div class="stat"><div class="lbl">CPU</div><div class="val cpu" id="sc">0</div></div>
+  </div>
+  <div id="stage">
+    <canvas id="cv" width="480" height="320"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+  <div class="hint">Mouse / drag / W-S keys • First to 7 wins 🏆</div>
+
+<script>
+(function () {
+  'use strict';
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var syEl = document.getElementById('sy'), scEl = document.getElementById('sc');
+  var W = 480, H = 320, TARGET = 7;
+  var player, cpu, ball, sYou, sCpu, state; /* ready|play|point|end */
+
+  function showOverlay(title, sub, btn, onclick) {
+    overlay.innerHTML = '<h2>' + title + '</h2><p>' + sub + '</p>';
+    var b = document.createElement('button'); b.textContent = btn; b.onclick = onclick;
+    overlay.appendChild(b); overlay.classList.add('show');
+  }
+  function hideOverlay() { overlay.classList.remove('show'); }
+
+  var PH = 62, PW = 10;
+
+  function serve(toWho) {
+    ball = {
+      x: W / 2, y: H / 2,
+      vx: (toWho === 'you' ? 1 : -1) * (3.2 + Math.random() * 0.6),
+      vy: (Math.random() - 0.5) * 4,
+      r: 7
+    };
+  }
+
+  function reset() {
+    player = { y: H / 2 - PH / 2 };
+    cpu = { y: H / 2 - PH / 2, speed: 3.4 };
+    sYou = 0; sCpu = 0;
+    syEl.textContent = 0; scEl.textContent = 0;
+    serve(Math.random() < 0.5 ? 'you' : 'cpu');
+    state = 'ready';
+    showOverlay('🏓 Pong', 'First to ' + TARGET + '. Beat the machine.', 'Start', function () {
+      hideOverlay(); state = 'play';
+    });
+  }
+
+  function point(who) {
+    if (who === 'you') { sYou++; syEl.textContent = sYou; }
+    else { sCpu++; scEl.textContent = sCpu; }
+
+    if (sYou >= TARGET || sCpu >= TARGET) {
+      state = 'end';
+      var youWin = sYou > sCpu;
+      showOverlay(youWin ? '🏆 You win!' : '🤖 CPU wins', sYou + ' — ' + sCpu, 'Rematch', function () {
+        hideOverlay(); reset();
+      });
+      return;
+    }
+    state = 'point';
+    setTimeout(function () {
+      serve(who === 'you' ? 'cpu' : 'you');
+      state = 'play';
+    }, 700);
+  }
+
+  function step() {
+    if (state !== 'play') return;
+
+    /* player follows target set by input */
+    /* ball */
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if (ball.y - ball.r < 0) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); }
+    if (ball.y + ball.r > H) { ball.y = H - ball.r; ball.vy = -Math.abs(ball.vy); }
+
+    /* player paddle (left, x=14) */
+    var px = 14;
+    if (ball.vx < 0 && ball.x - ball.r <= px + PW && ball.x - ball.r >= px - 6 &&
+        ball.y + ball.r >= player.y && ball.y - ball.r <= player.y + PH) {
+      bounceOffPaddle(player, px + PW + ball.r, 1);
+    }
+    /* cpu paddle (right, x=W-14-PW) */
+    var cx = W - 14 - PW;
+    if (ball.vx > 0 && ball.x + ball.r >= cx && ball.x + ball.r <= cx + PW + 6 &&
+        ball.y + ball.r >= cpu.y && ball.y - ball.r <= cpu.y + PH) {
+      bounceOffPaddle(cpu, cx - ball.r, -1);
+    }
+
+    /* cpu brain — track the ball with capped speed (beatable) */
+    var cpuCenter = cpu.y + PH / 2;
+    var target = ball.vx > 0 ? ball.y : H / 2;
+    var diff = target - cpuCenter;
+    cpu.y += Math.max(-cpu.speed, Math.min(cpu.speed, diff * 0.22));
+    cpu.y = Math.max(0, Math.min(H - PH, cpu.y));
+
+    /* scoring */
+    if (ball.x < -16) point('cpu');
+    else if (ball.x > W + 16) point('you');
+  }
+
+  function bounceOffPaddle(p, newX, dirX) {
+    var off = (ball.y - (p.y + PH / 2)) / (PH / 2);   /* -1..1 */
+    var speed = Math.min(9, Math.hypot(ball.vx, ball.vy) * 1.04);
+    var ang = off * 0.85;
+    ball.vx = dirX * Math.abs(Math.cos(ang) * speed);
+    ball.vy = Math.sin(ang) * speed;
+    ball.x = newX;
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0a0e17';
+    ctx.fillRect(0, 0, W, H);
+
+    /* mid line */
+    ctx.strokeStyle = 'rgba(147,165,200,.25)';
+    ctx.setLineDash([8, 10]);
+    ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* big scores */
+    ctx.font = '800 54px Consolas, monospace';
+    ctx.fillStyle = 'rgba(232,240,255,.12)';
+    ctx.textAlign = 'center';
+    ctx.fillText(sYou, W / 2 - 60, 66);
+    ctx.fillText(sCpu, W / 2 + 60, 66);
+
+    /* paddles */
+    ctx.fillStyle = '#00e5a0';
+    ctx.shadowColor = '#00e5a0'; ctx.shadowBlur = 12;
+    ctx.fillRect(14, player.y, PW, PH);
+    ctx.fillStyle = '#ff5470';
+    ctx.shadowColor = '#ff5470';
+    ctx.fillRect(W - 14 - PW, cpu.y, PW, PH);
+    ctx.shadowBlur = 0;
+
+    /* ball */
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#e8f0ff';
+    ctx.shadowColor = '#e8f0ff'; ctx.shadowBlur = 14;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  function loop() { step(); draw(); requestAnimationFrame(loop); }
+
+  /* ---- input ---- */
+  var keys = {};
+  function movePlayer(clientY) {
+    var rect = cv.getBoundingClientRect();
+    var y = (clientY - rect.top) * (H / rect.height);
+    player.y = Math.max(0, Math.min(H - PH, y - PH / 2));
+  }
+  cv.addEventListener('mousemove', function (e) { movePlayer(e.clientY); });
+  cv.addEventListener('touchmove', function (e) { movePlayer(e.touches[0].clientY); }, { passive: true });
+  cv.addEventListener('touchstart', function (e) { movePlayer(e.touches[0].clientY); }, { passive: true });
+  document.addEventListener('keydown', function (e) { keys[e.key] = true; });
+  document.addEventListener('keyup', function (e) { keys[e.key] = false; });
+  setInterval(function () {
+    var v = 6.5;
+    if (keys['w'] || keys['W'] || keys['ArrowUp']) player.y = Math.max(0, player.y - v);
+    if (keys['s'] || keys['S'] || keys['ArrowDown']) player.y = Math.min(H - PH, player.y + v);
+  }, 16);
+
+  reset();
+  loop();
+})();
+</script>
+</body>
+</html>
