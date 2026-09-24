@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unity Game — 0xB0 Games</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; background: #05080f; overflow: hidden; }
+    .unity-stage { position: fixed; inset: 0; background: #05080f; }
+    .unity-stage iframe { width: 100%; height: 100%; border: 0; display: block; background: #05080f; }
+    .unity-loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column; gap: 14px;
+      align-items: center; justify-content: center; color: var(--muted);
+      font-family: var(--sans); font-size: 14px; font-weight: 600; background: #05080f;
+      z-index: 5; transition: opacity .3s;
+    }
+    .unity-loading.hide { opacity: 0; pointer-events: none; }
+    .player-bar {
+      position: fixed; left: 10px; bottom: 10px; z-index: 10;
+      display: flex; gap: 6px; padding: 6px;
+      background: rgba(13, 20, 38, 0.85); border: 1px solid var(--border);
+      border-radius: 13px; backdrop-filter: blur(8px);
+    }
+    .player-bar button {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--text); cursor: pointer;
+      font-family: var(--sans); font-weight: 700; font-size: 13.5px;
+      padding: 9px 12px; border-radius: 9px; transition: .15s;
+    }
+    .player-bar button:hover { background: var(--panel-2); color: var(--accent); }
+    .u-error {
+      position: fixed; inset: 0; display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center; text-align: center; padding: 20px;
+      color: var(--muted); font-family: var(--sans); background: #05080f; z-index: 20;
+    }
+    .u-error .code { font-family: var(--mono); font-size: 44px; color: var(--accent); font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <div class="unity-stage" id="stageWrap">
+    <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking; clipboard-write; cross-origin-isolated" allowfullscreen></iframe>
+  </div>
+
+  <div class="unity-loading" id="loading">
+    <div class="spinner"></div>
+    <span>Loading Unity game… (they're chunky, give it a sec)</span>
+  </div>
+
+  <div class="player-bar">
+    <button id="backBtn" title="Back to 0xB0 Games">← All games</button>
+    <button id="fullBtn" title="Fullscreen">⛶</button>
+    <button id="reloadBtn" title="Reload game">⟳</button>
+    <button id="cloakTabBtn" title="Open in a hidden about:blank tab">🕶️</button>
+  </div>
+
+  <script src="js/settings.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var params = new URLSearchParams(location.search);
+      var src = params.get('game');
+
+      var frame = document.getElementById('gameFrame');
+      var loading = document.getElementById('loading');
+
+      if (!src || !/^https?:\/\//i.test(src)) {
+        loading.style.display = 'none';
+        var err = document.createElement('div');
+        err.className = 'u-error';
+        err.innerHTML = '<div class="code">404</div><div>No game URL — use unity.html?game=<game url></div>';
+        document.body.appendChild(err);
+        return;
+      }
+
+      B0Settings.setPageTitle('Unity Game — 0xB0 Games');
+
+      frame.addEventListener('load', function () { loading.classList.add('hide'); });
+      frame.src = src;
+
+      document.getElementById('backBtn').addEventListener('click', function () {
+        location.href = 'index.html';
+      });
+      document.getElementById('reloadBtn').addEventListener('click', function () {
+        loading.classList.remove('hide');
+        frame.src = src;
+      });
+      document.getElementById('fullBtn').addEventListener('click', function () {
+        var el = document.getElementById('stageWrap');
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (el.requestFullscreen) el.requestFullscreen();
+      });
+      document.getElementById('cloakTabBtn').addEventListener('click', function () {
+        var w = window.open('about:blank', '_blank');
+        if (!w) { alert('Allow pop-ups to use cloaked tabs.'); return; }
+        w.document.write(
+          '<!DOCTYPE html><html><head><title>Home</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
+          'iframe{border:0;width:100%;height:100%}</style></head>' +
+          '<body><iframe src="' + location.href + '"></iframe></body></html>'
+        );
+        w.document.close();
+      });
+    })();
+  </script>
+</body>
+</html>
