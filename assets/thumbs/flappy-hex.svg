@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b2a5e"/>
+      <stop offset="1" stop-color="#071426"/>
+    </linearGradient>
+    <linearGradient id="pipe" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00e5a0"/>
+      <stop offset="1" stop-color="#00795c"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="14" fill="url(#bg)"/>
+  <g fill="#fff" opacity=".35">
+    <circle cx="40" cy="30" r="1.6"/><circle cx="90" cy="18" r="1.2"/><circle cx="150" cy="34" r="1.5"/>
+    <circle cx="230" cy="20" r="1.3"/><circle cx="290" cy="36" r="1.6"/><circle cx="66" cy="60" r="1.1"/>
+  </g>
+  <rect x="42" y="0" width="44" height="52" fill="url(#pipe)"/>
+  <rect x="38" y="40" width="52" height="14" rx="4" fill="#00ffbb"/>
+  <rect x="42" y="118" width="44" height="62" fill="url(#pipe)"/>
+  <rect x="38" y="110" width="52" height="14" rx="4" fill="#00ffbb"/>
+  <rect x="222" y="0" width="44" height="80" fill="url(#pipe)"/>
+  <rect x="218" y="68" width="52" height="14" rx="4" fill="#00ffbb"/>
+  <rect x="222" y="146" width="44" height="34" fill="url(#pipe)"/>
+  <rect x="218" y="138" width="52" height="14" rx="4" fill="#00ffbb"/>
+  <g transform="translate(150 92)">
+    <path d="M0-16l14 8v16L0 16l-14-8V-8z" fill="#00b3ff" stroke="#7de3ff" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="5" cy="-4" r="2.6" fill="#04121c"/>
+  </g>
+  <text x="18" y="168" font-family="'Segoe UI', Arial, sans-serif" font-size="23" font-weight="800" fill="#fff">Flappy Hex</text>
+  <text x="302" y="168" text-anchor="end" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#7de3ff">0xB0</text>
+</svg>
