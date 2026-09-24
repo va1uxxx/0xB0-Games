@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0xB0 Games — Unblocked Games</title>
+  <meta name="description" content="0xB0 Games — unblocked HTML5 games you can play anywhere: school, Chromebook, anywhere. No downloads, no installs, just press play." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <canvas id="petalCanvas"></canvas>
+
+  <div class="bg-hex hx1" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 3L90 26v48L50 97 10 74V26z" fill="none" stroke="#ff6ea9" stroke-width="1.6"/></svg></div>
+  <div class="bg-hex hx2" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 3L90 26v48L50 97 10 74V26z" fill="none" stroke="#b46bff" stroke-width="1.6"/></svg></div>
+
+  <!-- ============ NAVBAR ============ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="0xB0 Games home">
+        <span class="hex">
+          <svg width="26" height="30" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hexg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff6ea9"/>
+                <stop offset="1" stop-color="#b46bff"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="url(#hexg)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/>
+            <path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+
+      <div class="nav-links" id="navLinks">
+        <a href="index.html" class="active">Home</a>
+        <a href="#games">Games</a>
+        <a href="unblocker.html">Unblocker<span class="pill">NEW</span></a>
+        <a href="settings.html">Settings</a>
+        <a href="#how">How it works</a>
+      </div>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="randomBtn" title="Play a random game">🎲 <span class="label">Random</span></button>
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (also press the ` key)" aria-label="Panic button">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="hero-badge"><span class="dot"></span> No downloads • No installs • Works on school Chromebooks</div>
+    <h1><span class="grad">0xB0</span> GAMES</h1>
+    <p class="tagline">
+      The unblocked arcade. <b>500+ games</b> ready to play — from our own neon originals to
+      classics hosted across the web — plus a built-in <b>website unblocker</b>. Just press play.
+    </p>
+    <span class="jp">さくらアーケード</span>
+
+    <div class="hero-search" id="heroSearch">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20l-4-4"></path>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Search games… try “snake” or “puzzle”" autocomplete="off" />
+    </div>
+
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#games">▶ Browse Games</a>
+      <a class="btn btn-ghost" href="unblocker.html">🔓 Open the Unblocker</a>
+    </div>
+
+    <div class="hero-stage" id="heroStage"><div class="sc-inner" id="scInner"></div></div>
+
+    <div class="hero-stats">
+      <span><b id="statGames">9</b> playable games</span>
+      <span><b>100%</b> static — nothing to install</span>
+      <span><b>∞</b> free forever</span>
+    </div>
+
+    <!-- Unblocker mini-banner -->
+    <div class="unbanner">
+      <div class="info">
+        <h3>🔒 The 0xB0 Unblocker</h3>
+        <p>Type any website — Google, YouTube, Discord… — and open it through the built-in proxy.
+           Looks like a search page, works like a key.</p>
+      </div>
+      <a class="go" href="unblocker.html">Launch Unblocker →</a>
+    </div>
+  </header>
+
+  <!-- ============ GAMES ============ -->
+  <main class="wrap" id="games">
+    <section class="section">
+      <div class="section-head">
+        <h2>All Games</h2>
+        <span class="count" id="gameCount">9 games</span>
+      </div>
+
+      <div class="chips" id="chips"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section" id="how">
+      <div class="section-head"><h2>How it works</h2></div>
+      <div class="features">
+        <div class="feature">
+          <div class="ico">⚡</div>
+          <h3>Instant play</h3>
+          <p>Every game runs straight from this site in your browser. No downloads, no accounts, no blocked .exe files.</p>
+        </div>
+        <div class="feature">
+          <div class="ico">🔓</div>
+          <h3>Built-in unblocker</h3>
+          <p>A full web proxy lives at <b>Unblocker</b>. Type any address and it opens through the site — Google-search style.</p>
+        </div>
+        <div class="feature">
+          <div class="ico">🛡️</div>
+          <h3>Cloak + panic</h3>
+          <p>Hit the 🕶️ button to disguise the tab, press <b>`</b> to teleport to Classroom — pick your disguise in <b>Settings</b>.</p>
+        </div>
+        <div class="feature">
+          <div class="ico">➕</div>
+          <h3>Easy to grow</h3>
+          <p>Add your own games by dropping one folder in <b>/games</b> — or plug in any externally hosted game (HTML5, Unity, even Flash) with <b>one line</b> in the registry.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="fbrand">
+          <a class="brand" href="index.html">
+            <span class="hex">
+              <svg width="22" height="26" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="hexg2" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ff6ea9"/>
+                    <stop offset="1" stop-color="#b46bff"/>
+                  </linearGradient>
+                </defs>
+                <path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="url(#hexg2)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/>
+                <path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span><span class="mono">0xB0</span> GAMES</span>
+          </a>
+          <p>Unblocked HTML5 games + a web unblocker. Built as a static site — it runs entirely on GitHub Pages with no backend.</p>
+        </div>
+        <div class="cols">
+          <div>
+            <h4>Play</h4>
+            <a href="#games">All games</a>
+            <a href="unblocker.html">Unblocker</a>
+            <a href="404.html">404 zone 👀</a>
+          </div>
+          <div>
+            <h4>Project</h4>
+            <a href="https://github.com/va1uxxx/0xB0-Games" target="_blank" rel="noopener">GitHub repo</a>
+            <a href="https://github.com/va1uxxx/0xB0-Games/issues/new?labels=Game%20Request&title=Game%20Request%3A%20&body=**Game%20name%3A**%0A**Link%20to%20the%20game%3A**%0A**Category%3A**%0A**Why%20should%200xB0%20add%20it%3F**" target="_blank" rel="noopener">Add your own game</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 0xB0 Games — play responsibly 🕹️</span>
+        <span>Press <b>`</b> anytime to teleport to Google Classroom</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/petals.js"></script>
+  <script src="js/games-data.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
