@@ -1719,3 +1719,5 @@ function tileInnerHTML(g) {
 // batch 2: tunnel rush, moto x3m, papas series, bloons, etc (~75 games)
 
 // batch 3: flash games, unity games, emulated classics (~100 games)
+
+// batch 4: henry stickmin, duck life, vex, duck hunt etc (~100 games)
