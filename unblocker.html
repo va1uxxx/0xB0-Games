@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>さくら Unblocker — 0xB0 Games</title>
+  <meta name="referrer" content="no-referrer" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ff6ea9'/%3E%3Cpath d='M8 9h11l4 4v12a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9z' fill='%23fff'/%3E%3C/svg%3E" />
+</head>
+<body class="un-page">
+
+  <canvas id="petalCanvas"></canvas>
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="un-top">
+    <button class="home-link" id="backHome" title="Back to 0xB0 Games">
+      ⌂ <span>0xB0 Games</span>
+    </button>
+    <div class="links">
+      <a href="#" id="cloakToggle" title="Disguise this tab">Tab cloak: off</a>
+    </div>
+  </div>
+
+  <!-- ============ SAKURA SCENE ============ -->
+  <div class="un-main">
+    <div class="un-sun"></div>
+    <div class="un-kanji" data-parallax="0.05">桜</div>
+
+    <div class="torii-wrap" data-parallax="0.09">
+      <div class="torii">
+        <div class="kasagi"></div>
+        <div class="shimaki"></div>
+        <div class="nuki"></div>
+        <div class="pillar l"></div>
+        <div class="pillar r"></div>
+        <div class="base l"></div>
+        <div class="base r"></div>
+        <div class="gaku">0x</div>
+      </div>
+    </div>
+
+    <h1 class="un-logo">
+      <span>0</span><span>x</span><span>B</span><span>0</span><span>U</span><span>n</span><span>b</span><span>l</span><span>o</span><span>c</span><span>k</span><span>e</span><span>r</span>
+    </h1>
+    <p class="un-sub">Type a website below — we'll open it through whichever proxy works.</p>
+    <p class="un-jp">桜アンロッカー • さくら</p>
+
+    <form class="un-searchbox" id="uvForm">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20l-4-4"></path>
+      </svg>
+      <input id="uvAddress" type="text" placeholder="Search or type a URL (e.g. youtube.com)" autocomplete="off" spellcheck="false" />
+    </form>
+
+    <div class="un-btnrow">
+      <button class="un-btn primary" id="goBtn">Unblock</button>
+      <button class="un-btn" id="luckyBtn">I'm Feeling Lucky</button>
+    </div>
+
+    <label class="un-cloakbox" title="Opens in a hidden about:blank window">
+      <input type="checkbox" id="cloakOpen" />
+      Open in a cloaked (about:blank) window
+    </label>
+
+    <!-- ============ PROXY PORTAL ============ -->
+    <div class="proxy-portal" id="proxyPortal">
+      <span class="portal-title">⛩️ PROXY PORTAL — pick your route</span>
+      <div class="portal-grid" id="portalGrid"></div>
+    </div>
+
+    <!-- quick sites -->
+    <div class="un-quick" id="quickRow"></div>
+
+    <p class="un-note">
+      Don't log into personal accounts through any proxy. Don't enter private info. Use responsibly. 🌸
+    </p>
+  </div>
+
+  <!-- ============ SETTINGS (for custom bare server) ============ -->
+  <button class="un-gear" id="gearBtn" title="Custom server settings" aria-label="Settings">⚙</button>
+  <div class="un-settings-panel" id="settingsPanel">
+    <div class="un-settings">
+      <h2>Custom proxy server</h2>
+      <p class="hint">The public proxies above work on most networks. If you want your own dedicated server (2-min setup):</p>
+      <label for="serverInput">Bare server URL</label>
+      <input id="serverInput" type="url" placeholder="https://your-server.workers.dev/" spellcheck="false" />
+      <div class="row">
+        <button class="un-btn primary" id="serverSave">Save & use</button>
+        <button class="un-btn" id="serverTest">Test</button>
+        <button class="un-btn" id="serverReset">Reset</button>
+        <button class="un-btn" id="settingsClose">Close</button>
+      </div>
+      <div class="msg" id="settingsMsg"></div>
+      <p class="hint" style="margin-top:14px">
+        <b>Deploy your own free server:</b>
+      </p>
+      <div class="deploy-box">
+        <ol style="margin:6px 0 8px;padding-left:18px;font-size:13px;color:#b39ccf;line-height:1.6">
+          <li>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener" style="color:#ffb3d1">dash.cloudflare.com</a> → Workers → Create → Deploy</li>
+          <li>Click <b>Edit code</b> → <button id="copyWorkerSettings" style="background:rgba(255,110,169,.15);border:1px solid rgba(255,110,169,.4);color:#ffb3d1;font-weight:700;font-size:11.5px;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📋 Copy server code</button> → paste → Deploy</li>
+          <li>Copy your URL (like <code style="color:#ffd166">https://your-name.workers.dev</code>) → paste above → Save</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ ULTRAVIOLET RUNTIME (kept for the built-in proxy) ============ -->
+  <script src="uv/servers.js"></script>
+  <script src="uv/uv.bundle.js"></script>
+  <script src="uv/uv.config.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/unblocker.js" defer></script>
+</body>
+</html>
