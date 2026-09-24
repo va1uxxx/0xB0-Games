@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17c964"/>
+      <stop offset="1" stop-color="#0a2b1e"/>
+    </linearGradient>
+    <linearGradient id="sn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7dfccd"/>
+      <stop offset="1" stop-color="#00e5a0"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="14" fill="url(#bg)"/>
+  <path d="M262 16l22 13v26l-22 13-22-13V29z" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="3"/>
+  <path d="M40 108l16 9v18l-16 10-16-10v-18z" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="3"/>
+  <path d="M74 128 h40 a10 10 0 0 0 10-10 a10 10 0 0 1 10-10 h40 a10 10 0 0 1 10 10 a10 10 0 0 0 10 10 h34 a10 10 0 0 1 10 10 v14" fill="none" stroke="url(#sn)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>
+  <circle cx="262" cy="128" r="10" fill="#7dfccd"/>
+  <circle cx="262" cy="124" r="2.4" fill="#04121c"/>
+  <circle cx="266" cy="124" r="2.4" fill="#04121c"/>
+  <circle cx="196" cy="70" r="9" fill="#ffd166"/>
+  <circle cx="196" cy="70" r="16" fill="none" stroke="#ffd166" stroke-opacity=".4" stroke-width="3"/>
+  <text x="18" y="168" font-family="'Segoe UI', Arial, sans-serif" font-size="23" font-weight="800" fill="#fff">Snake</text>
+  <text x="302" y="168" text-anchor="end" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#7dfccd">0xB0</text>
+</svg>
