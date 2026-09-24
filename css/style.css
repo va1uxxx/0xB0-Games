@@ -1303,7 +1303,6 @@ img { max-width: 100%; }
   margin: -14px 0 26px;
 }
 
-/* 3D tilt on game cards is driven by js/main.js */
 @media (hover: hover) {
   .card { will-change: transform; }
 }
@@ -2368,24 +2367,13 @@ body.grid-compact .card .meta .cat {
   color: var(--text);
 }
 
-/* tweak: rounded corners on cards */
 
-/* mobile responsive breakpoint */
 
-/* sakura theme colors */
 
-/* 3d card tilt */
 
-/* hero showcase */
 
-/* scroll reveal */
 
-/* fullscreen fix */
 
-/* boss mode overlay */
 
-/* themes: sakura midnight matcha yuzu synth kuro */
 
-/* proxy portal cards */
 
-/* final polish */
