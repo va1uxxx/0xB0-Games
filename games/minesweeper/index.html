@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Minesweeper — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; padding: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #131c33, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #a78bfa; text-shadow: 0 0 18px rgba(167, 139, 250, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 14px; text-align: center; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #ff5470; }
+  .stat .val.time { color: #00b3ff; }
+  .diffs { display: flex; gap: 6px; }
+  button {
+    background: #131c33; border: 1px solid #1d2a47; color: #93a5c8; font-weight: 700; font-size: 13px;
+    padding: 8px 14px; border-radius: 9px; cursor: pointer; font-family: inherit; transition: .15s;
+  }
+  button:hover { color: #e8f0ff; border-color: #2a3b66; }
+  button.on { background: linear-gradient(92deg, #a78bfa, #00b3ff); color: #101020; border-color: transparent; }
+  button.face { font-size: 20px; padding: 4px 14px; }
+  #grid {
+    display: grid;
+    gap: 3px;
+    background: #0c1322; padding: 8px; border-radius: 12px;
+    border: 2px solid #1d2a47;
+    touch-action: manipulation;
+  }
+  .cell {
+    width: var(--cs); height: var(--cs);
+    border: none; border-radius: 6px; cursor: pointer;
+    background: linear-gradient(145deg, #18233f, #101a2e);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+    display: flex; align-items: center; justify-content: center;
+    font-family: Consolas, monospace; font-weight: 800; font-size: calc(var(--cs) * .52);
+    padding: 0; transition: background .1s;
+  }
+  .cell:hover:not(.open) { background: linear-gradient(145deg, #21305a, #16233c); }
+  .cell.open { background: #0d1424; box-shadow: none; cursor: default; }
+  .cell.mine { background: #3a1020 !important; }
+  .cell.flagged { font-size: calc(var(--cs) * .5); }
+  .cell.boom { background: #ff5470 !important; }
+  .n1 { color: #6aa9ff; } .n2 { color: #17c964; } .n3 { color: #ff5470; } .n4 { color: #a78bfa; }
+  .n5 { color: #ffb020; } .n6 { color: #00e5a0; } .n7 { color: #e8f0ff; } .n8 { color: #93a5c8; }
+  .hint { color: #93a5c8; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>💣 MINESWEEPER<span>0xB0 GAMES</span></h1>
+  <div class="top">
+    <div class="stat"><div class="lbl">MINES</div><div class="val" id="mines">10</div></div>
+    <button class="face" id="face" title="New game">🙂</button>
+    <div class="stat"><div class="lbl">TIME</div><div class="val time" id="time">0</div></div>
+  </div>
+  <div class="diffs">
+    <button class="on" data-d="easy">Easy 9×9</button>
+    <button data-d="medium">Medium 12×12</button>
+    <button data-d="hard">Hard 16×16</button>
+    <button id="flagMode" title="Toggle flag mode (for touch)">🚩 Flag mode: off</button>
+  </div>
+  <div id="grid"></div>
+  <div class="hint">Click = reveal • Right-click / long-press = flag<br>First click is always safe 😇</div>
+
+<script>
+(function () {
+  'use strict';
+  var DIFFS = { easy: { c: 9, r: 9, m: 10 }, medium: { c: 12, r: 12, m: 24 }, hard: { c: 16, r: 16, m: 48 } };
+  var diff = 'easy';
+  var gridEl = document.getElementById('grid');
+  var minesEl = document.getElementById('mines'), timeEl = document.getElementById('time');
+  var faceBtn = document.getElementById('face'), flagBtn = document.getElementById('flagMode');
+  var COLS, ROWS, MINES, cells, revealed, flags, started, done, timer, seconds, flagMode = false;
+
+  function idx(r, c) { return r * COLS + c; }
+  function neighbors(i) {
+    var r = ~~(i / COLS), c = i % COLS, out = [];
+    for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue;
+      var nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) out.push(idx(nr, nc));
+    }
+    return out;
+  }
+
+  function sizeCells() {
+    var cs = Math.max(24, Math.min(38, ~~(Math.min(innerWidth - 60, 560) / COLS)));
+    gridEl.style.setProperty('--cs', cs + 'px');
+  }
+
+  function start() {
+    var d = DIFFS[diff];
+    COLS = d.c; ROWS = d.r; MINES = d.m;
+    cells = new Array(COLS * ROWS).fill(null).map(function (_, i) {
+      return { i: i, mine: false, open: false, flag: false, n: 0 };
+    });
+    revealed = 0; flags = 0; started = false; done = false; seconds = 0;
+    clearInterval(timer); timeEl.textContent = 0;
+    minesEl.textContent = MINES;
+    faceBtn.textContent = '🙂';
+    sizeCells();
+    gridEl.style.gridTemplateColumns = 'repeat(' + COLS + ', var(--cs))';
+    render();
+  }
+
+  function render() {
+    gridEl.innerHTML = '';
+    cells.forEach(function (cell) {
+      var b = document.createElement('button');
+      b.className = 'cell';
+      b.dataset.i = cell.i;
+      if (cell.open) {
+        b.classList.add('open');
+        if (cell.mine) { b.classList.add('mine'); b.textContent = '💥'; }
+        else if (cell.n > 0) { b.textContent = cell.n; b.classList.add('n' + cell.n); }
+      } else if (cell.flag) {
+        b.classList.add('flagged'); b.textContent = '🚩';
+      }
+      gridEl.appendChild(b);
+    });
+  }
+
+  function placeMines(safeIdx) {
+    var forbidden = [safeIdx].concat(neighbors(safeIdx));
+    var placed = 0;
+    while (placed < MINES) {
+      var i = ~~(Math.random() * cells.length);
+      if (cells[i].mine || forbidden.indexOf(i) !== -1) continue;
+      cells[i].mine = true; placed++;
+    }
+    cells.forEach(function (c) {
+      c.n = neighbors(c.i).filter(function (j) { return cells[j].mine; }).length;
+    });
+  }
+
+  function floodOpen(i) {
+    var stack = [i];
+    while (stack.length) {
+      var j = stack.pop();
+      var c = cells[j];
+      if (c.open || c.flag) continue;
+      c.open = true; revealed++;
+      if (c.n === 0 && !c.mine) {
+        neighbors(j).forEach(function (k) {
+          if (!cells[k].open && !cells[k].flag) stack.push(k);
+        });
+      }
+    }
+  }
+
+  function checkWin() {
+    if (done) return;
+    if (revealed === cells.length - MINES) {
+      done = true; clearInterval(timer);
+      faceBtn.textContent = '😎';
+      cells.forEach(function (c) { if (c.mine && !c.flag) { c.flag = true; flags++; } });
+      minesEl.textContent = MINES - flags;
+      render();
+      setTimeout(function () { alert('😎 Field cleared in ' + seconds + 's! Press 🙂 for a new game.'); }, 60);
+    }
+  }
+
+  function lose(boomIdx) {
+    done = true; clearInterval(timer);
+    faceBtn.textContent = '😵';
+    cells.forEach(function (c) { if (c.mine && !c.flag) c.open = true; });
+    cells[boomIdx].open = true;
+    render();
+    var el = gridEl.querySelector('[data-i="' + boomIdx + '"]');
+    if (el) el.classList.add('boom');
+  }
+
+  function click(i) {
+    if (done) return;
+    var c = cells[i];
+    if (flagMode) { toggleFlag(i); return; }
+    if (c.flag || c.open) return;
+    if (!started) {
+      started = true;
+      placeMines(i);
+      timer = setInterval(function () { seconds++; timeEl.textContent = seconds; }, 1000);
+    }
+    if (c.mine) { lose(i); return; }
+    floodOpen(i);
+    render();
+    checkWin();
+  }
+
+  function toggleFlag(i) {
+    if (done) return;
+    var c = cells[i];
+    if (c.open) return;
+    c.flag = !c.flag;
+    flags += c.flag ? 1 : -1;
+    minesEl.textContent = MINES - flags;
+    render();
+  }
+
+  gridEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.cell');
+    if (b) click(+b.dataset.i);
+  });
+
+  gridEl.addEventListener('contextmenu', function (e) {
+    var b = e.target.closest('.cell');
+    if (b) { e.preventDefault(); toggleFlag(+b.dataset.i); }
+  });
+
+  /* long-press flag for touch */
+  var lpTimer = null, lpIdx = -1;
+  gridEl.addEventListener('touchstart', function (e) {
+    var b = e.target.closest('.cell');
+    if (!b) return;
+    lpIdx = +b.dataset.i;
+    lpTimer = setTimeout(function () { toggleFlag(lpIdx); lpTimer = null; }, 380);
+  }, { passive: true });
+  gridEl.addEventListener('touchend', function () {
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+  }, { passive: true });
+  gridEl.addEventListener('touchmove', function () {
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+  }, { passive: true });
+
+  flagBtn.addEventListener('click', function () {
+    flagMode = !flagMode;
+    flagBtn.textContent = '🚩 Flag mode: ' + (flagMode ? 'on' : 'off');
+    flagBtn.classList.toggle('on', flagMode);
+  });
+
+  faceBtn.addEventListener('click', start);
+
+  document.querySelectorAll('.diffs [data-d]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      diff = b.getAttribute('data-d');
+      document.querySelectorAll('.diffs [data-d]').forEach(function (x) { x.classList.toggle('on', x === b); });
+      start();
+    });
+  });
+
+  window.addEventListener('resize', sizeCells);
+  start();
+})();
+</script>
+</body>
+</html>
