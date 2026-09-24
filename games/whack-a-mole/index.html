@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Whack-a-Mole — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; padding: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #2b2210, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  body.shake { animation: shake .3s; }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-6px, 2px); }
+    50% { transform: translate(6px, -2px); }
+    75% { transform: translate(-4px, 0); }
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #17c964; text-shadow: 0 0 18px rgba(23, 201, 100, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; align-items: center; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; min-width: 74px; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #17c964; }
+  .timebar-wrap { width: min(92vw, 420px); height: 10px; background: #0e1526; border: 1px solid #1d2a47; border-radius: 999px; overflow: hidden; }
+  #timebar { height: 100%; width: 100%; background: linear-gradient(92deg, #17c964, #ffd166); transition: width .2s linear; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--hs));
+    grid-template-rows: repeat(3, var(--hs));
+    gap: 14px;
+  }
+  :root { --hs: clamp(84px, 26vw, 118px); }
+  .hole {
+    position: relative;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 30%, #0a0e17, #12100a 70%);
+    box-shadow: inset 0 8px 14px rgba(0, 0, 0, .9), 0 3px 0 rgba(255, 255, 255, .03);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .hole::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(147, 165, 200, .14);
+    pointer-events: none;
+  }
+  .mole {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: calc(var(--hs) * .52);
+    transform: translateY(105%);
+    transition: transform .14s ease-out;
+    will-change: transform;
+  }
+  .mole.up { transform: translateY(8%); }
+  .mole.bonk { animation: bonk .25s ease forwards; }
+  @keyframes bonk {
+    40% { transform: translateY(8%) scale(1.25) rotate(-8deg); }
+    100% { transform: translateY(120%) scale(1); }
+  }
+  .hint { color: #93a5c8; font-size: 13px; text-align: center; }
+  button {
+    background: linear-gradient(92deg, #17c964, #ffd166); color: #04121c;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(23, 201, 100, .25);
+  }
+</style>
+</head>
+<body>
+  <h1>🔨 WHACK-A-MOLE<span>0xB0 GAMES</span></h1>
+  <div class="top">
+    <div class="stat"><div class="lbl">SCORE</div><div class="val" id="score">0</div></div>
+    <button id="startBtn">▶ Start 30s round</button>
+    <div class="stat"><div class="lbl">BEST</div><div class="val" id="best">0</div></div>
+  </div>
+  <div class="timebar-wrap"><div id="timebar"></div></div>
+  <div class="grid" id="grid"></div>
+  <div class="hint">🐹 = +1 • 🌟 golden = +3 • 💣 = −3 (don't hit!)</div>
+
+<script>
+(function () {
+  'use strict';
+  var DURATION = 30;
+  var grid = document.getElementById('grid');
+  var scoreEl = document.getElementById('score'), bestEl = document.getElementById('best');
+  var timebar = document.getElementById('timebar');
+  var startBtn = document.getElementById('startBtn');
+  var holes = [];
+  var score, running, timeLeft, spawnTimer, tickTimer;
+  var best = +(localStorage.getItem('0xb0-mole-best') || 0);
+  bestEl.textContent = best;
+
+  for (var i = 0; i < 9; i++) {
+    var h = document.createElement('div');
+    h.className = 'hole';
+    var m = document.createElement('div');
+    m.className = 'mole';
+    h.appendChild(m);
+    h.addEventListener('pointerdown', (function (idx) {
+      return function () { whack(idx); };
+    })(i));
+    grid.appendChild(h);
+    holes.push({ el: h, mole: m, busy: false, type: null, hideTimer: null });
+  }
+
+  function elapsed() { return DURATION - timeLeft; }
+
+  function popOne() {
+    if (!running) return;
+    var free = holes.filter(function (h) { return !h.busy; });
+    if (free.length) {
+      var h = free[~~(Math.random() * free.length)];
+      var roll = Math.random();
+      h.type = roll < 0.15 ? 'gold' : roll < 0.35 ? 'bomb' : 'mole';
+      h.mole.textContent = h.type === 'gold' ? '🌟' : h.type === 'bomb' ? '💣' : '🐹';
+      h.busy = true;
+      h.mole.classList.add('up');
+
+      var stay = Math.max(480, 1050 - elapsed() * 20);
+      h.hideTimer = setTimeout(function () {
+        h.mole.classList.remove('up');
+        h.busy = false;
+      }, stay);
+    }
+    var next = Math.max(380, 900 - elapsed() * 18);
+    spawnTimer = setTimeout(popOne, next);
+  }
+
+  function whack(idx) {
+    if (!running) return;
+    var h = holes[idx];
+    if (!h.busy || !h.mole.classList.contains('up')) return;
+    clearTimeout(h.hideTimer);
+    h.busy = false;
+
+    var delta = h.type === 'gold' ? 3 : h.type === 'bomb' ? -3 : 1;
+    score = Math.max(0, score + delta);
+    scoreEl.textContent = score;
+
+    if (h.type === 'bomb') {
+      document.body.classList.remove('shake');
+      void document.body.offsetWidth;
+      document.body.classList.add('shake');
+      h.mole.textContent = '💥';
+    } else {
+      h.mole.textContent = delta >= 3 ? '✨' : '💥';
+    }
+    h.mole.classList.remove('up');
+    h.mole.classList.add('bonk');
+    setTimeout(function () { h.mole.classList.remove('bonk'); }, 260);
+  }
+
+  function end() {
+    running = false;
+    clearTimeout(spawnTimer);
+    clearInterval(tickTimer);
+    holes.forEach(function (h) {
+      clearTimeout(h.hideTimer);
+      h.mole.classList.remove('up');
+      h.busy = false;
+    });
+    if (score > best) { best = score; localStorage.setItem('0xb0-mole-best', best); bestEl.textContent = best; }
+    startBtn.textContent = '▶ Play again';
+    alert('⏱ Time! Final score: ' + score + (score >= best && score > 0 ? ' — new best! 🏆' : ''));
+  }
+
+  startBtn.addEventListener('click', function () {
+    score = 0;
+    scoreEl.textContent = 0;
+    timeLeft = DURATION;
+    running = true;
+    timebar.style.width = '100%';
+    tickTimer = setInterval(function () {
+      timeLeft--;
+      timebar.style.width = Math.max(0, (timeLeft / DURATION) * 100) + '%';
+      if (timeLeft <= 0) end();
+    }, 1000);
+    popOne();
+  });
+})();
+</script>
+</body>
+</html>
