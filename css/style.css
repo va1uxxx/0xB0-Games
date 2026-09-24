@@ -2367,3 +2367,5 @@ body.grid-compact .card .meta .cat {
   background: var(--panel);
   color: var(--text);
 }
+
+/* tweak: rounded corners on cards */
