@@ -397,3 +397,5 @@
 
   input.focus();
 })();
+
+// auto-fallback: opens public proxy when our server is blocked
