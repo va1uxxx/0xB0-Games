@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Breakout — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #2b1030, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  .top { display: flex; gap: 10px; align-items: center; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #ff5470; text-shadow: 0 0 18px rgba(255, 84, 112, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .scorebox { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 14px; text-align: center; }
+  .scorebox .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .scorebox .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #ffd166; }
+  #stage { position: relative; }
+  canvas { display: block; border-radius: 14px; border: 2px solid #1d2a47; box-shadow: 0 14px 50px rgba(0, 0, 0, .5); max-width: 94vw; touch-action: none; }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 14px; z-index: 5;
+    background: rgba(5, 9, 18, .75); backdrop-filter: blur(3px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center;
+    opacity: 0; pointer-events: none; transition: .25s;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .overlay h2 { margin: 0; font-size: 30px; }
+  .overlay p { margin: 0; color: #93a5c8; font-size: 14px; }
+  button {
+    background: linear-gradient(92deg, #ff5470, #ffb020); color: #20060d;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer; margin-top: 8px;
+    box-shadow: 0 6px 22px rgba(255, 84, 112, .3);
+  }
+  .hint { color: #93a5c8; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>🧱 BREAKOUT<span>0xB0 GAMES</span></h1>
+    <div class="scorebox"><div class="lbl">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="scorebox"><div class="lbl">LIVES</div><div class="val" id="lives">♥♥♥</div></div>
+    <div class="scorebox"><div class="lbl">LEVEL</div><div class="val" id="level">1</div></div>
+  </div>
+  <div id="stage">
+    <canvas id="cv" width="480" height="360"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+  <div class="hint">Mouse / drag to move • Arrow keys too</div>
+
+<script>
+(function () {
+  'use strict';
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var scoreEl = document.getElementById('score'), livesEl = document.getElementById('lives'), levelEl = document.getElementById('level');
+  var W = 480, H = 360;
+  var paddle, ball, bricks, score, lives, level, state; /* ready|play|dead|clear */
+  var COLORS = ['#ff5470', '#ffb020', '#ffd166', '#17c964', '#00b3ff'];
+  var POINTS = [50, 40, 30, 20, 10];
+
+  function showOverlay(title, sub, btn, onclick) {
+    overlay.innerHTML = '<h2>' + title + '</h2><p>' + sub + '</p>';
+    var b = document.createElement('button'); b.textContent = btn; b.onclick = onclick;
+    overlay.appendChild(b); overlay.classList.add('show');
+  }
+  function hideOverlay() { overlay.classList.remove('show'); }
+
+  function buildBricks() {
+    bricks = [];
+    var cols = 8, gap = 4, margin = 8, top = 42, bh = 18;
+    var bw = (W - margin * 2 - gap * (cols - 1)) / cols;
+    for (var row = 0; row < 5; row++) {
+      for (var c = 0; c < cols; c++) {
+        bricks.push({
+          x: margin + c * (bw + gap), y: top + row * (bh + gap),
+          w: bw, h: bh, row: row, alive: true
+        });
+      }
+    }
+  }
+
+  function serve() { ball = { x: paddle.x + paddle.w / 2, y: paddle.y - 8, vx: 0, vy: 0, stuck: true, speed: 4 + (level - 1) * 0.5 }; }
+
+  function reset(full) {
+    if (full) { score = 0; lives = 3; level = 1; buildBricks(); }
+    paddle = { x: W / 2 - 40, y: H - 24, w: 80, h: 11 };
+    serve();
+    state = 'ready';
+    updateHUD();
+    if (full) showOverlay('🧱 Breakout', 'Smash every brick. Don\'t drop the ball.', 'Start', function () {
+      hideOverlay(); launch();
+    });
+  }
+
+  function launch() {
+    state = 'play';
+    ball.stuck = false;
+    var ang = -Math.PI / 2 + (Math.random() - 0.5) * 0.7;
+    ball.vx = Math.cos(ang) * ball.speed;
+    ball.vy = Math.sin(ang) * ball.speed;
+  }
+
+  function updateHUD() {
+    scoreEl.textContent = score;
+    livesEl.textContent = '♥'.repeat(Math.max(0, lives));
+    levelEl.textContent = level;
+  }
+
+  function loseLife() {
+    lives--;
+    updateHUD();
+    if (lives <= 0) {
+      state = 'dead';
+      showOverlay('💀 Game over', 'Final score: ' + score, 'Play again', function () { hideOverlay(); reset(true); });
+    } else {
+      serve();
+      state = 'ready';
+      showOverlay('Ball lost!', lives + ' ' + (lives === 1 ? 'life' : 'lives') + ' left', 'Serve', function () { hideOverlay(); launch(); });
+    }
+  }
+
+  function clearLevel() {
+    state = 'clear';
+    level++;
+    showOverlay('Level ' + level + ' ⚡', 'Score: ' + score + ' — it gets faster…', 'Continue', function () {
+      hideOverlay();
+      buildBricks();
+      paddle.w = Math.max(56, 80 - (level - 1) * 6);
+      serve();
+      launch();
+    });
+    updateHUD();
+  }
+
+  function step() {
+    if (state !== 'play') return;
+
+    if (ball.stuck) { ball.x = paddle.x + paddle.w / 2; ball.y = paddle.y - 8; return; }
+
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    /* walls */
+    if (ball.x < 7) { ball.x = 7; ball.vx = Math.abs(ball.vx); }
+    if (ball.x > W - 7) { ball.x = W - 7; ball.vx = -Math.abs(ball.vx); }
+    if (ball.y < 7) { ball.y = 7; ball.vy = Math.abs(ball.vy); }
+
+    /* paddle */
+    if (ball.vy > 0 && ball.y + 7 >= paddle.y && ball.y - 7 <= paddle.y + paddle.h &&
+        ball.x + 7 >= paddle.x && ball.x - 7 <= paddle.x + paddle.w) {
+      var off = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2); /* -1..1 */
+      var ang = -Math.PI / 2 + off * 1.05;
+      var sp = Math.min(8.5, Math.hypot(ball.vx, ball.vy) + 0.12);
+      ball.vx = Math.cos(ang) * sp;
+      ball.vy = Math.sin(ang) * sp;
+      ball.y = paddle.y - 7;
+    }
+
+    /* bricks */
+    for (var i = 0; i < bricks.length; i++) {
+      var b = bricks[i];
+      if (!b.alive) continue;
+      if (ball.x + 7 > b.x && ball.x - 7 < b.x + b.w && ball.y + 7 > b.y && ball.y - 7 < b.y + b.h) {
+        b.alive = false;
+        score += POINTS[b.row];
+        updateHUD();
+        /* bounce axis by penetration depth */
+        var px = Math.min(ball.x + 7 - b.x, b.x + b.w - (ball.x - 7));
+        var py = Math.min(ball.y + 7 - b.y, b.y + b.h - (ball.y - 7));
+        if (px < py) ball.vx = -ball.vx; else ball.vy = -ball.vy;
+        break;
+      }
+    }
+    if (bricks.every(function (b) { return !b.alive; })) clearLevel();
+    if (ball.y > H + 12) loseLife();
+  }
+
+  function draw() {
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#0d0f22'); bg.addColorStop(1, '#0a0e17');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    bricks.forEach(function (b) {
+      if (!b.alive) return;
+      ctx.fillStyle = COLORS[b.row];
+      ctx.shadowColor = COLORS[b.row]; ctx.shadowBlur = 8;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,.22)';
+      ctx.fillRect(b.x, b.y, b.w, 4);
+    });
+
+    /* paddle */
+    ctx.fillStyle = '#e8f0ff';
+    ctx.shadowColor = '#00e5a0'; ctx.shadowBlur = 12;
+    ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+    ctx.shadowBlur = 0;
+
+    /* ball */
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd166';
+    ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    if (state === 'ready') {
+      ctx.fillStyle = 'rgba(232,240,255,.65)';
+      ctx.font = '600 13px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Click / tap / press Space to serve', W / 2, H - 44);
+    }
+  }
+
+  function loop() { step(); draw(); requestAnimationFrame(loop); }
+
+  /* ---- input ---- */
+  function movePaddle(clientX) {
+    var rect = cv.getBoundingClientRect();
+    var x = (clientX - rect.left) * (W / rect.width);
+    paddle.x = Math.max(0, Math.min(W - paddle.w, x - paddle.w / 2));
+  }
+  cv.addEventListener('mousemove', function (e) { movePaddle(e.clientX); });
+  cv.addEventListener('touchmove', function (e) { movePaddle(e.touches[0].clientX); }, { passive: true });
+  cv.addEventListener('touchstart', function (e) {
+    movePaddle(e.touches[0].clientX);
+    if (state === 'ready') launch();
+  }, { passive: true });
+  cv.addEventListener('mousedown', function () { if (state === 'ready') launch(); });
+
+  var keys = {};
+  document.addEventListener('keydown', function (e) {
+    keys[e.key] = true;
+    if ((e.code === 'Space' || e.key === 'Enter') && state === 'ready') { e.preventDefault(); launch(); }
+  });
+  document.addEventListener('keyup', function (e) { keys[e.key] = false; });
+  setInterval(function () {
+    var v = 7;
+    if (keys['ArrowLeft'] || keys['a'] || keys['A']) paddle.x = Math.max(0, paddle.x - v);
+    if (keys['ArrowRight'] || keys['d'] || keys['D']) paddle.x = Math.min(W - paddle.w, paddle.x + v);
+  }, 16);
+
+  reset(true);
+  loop();
+})();
+</script>
+</body>
+</html>
