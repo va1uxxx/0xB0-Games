@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flash Game — 0xB0 Games</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; background: #05080f; overflow: hidden; }
+    .flash-wrap {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 54px 12px 12px;
+    }
+    .flash-stage {
+      width: min(96vw, 980px);
+      aspect-ratio: 4 / 3;
+      max-height: calc(100vh - 70px);
+      background: #000;
+      border: 1px solid var(--border-2);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flash-stage:fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-height: none;
+      aspect-ratio: auto;
+      border: none;
+      border-radius: 0;
+    }
+    .flash-stage embed, .flash-stage ruffle-embed, .flash-stage ruffle-player, .flash-stage canvas, .flash-stage object {
+      width: 100% !important; height: 100% !important; display: block;
+    }
+    .player-bar {
+      position: fixed; left: 10px; top: 10px; z-index: 10;
+      display: flex; gap: 6px; padding: 6px;
+      background: rgba(13, 20, 38, 0.85); border: 1px solid var(--border);
+      border-radius: 13px; backdrop-filter: blur(8px);
+    }
+    .player-bar button {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--text); cursor: pointer;
+      font-family: var(--sans); font-weight: 700; font-size: 13.5px;
+      padding: 9px 12px; border-radius: 9px; transition: .15s;
+    }
+    .player-bar button:hover { background: var(--panel-2); color: var(--accent); }
+    .flash-note {
+      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      color: var(--muted); font-family: var(--sans); font-size: 12px;
+      text-align: center; z-index: 10; width: 94vw;
+    }
+    .flash-error {
+      display: none; position: fixed; inset: 0; z-index: 20;
+      align-items: center; justify-content: center; text-align: center; padding: 24px;
+      color: var(--text); font-family: var(--sans); background: #05080f;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ruffle: the open-source Flash emulator (same loader sz-games uses) -->
+  <script src="https://unpkg.com/@ruffle-rs/ruffle" onerror="document.getElementById('flashError').style.display='flex'"></script>
+
+  <div class="flash-wrap">
+    <div class="flash-stage" id="stageWrap">
+      <embed id="game" src="" quality="high" />
+    </div>
+  </div>
+
+  <div class="player-bar">
+    <button id="backBtn" title="Back to 0xB0 Games">← All games</button>
+    <button id="fullBtn" title="Fullscreen">⛶</button>
+    <button id="cloakTabBtn" title="Open in a hidden about:blank tab">🕶️</button>
+  </div>
+
+  <div class="flash-note">Flash games run through Ruffle — some may look or behave a bit differently than in 2009 😄</div>
+
+  <div class="flash-error" id="flashError">
+    <div>
+      <div style="font-size:40px">🔌</div>
+      <h2 style="margin:10px 0 6px">Ruffle failed to load</h2>
+      <p style="color:#93a5c8;max-width:420px;margin:0 auto;line-height:1.5">
+        The Flash emulator is fetched from a CDN which your network may block.
+        Try again on a different network, or host a copy of Ruffle in this repo
+        (see README → “Flash games”).
+      </p>
+    </div>
+  </div>
+
+  <script src="js/settings.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var params = new URLSearchParams(location.search);
+      var src = params.get('game');
+
+      if (!src || !/^https?:\/\//i.test(src)) {
+        document.getElementById('flashError').style.display = 'flex';
+        document.getElementById('flashError').querySelector('h2').textContent = 'No game URL';
+        document.getElementById('flashError').querySelector('p').textContent = 'Use flash.html?game=<swf url>';
+        return;
+      }
+
+      B0Settings.setPageTitle('Flash Game — 0xB0 Games');
+      document.getElementById('game').src = src;
+
+      document.getElementById('backBtn').addEventListener('click', function () {
+        location.href = 'index.html';
+      });
+      document.getElementById('fullBtn').addEventListener('click', function () {
+        var el = document.getElementById('stageWrap');
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (el.requestFullscreen) el.requestFullscreen();
+      });
+      document.getElementById('cloakTabBtn').addEventListener('click', function () {
+        var w = window.open('about:blank', '_blank');
+        if (!w) { alert('Allow pop-ups to use cloaked tabs.'); return; }
+        w.document.write(
+          '<!DOCTYPE html><html><head><title>Home</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
+          'iframe{border:0;width:100%;height:100%}</style></head>' +
+          '<body><iframe src="' + location.href + '"></iframe></body></html>'
+        );
+        w.document.close();
+      });
+    })();
+  </script>
+</body>
+</html>
