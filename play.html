@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Playing… — 0xB0 Games</title>
+  <meta name="description" content="Play free unblocked games on 0xB0 Games." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex">
+          <svg width="26" height="30" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hexg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff6ea9"/>
+                <stop offset="1" stop-color="#b46bff"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="url(#hexg)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/>
+            <path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="unblocker.html">Unblocker</a>
+        <a href="settings.html">Settings</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" id="playMain" style="display:none">
+    <div class="play-top">
+      <a class="btn btn-ghost" href="index.html#games" style="padding:9px 16px;font-size:13.5px">← All games</a>
+      <div class="title-box">
+        <h1 id="gameTitle">…<span class="cat" id="gameCat"></span></h1>
+      </div>
+      <div class="play-actions">
+        <button class="icon-btn" id="reloadBtn" title="Restart the game">⟳ <span class="label">Reload</span></button>
+        <button class="icon-btn" id="fullBtn" title="Fullscreen">⛶ <span class="label">Fullscreen</span></button>
+        <button class="icon-btn" id="cloakTabBtn" title="Open this game in a hidden about:blank tab">🕶️ <span class="label">Cloaked tab</span></button>
+      </div>
+    </div>
+
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage" id="stage">
+        <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe>
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <span>Booting game…</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="play-info">
+      <div class="info-card">
+        <h3>> about_this_game</h3>
+        <p id="gameDesc"></p>
+      </div>
+      <div class="info-card">
+        <h3>> controls</h3>
+        <p id="gameControls"></p>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head"><h2>More games</h2></div>
+      <div class="grid" id="moreGrid"></div>
+    </section>
+  </main>
+
+  <main class="error-box" id="notFound" style="display:none">
+    <div class="code">404</div>
+    <h2 style="margin:0">Game not found</h2>
+    <p>That game isn't registered in the arcade (yet). Head back and pick another one.</p>
+    <a class="btn btn-primary" href="index.html#games">← Back to all games</a>
+  </main>
+
+  <script src="js/petals.js"></script>
+  <script src="js/games-data.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/play.js"></script>
+</body>
+</html>
