@@ -250,7 +250,7 @@
 
   function launchBuiltin(rawUrl) {
     if (!swReady || !serverOk) {
-      launchProxy('invisiproxy', rawUrl);
+      launchThroughPublic(rawUrl);
       return;
     }
     var url = search(rawUrl.trim());
@@ -259,20 +259,47 @@
     else location.href = target;
   }
 
+  /* The smart approach: open a public proxy in a popup, let their
+     service worker register on their domain, then navigate the
+     popup to the pre-encoded proxied URL. */
+  function launchThroughPublic(rawUrl) {
+    var url = search(rawUrl.trim());
+    var encoded = Ultraviolet.codec.xor.encode(url);
+
+    /* Open InvisiProxy's UV page to register their SW */
+    var w = window.open('https://invisiproxy.com/ultraviolet', '_blank');
+    if (!w) {
+      /* popup blocked — just go to their search page */
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(function () {});
+      }
+      toast('Allow pop-ups! Opening InvisiProxy — URL copied to clipboard');
+      setTimeout(function () {
+        window.location.href = 'https://invisiproxy.com/ultraviolet?q=' + encodeURIComponent(rawUrl.trim());
+      }, 400);
+      return;
+    }
+
+    toast('Connecting through InvisiProxy…');
+
+    /* Wait for their SW to register, then navigate to the proxied URL */
+    setTimeout(function () {
+      try {
+        w.location.href = 'https://invisiproxy.com/uv/service/' + encoded;
+      } catch (err) {
+        /* cross-origin navigation blocked — fall back to ?q= param */
+        w.location.href = 'https://invisiproxy.com/ultraviolet?q=' + encodeURIComponent(rawUrl.trim());
+      }
+    }, 3500);
+  }
+
   function launch(rawUrl) {
     if (!rawUrl || !rawUrl.trim()) return;
     if (swReady && serverOk) {
       launchBuiltin(rawUrl);
       return;
     }
-    var url = search(rawUrl.trim());
-    var publicProxies = PROXIES.filter(function (p) { return p.url; });
-    var pick = publicProxies[~~(Math.random() * publicProxies.length)];
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).catch(function () {});
-    }
-    toast('Opening ' + pick.name + ' — URL copied to clipboard');
-    setTimeout(function () { window.open(pick.url, '_blank'); }, 400);
+    launchThroughPublic(rawUrl);
   }
 
   form.addEventListener('submit', function (e) {
@@ -397,5 +424,3 @@
 
   input.focus();
 })();
-
-// auto-fallback: opens public proxy when our server is blocked

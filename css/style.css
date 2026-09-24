@@ -1303,6 +1303,7 @@ img { max-width: 100%; }
   margin: -14px 0 26px;
 }
 
+/* 3D tilt on game cards is driven by js/main.js */
 @media (hover: hover) {
   .card { will-change: transform; }
 }
@@ -2366,14 +2367,3 @@ body.grid-compact .card .meta .cat {
   background: var(--panel);
   color: var(--text);
 }
-
-
-
-
-
-
-
-
-
-
-

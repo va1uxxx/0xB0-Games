@@ -1713,17 +1713,3 @@ function tileInnerHTML(g) {
     '</div>'
   );
 }
-
-// batch 1: retro bowl, slope, subway surfers, fnaf, etc (~50 games)
-
-// batch 2: tunnel rush, moto x3m, papas series, bloons, etc (~75 games)
-
-// batch 3: flash games, unity games, emulated classics (~100 games)
-
-// batch 4: henry stickmin, duck life, vex, duck hunt etc (~100 games)
-
-// batch 5: emulated classics (pokemon, zelda, mario kart, tekken)
-
-// batch 6: fnf, shell shockers, fort craft, incredibox, etc
-
-// fix: retro bowl and minecraft now use official urls
