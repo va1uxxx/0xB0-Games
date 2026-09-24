@@ -1717,3 +1717,5 @@ function tileInnerHTML(g) {
 // batch 1: retro bowl, slope, subway surfers, fnaf, etc (~50 games)
 
 // batch 2: tunnel rush, moto x3m, papas series, bloons, etc (~75 games)
+
+// batch 3: flash games, unity games, emulated classics (~100 games)
