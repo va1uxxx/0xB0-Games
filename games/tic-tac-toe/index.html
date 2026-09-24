@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Tic-Tac-Toe — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #131c33, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #00e5a0; text-shadow: 0 0 18px rgba(0, 229, 160, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .scorebar { display: flex; gap: 10px; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; }
+  .stat .val.x { color: #00e5a0; } .stat .val.o { color: #ff5470; } .stat .val.d { color: #93a5c8; }
+  .diffs { display: flex; gap: 6px; }
+  button {
+    background: #131c33; border: 1px solid #1d2a47; color: #93a5c8; font-weight: 700; font-size: 13px;
+    padding: 8px 14px; border-radius: 9px; cursor: pointer; font-family: inherit; transition: .15s;
+  }
+  button:hover { color: #e8f0ff; border-color: #2a3b66; }
+  button.on { background: linear-gradient(92deg, #00e5a0, #00b3ff); color: #04121c; border-color: transparent; }
+  .board {
+    display: grid; grid-template-columns: repeat(3, 108px); grid-template-rows: repeat(3, 108px);
+    gap: 8px; padding: 12px; border-radius: 16px;
+    background: #0c1322; border: 2px solid #1d2a47;
+  }
+  .sq {
+    border: 1px solid #1d2a47; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(145deg, #18233f, #101a2e);
+    font-size: 56px; font-weight: 800; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: .12s; padding: 0; color: #e8f0ff; font-family: inherit;
+  }
+  .sq:hover:empty { border-color: #00e5a0; box-shadow: 0 0 14px rgba(0, 229, 160, .25); }
+  .sq.x { color: #00e5a0; text-shadow: 0 0 16px rgba(0, 229, 160, .55); }
+  .sq.o { color: #ff5470; text-shadow: 0 0 16px rgba(255, 84, 112, .55); }
+  .sq.win { background: linear-gradient(145deg, #1f4d3a, #0a3a2c); border-color: #17c964; }
+  #status { font-size: 16px; font-weight: 700; min-height: 24px; }
+  @media (max-width: 420px) {
+    .board { grid-template-columns: repeat(3, calc((92vw - 70px) / 3)); grid-template-rows: repeat(3, calc((92vw - 70px) / 3)); }
+    .sq { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+  <h1>❌⭕ TIC-TAC-TOE<span>0xB0 GAMES</span></h1>
+  <div class="scorebar">
+    <div class="stat"><div class="lbl">YOU (X)</div><div class="val x" id="sx">0</div></div>
+    <div class="stat"><div class="lbl">DRAWS</div><div class="val d" id="sd">0</div></div>
+    <div class="stat"><div class="lbl">AI (O)</div><div class="val o" id="so">0</div></div>
+  </div>
+  <div class="diffs">
+    <button data-l="easy">😴 Easy</button>
+    <button data-l="hard" class="on">🤖 Unbeatable</button>
+  </div>
+  <div id="status">Your move — you are X</div>
+  <div class="board" id="board"></div>
+  <div>
+    <button id="reset">↺ New round</button>
+    <button id="wipe" title="Clear the scoreboard">Clear scores</button>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var boardEl = document.getElementById('board');
+  var statusEl = document.getElementById('status');
+  var sxEl = document.getElementById('sx'), soEl = document.getElementById('so'), sdEl = document.getElementById('sd');
+  var level = 'hard';
+  var b, over, turn;   /* b: array of 9: '' | 'X' | 'O' */
+  var scores = JSON.parse(localStorage.getItem('0xb0-ttt-scores') || '{"x":0,"o":0,"d":0}');
+
+  var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+  function winnerOf(board) {
+    for (var i = 0; i < LINES.length; i++) {
+      var l = LINES[i];
+      if (board[l[0]] && board[l[0]] === board[l[1]] && board[l[0]] === board[l[2]]) return { who: board[l[0]], line: l };
+    }
+    return board.indexOf('') === -1 ? { who: 'D' } : null;
+  }
+
+  /* ---- minimax (perfect play) ---- */
+  function minimax(board, player) {
+    var w = winnerOf(board);
+    if (w) {
+      if (w.who === 'O') return { score: 1 };
+      if (w.who === 'X') return { score: -1 };
+      return { score: 0 };
+    }
+    var best = null;
+    for (var i = 0; i < 9; i++) {
+      if (board[i]) continue;
+      board[i] = player;
+      var res = minimax(board, player === 'O' ? 'X' : 'O').score;
+      board[i] = '';
+      if (!best ||
+          (player === 'O' && res > best.score) ||
+          (player === 'X' && res < best.score)) {
+        best = { score: res, move: i };
+      }
+    }
+    return best;
+  }
+
+  function aiMove() {
+    var empties = [];
+    b.forEach(function (v, i) { if (!v) empties.push(i); });
+    if (!empties.length) return;
+    var i;
+    if (level === 'easy' && Math.random() < 0.55) {
+      i = empties[~~(Math.random() * empties.length)];
+    } else {
+      i = minimax(b.slice(), 'O').move;   /* slice: minimax mutates its arg */
+      if (i === undefined) i = empties[0];
+    }
+    b[i] = 'O';
+  }
+
+  function render(winLine) {
+    boardEl.innerHTML = '';
+    b.forEach(function (v, i) {
+      var s = document.createElement('button');
+      s.className = 'sq' + (v === 'X' ? ' x' : v === 'O' ? ' o' : '');
+      if (winLine && winLine.indexOf(i) !== -1) s.classList.add('win');
+      s.textContent = v;
+      s.dataset.i = i;
+      boardEl.appendChild(s);
+    });
+    sxEl.textContent = scores.x; soEl.textContent = scores.o; sdEl.textContent = scores.d;
+  }
+
+  function finish(result) {
+    over = true;
+    if (result.who === 'X') { scores.x++; statusEl.textContent = '🎉 You win! (impossible on hard — nice!)'; }
+    else if (result.who === 'O') { scores.o++; statusEl.textContent = '🤖 AI wins!'; }
+    else { scores.d++; statusEl.textContent = '🤝 Draw!'; }
+    localStorage.setItem('0xb0-ttt-scores', JSON.stringify(scores));
+    render(result.line || null);
+  }
+
+  function newRound() {
+    b = ['', '', '', '', '', '', '', '', ''];
+    over = false; turn = 'X';
+    statusEl.textContent = 'Your move — you are X';
+    render();
+  }
+
+  boardEl.addEventListener('click', function (e) {
+    var sq = e.target.closest('.sq');
+    if (!sq || over) return;
+    var i = +sq.dataset.i;
+    if (b[i]) return;
+
+    b[i] = 'X';
+    var w = winnerOf(b);
+    if (w) { finish(w); return; }
+
+    statusEl.textContent = '🤖 AI thinking…';
+    setTimeout(function () {
+      aiMove();
+      var w2 = winnerOf(b);
+      if (w2) { finish(w2); return; }
+      statusEl.textContent = 'Your move — you are X';
+      render();
+    }, 260);
+    render();
+  });
+
+  document.querySelectorAll('.diffs [data-l]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      level = btn.getAttribute('data-l');
+      document.querySelectorAll('.diffs [data-l]').forEach(function (x) { x.classList.toggle('on', x === btn); });
+      newRound();
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', newRound);
+  document.getElementById('wipe').addEventListener('click', function () {
+    scores = { x: 0, o: 0, d: 0 };
+    localStorage.setItem('0xb0-ttt-scores', JSON.stringify(scores));
+    newRound();
+  });
+
+  newRound();
+})();
+</script>
+</body>
+</html>
