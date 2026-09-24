@@ -1721,3 +1721,5 @@ function tileInnerHTML(g) {
 // batch 3: flash games, unity games, emulated classics (~100 games)
 
 // batch 4: henry stickmin, duck life, vex, duck hunt etc (~100 games)
+
+// batch 5: emulated classics (pokemon, zelda, mario kart, tekken)
