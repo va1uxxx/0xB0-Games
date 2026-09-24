@@ -1725,3 +1725,5 @@ function tileInnerHTML(g) {
 // batch 5: emulated classics (pokemon, zelda, mario kart, tekken)
 
 // batch 6: fnf, shell shockers, fort craft, incredibox, etc
+
+// fix: retro bowl and minecraft now use official urls
