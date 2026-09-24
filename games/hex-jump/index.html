@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Hex Jump — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #063028, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #00e5a0; text-shadow: 0 0 18px rgba(0, 229, 160, .45); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; min-width: 74px; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #00e5a0; }
+  #stage { position: relative; }
+  canvas { display: block; border-radius: 16px; border: 2px solid #1d2a47; box-shadow: 0 14px 50px rgba(0, 0, 0, .6); max-height: 70vh; width: auto; touch-action: none; }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 16px; z-index: 5;
+    background: rgba(5, 9, 18, .78); backdrop-filter: blur(3px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center;
+    opacity: 0; pointer-events: none; transition: .25s;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .overlay h2 { margin: 0; font-size: 30px; }
+  .overlay p { margin: 0; color: #93a5c8; font-size: 14px; }
+  button {
+    background: linear-gradient(92deg, #00e5a0, #00b3ff); color: #04121c;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer; margin-top: 8px;
+    box-shadow: 0 6px 22px rgba(0, 229, 160, .3);
+  }
+  .hint { color: #93a5c8; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>⬡ HEX JUMP<span>0xB0 GAMES</span></h1>
+    <div class="stat"><div class="lbl">HEIGHT</div><div class="val" id="score">0</div></div>
+    <div class="stat"><div class="lbl">BEST</div><div class="val" id="best">0</div></div>
+  </div>
+  <div id="stage">
+    <canvas id="cv" width="340" height="560"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+  <div class="hint">← → / A D to steer • tap left/right side on mobile • edges wrap 🌀</div>
+
+<script>
+(function () {
+  'use strict';
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var scoreEl = document.getElementById('score'), bestEl = document.getElementById('best');
+  var W = 340, H = 560;
+  var player, plats, score, state, bgDots;
+  var best = +(localStorage.getItem('0xb0-hexjump-best') || 0);
+  bestEl.textContent = best;
+  var G = 0.42, JUMP = -10.6, PW = 66;
+  var highestSpawned;
+
+  function showOverlay(title, sub, btn, onclick) {
+    overlay.innerHTML = '<h2>' + title + '</h2><p>' + sub + '</p>';
+    var b = document.createElement('button'); b.textContent = btn; b.onclick = onclick;
+    overlay.appendChild(b); overlay.classList.add('show');
+  }
+  function hideOverlay() { overlay.classList.remove('show'); }
+
+  function newPlat(y) {
+    var roll = Math.random();
+    var type = roll < 0.14 ? 'move' : roll < 0.28 ? 'frag' : 'norm';
+    return {
+      x: 14 + Math.random() * (W - PW - 28),
+      y: y,
+      w: PW,
+      type: type,
+      vx: type === 'move' ? (Math.random() < 0.5 ? -1.6 : 1.6) : 0,
+      gone: false
+    };
+  }
+
+  function fillPlats() {
+    while (highestSpawned > -60) {
+      highestSpawned -= 72 + Math.random() * 46;
+      plats.push(newPlat(highestSpawned));
+    }
+  }
+
+  function reset(autoStart) {
+    player = { x: W / 2, y: 470, vy: JUMP, r: 13, squash: 0 };
+    plats = [{ x: W / 2 - PW / 2, y: 510, w: PW, type: 'norm', vx: 0, gone: false }];
+    highestSpawned = 510;
+    fillPlats();
+    score = 0;
+    bgDots = [];
+    for (var i = 0; i < 30; i++) bgDots.push({ x: Math.random() * W, y: Math.random() * H, s: 1 + Math.random() * 2 });
+    state = autoStart ? 'play' : 'ready';
+    scoreEl.textContent = 0;
+    if (!autoStart) {
+      showOverlay('⬡ Hex Jump', 'Bounce forever. Don\'t fall off the bottom!', 'Start', function () {
+        hideOverlay(); state = 'play';
+      });
+    }
+  }
+
+  function jump() {
+    player.vy = JUMP;
+    player.squash = 10;
+  }
+
+  function step() {
+    bgDots.forEach(function (d) {
+      d.y += d.s;
+      if (d.y > H) { d.y = -3; d.x = Math.random() * W; }
+    });
+    if (state !== 'play') return;
+
+    /* steer */
+    if (keys.left) player.x -= 4.6;
+    if (keys.right) player.x += 4.6;
+    player.x = (player.x + W) % W; /* wraparound */
+
+    /* physics */
+    player.vy += G;
+    player.y += player.vy;
+    if (player.squash > 0) player.squash -= 1.2;
+
+    /* platform bounce (only while falling) */
+    if (player.vy > 0) {
+      var px = player.x, py = player.y + player.r;
+      plats.forEach(function (p) {
+        if (p.gone) return;
+        if (py >= p.y && py <= p.y + 16 + player.vy && px > p.x - player.r && px < p.x + p.w + player.r) {
+          jump();
+          if (p.type === 'frag') p.gone = true;
+        }
+      });
+    }
+
+    /* moving platforms */
+    plats.forEach(function (p) {
+      if (p.type === 'move' && !p.gone) {
+        p.x += p.vx;
+        if (p.x < 6 || p.x > W - p.w - 6) p.vx *= -1;
+      }
+    });
+
+    /* camera scroll */
+    if (player.y < 260) {
+      var diff = 260 - player.y;
+      player.y = 260;
+      plats.forEach(function (p) { p.y += diff; });
+      highestSpawned += diff;
+      score += diff / 10;
+      scoreEl.textContent = ~~score;
+    }
+
+    /* cleanup + spawn */
+    plats = plats.filter(function (p) { return p.y < H + 40 && !p.gone; });
+    fillPlats();
+
+    /* death */
+    if (player.y > H + 40) {
+      state = 'dead';
+      var s = ~~score;
+      if (s > best) { best = s; localStorage.setItem('0xb0-hexjump-best', best); bestEl.textContent = best; }
+      showOverlay('💀 You fell!', 'Height: ' + s, 'Try again', function () {
+        hideOverlay(); reset(true);
+      });
+    }
+  }
+
+  function hexPath(x, y, r, sq) {
+    ctx.beginPath();
+    for (var i = 0; i < 6; i++) {
+      var a = Math.PI / 3 * i - Math.PI / 2;
+      var px = Math.cos(a) * r;
+      var py = Math.sin(a) * (r + (sq || 0) * Math.abs(Math.sin(a)));
+      if (i === 0) ctx.moveTo(x + px, y + py); else ctx.lineTo(x + px, y + py);
+    }
+    ctx.closePath();
+  }
+
+  function draw() {
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#06231c'); bg.addColorStop(1, '#070b14');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    bgDots.forEach(function (d) {
+      ctx.fillStyle = 'rgba(0,229,160,.18)';
+      ctx.fillRect(d.x, d.y, d.s, d.s);
+    });
+
+    /* platforms */
+    plats.forEach(function (p) {
+      if (p.gone) return;
+      if (p.type === 'move') {
+        ctx.fillStyle = '#00b3ff';
+        ctx.shadowColor = '#00b3ff'; ctx.shadowBlur = 12;
+      } else if (p.type === 'frag') {
+        ctx.fillStyle = '#ff5470';
+        ctx.shadowColor = '#ff5470'; ctx.shadowBlur = 10;
+      } else {
+        ctx.fillStyle = '#00e5a0';
+        ctx.shadowColor = '#00e5a0'; ctx.shadowBlur = 10;
+      }
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(p.x, p.y, p.w, 12, 6) : ctx.rect(p.x, p.y, p.w, 12);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      if (p.type === 'frag') {
+        ctx.strokeStyle = 'rgba(255,255,255,.5)';
+        ctx.beginPath();
+        ctx.moveTo(p.x + 18, p.y + 2); ctx.lineTo(p.x + 26, p.y + 10);
+        ctx.moveTo(p.x + 40, p.y + 3); ctx.lineTo(p.x + 34, p.y + 9);
+        ctx.stroke();
+      }
+    });
+
+    /* player */
+    ctx.save();
+    ctx.shadowColor = '#7dfccd'; ctx.shadowBlur = 16;
+    ctx.fillStyle = '#00e5a0';
+    hexPath(player.x, player.y, player.r, player.squash * 0.5);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#7dfccd'; ctx.lineWidth = 2; ctx.stroke();
+    /* eyes */
+    ctx.fillStyle = '#04121c';
+    var ex = player.x, ey = player.y - 2;
+    ctx.beginPath(); ctx.arc(ex - 4, ey, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(ex + 4, ey, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    if (state === 'ready') {
+      ctx.fillStyle = 'rgba(232,240,255,.6)';
+      ctx.font = '600 13px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('← → / A D or tap sides to steer', W / 2, H - 24);
+    }
+  }
+
+  function loop() { step(); draw(); requestAnimationFrame(loop); }
+
+  /* ---- input ---- */
+  var keys = { left: false, right: false };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+  });
+  document.addEventListener('keyup', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+  });
+  function touchDir(clientX) {
+    var rect = cv.getBoundingClientRect();
+    var x = (clientX - rect.left) * (W / rect.width);
+    keys.left = x < W / 2;
+    keys.right = !keys.left;
+  }
+  cv.addEventListener('touchstart', function (e) { touchDir(e.touches[0].clientX); }, { passive: true });
+  cv.addEventListener('touchmove', function (e) { touchDir(e.touches[0].clientX); }, { passive: true });
+  cv.addEventListener('touchend', function () { keys.left = keys.right = false; }, { passive: true });
+
+  reset();
+  loop();
+})();
+</script>
+</body>
+</html>
