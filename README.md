@@ -61,3 +61,5 @@ Everything runs in the browser — Chromebook-friendly, phone-friendly, school-f
 </div>
 
 <!-- updated with better badges -->
+
+<!-- game request link -->
