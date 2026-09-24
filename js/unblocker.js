@@ -38,18 +38,40 @@
 
   /* ---------------- public proxies ------------------------------ */
 
+  /* ---------------- public proxies ------------------------------ */
+  /* Mirror domains are InvisiProxy on alternate domains that
+     look like random websites — schools can't block them all. */
+
   var PROXIES = [
     { id: 'builtin', name: '0xB0 Built-in', emoji: '⛩️',
-      desc: 'Our own Ultraviolet engine — the fastest option when it works.',
+      desc: 'Our own Ultraviolet engine — fastest when the server is reachable.',
       url: null },
+    { id: 'mirror1', name: 'Mirror A', emoji: '🌲',
+      desc: 'Fast proxy on a rotating mirror domain. Refreshes monthly.',
+      url: 'https://forestrywolf.org/browsing' },
+    { id: 'mirror2', name: 'Mirror B', emoji: '🦭',
+      desc: 'Same proxy, different domain. Looks like a nature site.',
+      url: 'https://seaofseals.org/browsing' },
+    { id: 'mirror3', name: 'Mirror C', emoji: '🧮',
+      desc: 'Proxy on a math-looking domain. Hard to block.',
+      url: 'https://sixseventimesfour.space/browsing' },
+    { id: 'mirror4', name: 'Mirror D', emoji: '🌀',
+      desc: 'Backup mirror with full Scramjet support.',
+      url: 'https://definitechaos.org/browsing' },
+    { id: 'mirror5', name: 'Mirror E', emoji: '🕵️',
+      desc: 'Another rotating mirror domain.',
+      url: 'https://welcomeagent.lol/browsing' },
+    { id: 'glushilok', name: 'Glushilok', emoji: '🎮',
+      desc: 'Independent proxy with its own infrastructure.',
+      url: 'https://glushilok.net' },
     { id: 'invisiproxy', name: 'InvisiProxy', emoji: '🛡️',
-      desc: 'TitaniumNetwork official — dedicated infrastructure, Scramjet + UV engines.',
+      desc: 'TitaniumNetwork official (main domain — often blocked).',
       url: 'https://invisiproxy.com/browsing' },
     { id: 'lunar', name: 'Lunar', emoji: '🌙',
-      desc: 'Tab-based browser disguised as IXL (the math site schools love).',
+      desc: 'Tab-based browser disguised as IXL.',
       url: 'https://lunaron.top/welcome' },
     { id: 'daydreamx', name: 'DayDreamX', emoji: '🌅',
-      desc: 'A full browser running inside your browser — tabs, bookmarks, full proxy.',
+      desc: 'Full browser running inside your browser.',
       url: 'https://daydreamx.pro' }
   ];
 
@@ -266,31 +288,20 @@
     var url = search(rawUrl.trim());
     var encoded = Ultraviolet.codec.xor.encode(url);
 
-    /* Open InvisiProxy's UV page to register their SW */
-    var w = window.open('https://invisiproxy.com/ultraviolet', '_blank');
-    if (!w) {
-      /* popup blocked — just go to their search page */
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).catch(function () {});
-      }
-      toast('Allow pop-ups! Opening InvisiProxy — URL copied to clipboard');
-      setTimeout(function () {
-        window.location.href = 'https://invisiproxy.com/ultraviolet?q=' + encodeURIComponent(rawUrl.trim());
-      }, 400);
-      return;
+    /* Try the least-likely-to-be-blocked mirrors first */
+    var mirrorIds = ['mirror1', 'mirror2', 'mirror3', 'mirror4', 'mirror5', 'glushilok'];
+    var mirrorUrls = PROXIES.filter(function (p) {
+      return mirrorIds.includes(p.id) && p.url;
+    });
+    var pick = mirrorUrls[~~(Math.random() * mirrorUrls.length)] || PROXIES[1];
+
+    /* Copy URL as backup */
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).catch(function () {});
     }
 
-    toast('Connecting through InvisiProxy…');
-
-    /* Wait for their SW to register, then navigate to the proxied URL */
-    setTimeout(function () {
-      try {
-        w.location.href = 'https://invisiproxy.com/uv/service/' + encoded;
-      } catch (err) {
-        /* cross-origin navigation blocked — fall back to ?q= param */
-        w.location.href = 'https://invisiproxy.com/ultraviolet?q=' + encodeURIComponent(rawUrl.trim());
-      }
-    }, 3500);
+    toast('Opening via ' + pick.name + ' — URL copied to clipboard');
+    window.open(pick.url, '_blank');
   }
 
   function launch(rawUrl) {
