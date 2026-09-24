@@ -1713,3 +1713,5 @@ function tileInnerHTML(g) {
     '</div>'
   );
 }
+
+// batch 1: retro bowl, slope, subway surfers, fnaf, etc (~50 games)
