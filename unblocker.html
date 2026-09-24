@@ -3,118 +3,121 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>さくら Unblocker — 0xB0 Games</title>
+  <title>Unblocker — Under Maintenance | 0xB0 Games</title>
   <meta name="referrer" content="no-referrer" />
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ff6ea9'/%3E%3Cpath d='M8 9h11l4 4v12a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9z' fill='%23fff'/%3E%3C/svg%3E" />
-</head>
-<body class="un-page">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <style>
+    .maintenance-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(1000px 600px at 50% 115%, rgba(255, 110, 169, 0.14), transparent 60%),
+        var(--bg);
+      font-family: var(--sans);
+    }
 
+    .maintenance-box {
+      text-align: center;
+      max-width: 520px;
+      padding: 40px 24px;
+    }
+
+    .maintenance-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: maintFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes maintFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .maintenance-box h1 {
+      font-size: 32px;
+      margin: 0 0 10px;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+
+    .maintenance-box p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      margin: 0 0 28px;
+    }
+
+    .maintenance-box .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      color: var(--warn);
+      font-weight: 700;
+      margin-bottom: 28px;
+    }
+
+    .maintenance-box .status .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--warn);
+      animation: maintPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes maintPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--warn); }
+      50% { opacity: 0.4; box-shadow: 0 0 0 var(--warn); }
+    }
+
+    .maintenance-box .btn {
+      margin: 0 6px;
+    }
+
+    .maintenance-note {
+      margin-top: 36px;
+      font-size: 12.5px;
+      color: rgba(179, 156, 207, 0.55);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
   <canvas id="petalCanvas"></canvas>
 
-  <!-- ============ TOP BAR ============ -->
-  <div class="un-top">
-    <button class="home-link" id="backHome" title="Back to 0xB0 Games">
-      ⌂ <span>0xB0 Games</span>
-    </button>
-    <div class="links">
-      <a href="#" id="cloakToggle" title="Disguise this tab">Tab cloak: off</a>
-    </div>
-  </div>
+  <div class="maintenance-page">
+    <div class="maintenance-box">
+      <div class="maintenance-icon">⛩️</div>
 
-  <!-- ============ SAKURA SCENE ============ -->
-  <div class="un-main">
-    <div class="un-sun"></div>
-    <div class="un-kanji" data-parallax="0.05">桜</div>
+      <h1>Unblocker — Under Maintenance</h1>
 
-    <div class="torii-wrap" data-parallax="0.09">
-      <div class="torii">
-        <div class="kasagi"></div>
-        <div class="shimaki"></div>
-        <div class="nuki"></div>
-        <div class="pillar l"></div>
-        <div class="pillar r"></div>
-        <div class="base l"></div>
-        <div class="base r"></div>
-        <div class="gaku">0x</div>
+      <div class="status">
+        <span class="dot"></span>
+        We're upgrading the proxy system
       </div>
-    </div>
 
-    <h1 class="un-logo">
-      <span>0</span><span>x</span><span>B</span><span>0</span><span>U</span><span>n</span><span>b</span><span>l</span><span>o</span><span>c</span><span>k</span><span>e</span><span>r</span>
-    </h1>
-    <p class="un-sub">Type a website below — we'll open it through whichever proxy works.</p>
-    <p class="un-jp">桜アンロッカー • さくら</p>
-
-    <form class="un-searchbox" id="uvForm">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-        <circle cx="11" cy="11" r="7"></circle>
-        <path d="M20 20l-4-4"></path>
-      </svg>
-      <input id="uvAddress" type="text" placeholder="Search or type a URL (e.g. youtube.com)" autocomplete="off" spellcheck="false" />
-    </form>
-
-    <div class="un-btnrow">
-      <button class="un-btn primary" id="goBtn">Unblock</button>
-      <button class="un-btn" id="luckyBtn">I'm Feeling Lucky</button>
-    </div>
-
-    <label class="un-cloakbox" title="Opens in a hidden about:blank window">
-      <input type="checkbox" id="cloakOpen" />
-      Open in a cloaked (about:blank) window
-    </label>
-
-    <!-- ============ PROXY PORTAL ============ -->
-    <div class="proxy-portal" id="proxyPortal">
-      <span class="portal-title">⛩️ PROXY PORTAL — pick your route</span>
-      <div class="portal-grid" id="portalGrid"></div>
-    </div>
-
-    <!-- quick sites -->
-    <div class="un-quick" id="quickRow"></div>
-
-    <p class="un-note">
-      Don't log into personal accounts through any proxy. Don't enter private info. Use responsibly. 🌸
-    </p>
-  </div>
-
-  <!-- ============ SETTINGS (for custom bare server) ============ -->
-  <button class="un-gear" id="gearBtn" title="Custom server settings" aria-label="Settings">⚙</button>
-  <div class="un-settings-panel" id="settingsPanel">
-    <div class="un-settings">
-      <h2>Custom proxy server</h2>
-      <p class="hint">The public proxies above work on most networks. If you want your own dedicated server (2-min setup):</p>
-      <label for="serverInput">Bare server URL</label>
-      <input id="serverInput" type="url" placeholder="https://your-server.workers.dev/" spellcheck="false" />
-      <div class="row">
-        <button class="un-btn primary" id="serverSave">Save & use</button>
-        <button class="un-btn" id="serverTest">Test</button>
-        <button class="un-btn" id="serverReset">Reset</button>
-        <button class="un-btn" id="settingsClose">Close</button>
-      </div>
-      <div class="msg" id="settingsMsg"></div>
-      <p class="hint" style="margin-top:14px">
-        <b>Deploy your own free server:</b>
+      <p>
+        The unblocker is getting a major upgrade to make it faster and harder to block.
+        It'll be back soon — in the meantime, all <b>500+ games</b> still work perfectly.
       </p>
-      <div class="deploy-box">
-        <ol style="margin:6px 0 8px;padding-left:18px;font-size:13px;color:#b39ccf;line-height:1.6">
-          <li>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener" style="color:#ffb3d1">dash.cloudflare.com</a> → Workers → Create → Deploy</li>
-          <li>Click <b>Edit code</b> → <button id="copyWorkerSettings" style="background:rgba(255,110,169,.15);border:1px solid rgba(255,110,169,.4);color:#ffb3d1;font-weight:700;font-size:11.5px;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📋 Copy server code</button> → paste → Deploy</li>
-          <li>Copy your URL (like <code style="color:#ffd166">https://your-name.workers.dev</code>) → paste above → Save</li>
-        </ol>
-      </div>
+
+      <a class="btn btn-primary" href="index.html#games">▶ Play Games</a>
+      <a class="btn btn-ghost" href="settings.html">⚙ Settings</a>
+
+      <p class="maintenance-note">
+        Follow the repo for updates:<br>
+        <a href="https://github.com/va1uxxx/0xB0-Games" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 700;">github.com/va1uxxx/0xB0-Games</a>
+      </p>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <!-- ============ ULTRAVIOLET RUNTIME (kept for the built-in proxy) ============ -->
-  <script src="uv/servers.js"></script>
-  <script src="uv/uv.bundle.js"></script>
-  <script src="uv/uv.config.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/petals.js"></script>
-  <script src="js/unblocker.js" defer></script>
 </body>
 </html>
