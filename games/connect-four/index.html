@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Connect Four — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; padding: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #14213f, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #ffd166; text-shadow: 0 0 18px rgba(255, 209, 102, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .scorebar { display: flex; gap: 10px; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; }
+  .stat .val.you { color: #00e5a0; } .stat .val.cpu { color: #a78bfa; } .stat .val.d { color: #93a5c8; }
+  #board {
+    position: relative;
+    --slot: clamp(44px, 11.5vw, 62px);
+    width: calc(7 * var(--slot));
+    height: calc(6 * var(--slot));
+    background: linear-gradient(160deg, #16213c, #0e1526);
+    border: 2px solid #1d2a47;
+    border-radius: 16px;
+    box-shadow: 0 14px 50px rgba(0, 0, 0, .5), inset 0 4px 18px rgba(0, 0, 0, .4);
+    overflow: hidden;
+  }
+  .hole {
+    position: absolute;
+    width: calc(var(--slot) - 8px); height: calc(var(--slot) - 8px);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #060b16, #0a1220 70%);
+    box-shadow: inset 0 3px 7px rgba(0, 0, 0, .8), inset 0 -1px 1px rgba(255, 255, 255, .04);
+    cursor: pointer;
+    transition: box-shadow .12s;
+  }
+  .hole:hover { box-shadow: inset 0 3px 7px rgba(0,0,0,.8), 0 0 0 2px rgba(0, 229, 160, .35); }
+  .disc {
+    position: absolute;
+    width: calc(var(--slot) - 8px); height: calc(var(--slot) - 8px);
+    border-radius: 50%;
+    top: calc(var(--slot) * -1);
+    transition: top .3s cubic-bezier(.34, 1.3, .6, 1);
+    z-index: 2;
+  }
+  .disc.p1 { background: radial-gradient(circle at 36% 30%, #7dfccd, #00e5a0 60%, #009d6e); box-shadow: 0 0 14px rgba(0, 229, 160, .45); }
+  .disc.p2 { background: radial-gradient(circle at 36% 30%, #d4c5ff, #a78bfa 60%, #6d4fd0); box-shadow: 0 0 14px rgba(167, 139, 250, .45); }
+  .disc.win { animation: winPulse .7s ease infinite alternate; }
+  @keyframes winPulse { from { filter: brightness(1); } to { filter: brightness(1.7); } }
+  #status { font-size: 15.5px; font-weight: 700; min-height: 22px; text-align: center; }
+  .row { display: flex; gap: 10px; }
+  button {
+    background: linear-gradient(92deg, #ffd166, #ff9f43); color: #241505;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 18px;
+    border-radius: 10px; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 159, 67, .25);
+  }
+  button.ghost { background: #131c33; color: #93a5c8; border: 1px solid #1d2a47; box-shadow: none; }
+  button:active { transform: scale(.97); }
+  .hint { color: #93a5c8; font-size: 12.5px; }
+</style>
+</head>
+<body>
+  <h1>🔴 CONNECT FOUR<span>0xB0 GAMES</span></h1>
+  <div class="scorebar">
+    <div class="stat"><div class="lbl">YOU</div><div class="val you" id="sy">0</div></div>
+    <div class="stat"><div class="lbl">DRAWS</div><div class="val d" id="sd">0</div></div>
+    <div class="stat"><div class="lbl">CPU</div><div class="val cpu" id="sc">0</div></div>
+  </div>
+  <div id="status">Your move — click a column</div>
+  <div id="board"></div>
+  <div class="row">
+    <button id="reset">↺ New round</button>
+    <button class="ghost" id="wipe">Clear scores</button>
+  </div>
+  <div class="hint">Get four in a row — any direction 🧠</div>
+
+<script>
+(function () {
+  'use strict';
+  var COLS = 7, ROWS = 6;
+  var boardEl = document.getElementById('board');
+  var statusEl = document.getElementById('status');
+  var syEl = document.getElementById('sy'), scEl = document.getElementById('sc'), sdEl = document.getElementById('sd');
+  var grid, discs, busy, over;
+  var scores = JSON.parse(localStorage.getItem('0xb0-c4-scores') || '{"y":0,"c":0,"d":0}');
+
+  function renderScores() {
+    syEl.textContent = scores.y; scEl.textContent = scores.c; sdEl.textContent = scores.d;
+  }
+
+  function build() {
+    boardEl.innerHTML = '';
+    discs = [];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        var h = document.createElement('div');
+        h.className = 'hole';
+        h.dataset.c = c;
+        h.style.left = 'calc(var(--slot) * ' + c + ' + 4px)';
+        h.style.top = 'calc(var(--slot) * ' + r + ' + 4px)';
+        boardEl.appendChild(h);
+      }
+    }
+  }
+
+  function slotPos(c) { return 'calc(var(--slot) * ' + c + ' + 4px)'; }
+
+  function lowestRow(col) {
+    for (var r = ROWS - 1; r >= 0; r--) if (!grid[r][col]) return r;
+    return -1;
+  }
+
+  function drop(col, who) {
+    var r = lowestRow(col);
+    if (r < 0) return false;
+    grid[r][col] = who;
+    var d = document.createElement('div');
+    d.className = 'disc ' + (who === 1 ? 'p1' : 'p2');
+    d.style.left = slotPos(col);
+    boardEl.appendChild(d);
+    /* animate the fall */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        d.style.top = 'calc(var(--slot) * ' + r + ' + 4px)';
+      });
+    });
+    discs.push({ el: d, r: r, c: col });
+    return true;
+  }
+
+  function winInfo(who) {
+    var dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (grid[r][c] !== who) continue;
+        for (var d = 0; d < dirs.length; d++) {
+          var cells = [[r, c]];
+          for (var s = 1; s < 4; s++) {
+            var nr = r + dirs[d][0] * s, nc = c + dirs[d][1] * s;
+            if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || grid[nr][nc] !== who) break;
+            cells.push([nr, nc]);
+          }
+          if (cells.length === 4) return cells;
+        }
+      }
+    }
+    return null;
+  }
+
+  function finish(who, line) {
+    over = true;
+    if (who === 1) { scores.y++; statusEl.textContent = '🎉 You win!'; }
+    else if (who === 2) { scores.c++; statusEl.textContent = '🤖 CPU takes it!'; }
+    else { scores.d++; statusEl.textContent = '🤝 Draw — board is full'; }
+    localStorage.setItem('0xb0-c4-scores', JSON.stringify(scores));
+    renderScores();
+    if (line) {
+      line.forEach(function (rc) {
+        discs.forEach(function (d) {
+          if (d.r === rc[0] && d.c === rc[1]) d.el.classList.add('win');
+        });
+      });
+    }
+  }
+
+  function isFull() {
+    for (var c = 0; c < COLS; c++) if (!grid[ROWS - 1][c]) return false;
+    return true;
+  }
+
+  /* ---------- AI ---------- */
+  var CENTER = [3, 4, 5, 7, 5, 4, 3];
+
+  function cloneGrid() { return grid.map(function (row) { return row.slice(); }); }
+
+  function wouldWin(col, who) {
+    var g2 = cloneGrid();
+    var r = -1;
+    for (var rr = ROWS - 1; rr >= 0; rr--) if (!g2[rr][col]) { r = rr; break; }
+    if (r < 0) return false;
+    g2[r][col] = who;
+    var save = grid;
+    grid = g2;
+    var w = winInfo(who);
+    grid = save;
+    return !!w;
+  }
+
+  function aiPick() {
+    var legal = [];
+    for (var c = 0; c < COLS; c++) if (!grid[ROWS - 1][c]) legal.push(c);
+
+    /* 1. win now */
+    for (var i = 0; i < legal.length; i++) if (wouldWin(legal[i], 2)) return legal[i];
+    /* 2. block the player */
+    for (var j = 0; j < legal.length; j++) if (wouldWin(legal[j], 1)) return legal[j];
+
+    /* 3. heuristic score */
+    var bestCol = -1, bestScore = -1e9;
+    legal.forEach(function (c) {
+      var s = CENTER[c] * 10 + Math.random() * 8;
+      var r = lowestRow(c);
+      /* don't hand the player a win right above our move */
+      var g2 = cloneGrid();
+      g2[r][c] = 2;
+      var save = grid; grid = g2;
+      if (r - 1 >= 0) {
+        g2[r - 1][c] = 1;
+        if (winInfo(1)) s -= 1000;
+        g2[r - 1][c] = 0;
+      }
+      /* reward making our own threats */
+      g2[r][c] = 2;
+      if (winInfo(2)) s += 60;
+      grid = save;
+      if (s > bestScore) { bestScore = s; bestCol = c; }
+    });
+    return bestCol;
+  }
+
+  function playerMove(col) {
+    if (busy || over) return;
+    if (!drop(col, 1)) return;
+    busy = true;
+    var w = winInfo(1);
+    if (w) { finish(1, w); busy = false; return; }
+    if (isFull()) { finish(0); busy = false; return; }
+    statusEl.textContent = '🤖 CPU thinking…';
+    setTimeout(function () {
+      var col2 = aiPick();
+      if (col2 >= 0) drop(col2, 2);
+      var w2 = winInfo(2);
+      if (w2) { finish(2, w2); }
+      else if (isFull()) finish(0);
+      else statusEl.textContent = 'Your move — click a column';
+      busy = false;
+    }, 420);
+  }
+
+  boardEl.addEventListener('click', function (e) {
+    var h = e.target.closest('.hole');
+    if (h) playerMove(+h.dataset.c);
+  });
+
+  function newRound() {
+    grid = [];
+    for (var r = 0; r < ROWS; r++) grid.push(new Array(COLS).fill(0));
+    busy = false; over = false;
+    statusEl.textContent = 'Your move — click a column';
+    build();
+  }
+
+  document.getElementById('reset').addEventListener('click', newRound);
+  document.getElementById('wipe').addEventListener('click', function () {
+    scores = { y: 0, c: 0, d: 0 };
+    localStorage.setItem('0xb0-c4-scores', JSON.stringify(scores));
+    renderScores();
+    newRound();
+  });
+
+  renderScores();
+  newRound();
+})();
+</script>
+</body>
+</html>
