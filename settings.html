@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings — 0xB0 Games</title>
+  <meta name="description" content="Personalize 0xB0 Games: tab disguise, favicon, panic key, accent color." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex">
+          <svg width="26" height="30" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hexg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff6ea9"/>
+                <stop offset="1" stop-color="#b46bff"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="url(#hexg)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/>
+            <path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="unblocker.html">Unblocker</a>
+        <a href="settings.html" class="active">Settings</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap settings-main">
+
+    <div class="section-head" style="margin-top:30px">
+      <h1 style="margin:0;font-size:32px">⚙️ Settings</h1>
+    </div>
+    <p class="settings-note">
+      Everything here is saved <b>in your browser only</b> (per device — that's how a static
+      site does preferences). Want different defaults for <i>every</i> visitor? Edit
+      <code>js/settings.js</code> in the repo.
+    </p>
+
+    <!-- live preview -->
+    <div class="tab-preview-wrap">
+      <div class="tab-preview">
+        <div class="chrome-dots"><span></span><span></span><span></span></div>
+        <div class="fake-tab" id="fakeTab">
+          <img id="pvIcon" src="assets/favicon.svg" alt="" />
+          <span id="pvTitle">0xB0 Games — Unblocked Games</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TAB DISGUISE ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🕶️ Tab disguise (favicon + title)</h2></div>
+      <p class="settings-sub">Make this site look like anything. Pick a preset — applied instantly on every page.</p>
+      <div class="profile-grid" id="profileGrid"></div>
+
+      <div class="custom-panel" id="customPanel" style="display:none">
+        <div class="field">
+          <label for="customTitle">Custom tab title</label>
+          <input id="customTitle" type="text" maxlength="40" placeholder="e.g. My Math Homework" />
+        </div>
+        <div class="field">
+          <label for="customIcon">Custom favicon — type any emoji or paste an image URL</label>
+          <input id="customIcon" type="text" maxlength="300" placeholder="e.g. 📊 or https://example.com/icon.png" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANIC KEY ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🛡️ Panic key</h2></div>
+      <p class="settings-sub">Press <b>`</b> (backtick, under Esc) anywhere to teleport instantly.</p>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="panicEnabled" />
+          <span>Panic key enabled</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="panicUrl">Panic destination</label>
+        <input id="panicUrl" type="text" placeholder="https://classroom.google.com/h" />
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="panicTest" style="font-size:13px;padding:9px 16px">Test ↗</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THEMES ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🎨 Themes</h2></div>
+      <p class="settings-sub">Full site palettes — applied instantly, on every page.</p>
+      <div class="theme-grid" id="themeGrid"></div>
+    </section>
+
+    <!-- ============ EFFECTS ============ -->
+    <section class="section">
+      <div class="section-head"><h2>✨ Effects</h2></div>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="petalsOn" />
+          <span>🌸 Falling petals</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="petalDensity">Petal density</label>
+        <select id="petalDensity">
+          <option value="few">Breezy (few)</option>
+          <option value="normal" selected>Normal</option>
+          <option value="lots">Petal storm (lots)</option>
+        </select>
+        <p class="settings-sub">Petal options apply on the next page load.</p>
+      </div>
+    </section>
+
+    <!-- ============ SITE ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🧩 Site</h2></div>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="bossMode" />
+          <span>🕶️ Boss mode — frost-blur the page when the window loses focus</span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="newTab" />
+          <span>↗️ Open game tiles in a new tab</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="gridDensity">Grid density</label>
+        <select id="gridDensity">
+          <option value="comfortable" selected>Comfortable</option>
+          <option value="compact">Compact (more per row)</option>
+        </select>
+        <p class="settings-sub">Site options apply on the next page load.</p>
+      </div>
+    </section>
+
+    <!-- ============ UNBLOCKER ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🔎 Unblocker search</h2></div>
+      <div class="field">
+        <label for="searchEngine">Search engine used for non-URL queries</label>
+        <select id="searchEngine">
+          <option value="google" selected>Google</option>
+          <option value="duckduckgo">DuckDuckGo</option>
+          <option value="bing">Bing</option>
+          <option value="brave">Brave Search</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ============ DATA ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🗑️ Reset</h2></div>
+      <button class="btn btn-ghost" id="resetAll" style="color:var(--danger);border-color:var(--danger)">
+        Reset all 0xB0 settings
+      </button>
+    </section>
+
+    <div style="height:40px"></div>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/settings-page.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
