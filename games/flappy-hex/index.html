@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Flappy Hex — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #14213f, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #00b3ff; text-shadow: 0 0 18px rgba(0, 179, 255, .45); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; align-items: center; }
+  .scorebox { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 14px; text-align: center; }
+  .scorebox .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .scorebox .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #00b3ff; }
+  #stage { position: relative; }
+  canvas { display: block; border-radius: 16px; border: 2px solid #1d2a47; box-shadow: 0 14px 50px rgba(0, 0, 0, .5); max-height: 68vh; width: auto; touch-action: none; }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 16px; z-index: 5;
+    background: rgba(5, 9, 18, .7); backdrop-filter: blur(2px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center;
+    opacity: 0; pointer-events: none; transition: .25s;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .overlay h2 { margin: 0; font-size: 30px; }
+  .overlay p { margin: 0; color: #93a5c8; font-size: 14px; }
+  button {
+    background: linear-gradient(92deg, #00e5a0, #00b3ff); color: #04121c;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer; margin-top: 8px;
+    box-shadow: 0 6px 22px rgba(0, 179, 255, .3);
+  }
+  .hint { color: #93a5c8; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>⬡ FLAPPY HEX<span>0xB0 GAMES</span></h1>
+    <div class="scorebox"><div class="lbl">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="scorebox"><div class="lbl">BEST</div><div class="val" id="best">0</div></div>
+  </div>
+  <div id="stage">
+    <canvas id="cv" width="360" height="560"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+  <div class="hint">Click / tap / Space to flap</div>
+
+<script>
+(function () {
+  'use strict';
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var scoreEl = document.getElementById('score'), bestEl = document.getElementById('best');
+  var W = 360, H = 560, GROUND = H - 60;
+  var bird, pipes, frame, score, state; /* state: ready | play | dead */
+  var best = +(localStorage.getItem('0xb0-flappy-best') || 0);
+  bestEl.textContent = best;
+  var GAP_H = 150, PIPE_W = 58, SPEED = 2.6, SPAWN_DIST = 210;
+
+  function showOverlay(title, sub, btn, onclick) {
+    overlay.innerHTML = '<h2>' + title + '</h2><p>' + sub + '</p>';
+    var b = document.createElement('button'); b.textContent = btn; b.onclick = onclick;
+    overlay.appendChild(b); overlay.classList.add('show');
+  }
+  function hideOverlay() { overlay.classList.remove('show'); }
+
+  function reset() {
+    bird = { x: 90, y: 250, vy: 0, r: 13, rot: 0 };
+    pipes = []; frame = 0; score = 0;
+    scoreEl.textContent = 0;
+    state = 'ready';
+    showOverlay('⬡ Flappy Hex', 'Tap to flap. Mind the gates.', 'Start', function () {
+      hideOverlay(); state = 'play'; flap();
+    });
+    loop();
+  }
+
+  function spawnPipe() {
+    var margin = 70;
+    var gapY = margin + Math.random() * (GROUND - gapH() - margin * 2);
+    pipes.push({ x: W + 20, gapY: gapY, passed: false });
+  }
+  function gapH() { return GAP_H; }
+
+  function flap() {
+    if (state !== 'play') return;
+    bird.vy = -7.4;
+  }
+
+  function die() {
+    state = 'dead';
+    if (score > best) { best = score; localStorage.setItem('0xb0-flappy-best', best); bestEl.textContent = best; }
+    showOverlay('💀 Crash!', 'Score: ' + score + (score >= best && score > 0 ? ' 🏆 new best!' : ''), 'Retry', function () {
+      hideOverlay(); reset();
+    });
+  }
+
+  function step() {
+    frame++;
+    if (state === 'ready') { bird.y = 250 + Math.sin(frame / 18) * 12; return; }
+    if (state !== 'play') return;
+
+    bird.vy += 0.42;
+    bird.y += bird.vy;
+    bird.rot = Math.max(-0.5, Math.min(1.1, bird.vy / 12));
+
+    /* spawn */
+    var last = pipes[pipes.length - 1];
+    if (!last || last.x < W - SPAWN_DIST) spawnPipe();
+
+    /* pipes move */
+    pipes.forEach(function (p) { p.x -= SPEED; });
+    pipes = pipes.filter(function (p) { return p.x > -PIPE_W - 10; });
+
+    /* scoring + collision */
+    pipes.forEach(function (p) {
+      if (!p.passed && p.x + PIPE_W < bird.x - bird.r) {
+        p.passed = true; score++; scoreEl.textContent = score;
+      }
+      var inX = bird.x + bird.r > p.x && bird.x - bird.r < p.x + PIPE_W;
+      if (inX && (bird.y - bird.r < p.gapY || bird.y + bird.r > p.gapY + gapH())) die();
+    });
+
+    if (bird.y - bird.r < 0) { bird.y = bird.r; bird.vy = 0; }
+    if (bird.y + bird.r > GROUND) die();
+  }
+
+  function hexPath(cx, cy, r) {
+    ctx.beginPath();
+    for (var i = 0; i < 6; i++) {
+      var a = Math.PI / 3 * i - Math.PI / 6;
+      var x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  function draw() {
+    /* sky */
+    var sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#0b1530'); sky.addColorStop(1, '#0e1526');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+    /* stars */
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    for (var s = 0; s < 26; s++) {
+      var sx = (s * 97 + frame * 0.3) % W;
+      var sy = (s * 53) % (GROUND - 40);
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+
+    /* pipes */
+    pipes.forEach(function (p) {
+      var g = ctx.createLinearGradient(p.x, 0, p.x + PIPE_W, 0);
+      g.addColorStop(0, '#00e5a0'); g.addColorStop(1, '#00795c');
+      ctx.fillStyle = g;
+      ctx.fillRect(p.x, 0, PIPE_W, p.gapY);
+      ctx.fillRect(p.x, p.gapY + gapH(), PIPE_W, GROUND - p.gapY - gapH());
+      /* lips */
+      ctx.fillStyle = '#00ffbb';
+      ctx.fillRect(p.x - 4, p.gapY - 16, PIPE_W + 8, 16);
+      ctx.fillRect(p.x - 4, p.gapY + gapH(), PIPE_W + 8, 16);
+    });
+
+    /* ground */
+    ctx.fillStyle = '#101a2e'; ctx.fillRect(0, GROUND, W, H - GROUND);
+    ctx.strokeStyle = '#00e5a0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,229,160,.15)';
+    for (var gx = -((frame * 2) % 24); gx < W; gx += 24) {
+      ctx.beginPath(); ctx.moveTo(gx, GROUND + 6); ctx.lineTo(gx - 10, H); ctx.stroke();
+    }
+
+    /* bird */
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rot);
+    ctx.shadowColor = '#00b3ff'; ctx.shadowBlur = 16;
+    ctx.fillStyle = '#00b3ff';
+    hexPath(0, 0, bird.r);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#7de3ff'; ctx.lineWidth = 2; ctx.stroke();
+    /* eye */
+    ctx.fillStyle = '#04121c';
+    ctx.beginPath(); ctx.arc(4, -3, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    /* score bubble while playing */
+    if (state === 'play') {
+      ctx.font = '800 44px Consolas, monospace';
+      ctx.fillStyle = 'rgba(232,240,255,.9)';
+      ctx.textAlign = 'center';
+      ctx.fillText(score, W / 2, 64);
+    }
+  }
+
+  function loop() {
+    if (state === 'dead') { draw(); return; }
+    step();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  /* input */
+  function tap(e) {
+    e.preventDefault();
+    if (state === 'ready') { hideOverlay(); state = 'play'; flap(); }
+    else flap();
+  }
+  cv.addEventListener('mousedown', tap);
+  cv.addEventListener('touchstart', tap, { passive: false });
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (state === 'ready') { hideOverlay(); state = 'play'; flap(); }
+      else flap();
+    }
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>
