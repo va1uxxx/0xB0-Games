@@ -328,7 +328,7 @@ const EXTERNAL_GAMES = [
     src: "https://kripken.github.io/BananaBread/cube2/bb.html", external: true, engine: "html5" },
   { slug: "cookie-clicker", title: "Cookie Clicker", category: "Idle", emoji: "🍪",
     description: "The original cookie-worship idle game. Abandon all productivity.",
-    src: "https://orteil.dashnet.org/cookieclicker/", external: true, engine: "html5" },
+    src: "https://cookieclickerunblocked.github.io/", external: true, engine: "html5" },
   { slug: "jetpack-joyride", title: "Jetpack Joyride", category: "Arcade", emoji: "🚀",
     description: "Jetpack through a lab full of missiles and lasers. Grab coins, dodge, survive.",
     src: SZ + "/Games5/jetpack-joyride/", external: true, engine: "html5" },
