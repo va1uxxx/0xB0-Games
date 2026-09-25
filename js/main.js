@@ -59,7 +59,26 @@
     });
   }
 
-  /* ---------------- 3D tilt on cards (desktop, all pages) ----- */
+  /* ---------------- Login state in nav ---------------------------- */
+
+  var loginSlot = document.getElementById('loginSlot');
+  if (loginSlot) {
+    try {
+      var authUser = window.B0Auth ? B0Auth.getCurrentUser() : null;
+      if (authUser) {
+        loginSlot.innerHTML =
+          '<a href="login.html" class="nav-link-user" title="Logged in as ' + authUser.username + '">' +
+          '<span class="nav-avatar">' + (authUser.avatar || '👤') + '</span>' +
+          '<span class="nav-username">' + authUser.username + '</span>' +
+          (authUser.role === 'admin' ? '<span class="nav-role">⚡</span>' : '') +
+          '</a>';
+      } else {
+        loginSlot.innerHTML = '<a href="login.html" title="Sign up or log in">👤 Login</a>';
+      }
+    } catch (err) {
+      loginSlot.innerHTML = '<a href="login.html">👤 Login</a>';
+    }
+  }
 
   if (window.matchMedia('(hover: hover)').matches) {
     var tiltCard = null;

@@ -1279,6 +1279,24 @@ img { max-width: 100%; }
   line-height: 1.25;
 }
 
+/* login state in nav */
+.nav-login a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: 0.15s;
+}
+.nav-login a:hover { color: var(--accent); background: var(--panel-2); }
+.nav-login .nav-avatar { font-size: 16px; }
+.nav-login .nav-username { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-login .nav-role { font-size: 12px; color: var(--warn); }
+
 .icon-btn.on { color: var(--accent); border-color: var(--accent); }
 
 /* ============================================================

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login — 0xB0 Games</title>
+  <meta name="description" content="Sign in to 0xB0 Games to save your high scores." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(1000px 600px at 50% 115%, rgba(255, 110, 169, 0.14), transparent 60%),
+        var(--bg);
+      font-family: var(--sans);
+      padding: 20px;
+    }
+
+    .login-box {
+      width: min(400px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-box h1 {
+      text-align: center;
+      font-size: 26px;
+      margin: 0 0 4px;
+      letter-spacing: -1px;
+    }
+
+    .login-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px;
+    }
+
+    .login-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .login-tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 9px;
+      background: none;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .login-tab.on {
+      background: linear-gradient(92deg, var(--accent), var(--accent-2));
+      color: #240a18;
+    }
+
+    .login-field {
+      margin-bottom: 14px;
+    }
+
+    .login-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .login-field input {
+      width: 100%;
+      background: var(--bg-2);
+      border: 1px solid var(--border-2);
+      border-radius: 11px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: var(--sans);
+      padding: 12px 14px;
+      outline: none;
+      transition: 0.15s;
+    }
+
+    .login-field input:focus {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+    }
+
+    .login-error {
+      display: none;
+      background: rgba(255, 77, 109, 0.1);
+      border: 1px solid rgba(255, 77, 109, 0.3);
+      color: #ff8fa8;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .login-error.show { display: block; }
+
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(92deg, var(--accent), var(--accent-2));
+      color: #240a18;
+      font-weight: 800;
+      font-size: 15px;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--sans);
+      box-shadow: 0 8px 24px rgba(255, 110, 169, 0.3);
+    }
+
+    .login-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .login-btn:active { transform: translateY(1px); }
+
+    .login-role {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .login-role b {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .login-role .badge {
+      display: inline-block;
+      background: rgba(255, 110, 169, 0.1);
+      border: 1px solid rgba(255, 110, 169, 0.3);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-left: 4px;
+      vertical-align: 1px;
+    }
+
+    .login-back {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .login-back a {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .login-back a:hover { color: var(--accent); }
+
+    .login-note {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 11.5px;
+      color: rgba(179, 156, 207, 0.5);
+      line-height: 1.5;
+    }
+
+    /* logged-in state */
+    .login-welcome {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .login-welcome.show { display: block; }
+
+    .login-welcome .avatar {
+      font-size: 56px;
+      margin-bottom: 12px;
+    }
+
+    .login-welcome h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+
+    .login-welcome .role-badge {
+      display: inline-block;
+      background: linear-gradient(92deg, var(--accent), var(--accent-2));
+      color: #240a18;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .login-welcome .stats {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin: 16px 0 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .login-welcome .stats b {
+      color: var(--text);
+      font-family: var(--mono);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <div class="login-page">
+    <div class="login-box">
+
+      <h1>🌸 0xB0 Games</h1>
+      <p class="login-sub">Sign in to save your high scores & earn your Member badge</p>
+
+      <!-- logged-in state -->
+      <div class="login-welcome" id="welcomeBox">
+        <div class="avatar" id="welcomeAvatar">🎮</div>
+        <h2 id="welcomeName">Player</h2>
+        <div class="role-badge" id="welcomeRole">Member</div>
+        <p style="color:var(--muted);font-size:14px;margin:8px 0 16px">Your game data is saved to this account.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-primary" id="playBtn" style="padding:11px 24px;font-size:14px">▶ Play Games</button>
+          <button class="btn btn-ghost" id="logoutBtn" style="padding:11px 20px;font-size:14px;color:var(--danger);border-color:var(--danger)">Log out</button>
+        </div>
+      </div>
+
+      <!-- login/signup forms -->
+      <div id="loginForms">
+        <div class="login-tabs">
+          <button class="login-tab on" id="tabLogin" data-tab="login">Log In</button>
+          <button class="login-tab" id="tabSignup" data-tab="signup">Sign Up</button>
+        </div>
+
+        <div class="login-error" id="loginError"></div>
+
+        <form id="authForm">
+          <div class="login-field">
+            <label for="authUser">Username</label>
+            <input id="authUser" type="text" placeholder="Pick a username" autocomplete="off" maxlength="20" spellcheck="false" />
+          </div>
+          <div class="login-field">
+            <label for="authPass">Password</label>
+            <input id="authPass" type="password" placeholder="••••••••" autocomplete="off" />
+          </div>
+          <div class="login-field" id="confirmField" style="display:none">
+            <label for="authConfirm">Confirm Password</label>
+            <input id="authConfirm" type="password" placeholder="Type it again" autocomplete="off" />
+          </div>
+
+          <button type="submit" class="login-btn" id="authSubmit">Sign Up</button>
+        </form>
+
+        <p class="login-role">
+          Everyone who signs up gets <b>Member</b><span class="badge">👤 MEMBER</span>
+        </p>
+
+        <p class="login-note">
+          Accounts are stored on this device only. Your high scores, settings and progress<br />
+          are saved to your account and restored when you log back in.
+        </p>
+
+        <div class="login-back">
+          <a href="index.html">← Back to games</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/settings.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var mode = 'signup'; /* default to signup */
+      var form = document.getElementById('authForm');
+      var userInput = document.getElementById('authUser');
+      var passInput = document.getElementById('authPass');
+      var confirmInput = document.getElementById('authConfirm');
+      var confirmField = document.getElementById('confirmField');
+      var submitBtn = document.getElementById('authSubmit');
+      var errorEl = document.getElementById('loginError');
+      var tabLogin = document.getElementById('tabLogin');
+      var tabSignup = document.getElementById('tabSignup');
+      var welcomeBox = document.getElementById('welcomeBox');
+      var loginForms = document.getElementById('loginForms');
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+      }
+
+      function clearError() {
+        errorEl.classList.remove('show');
+      }
+
+      function setMode(m) {
+        mode = m;
+        clearError();
+        var isSignup = m === 'signup';
+        confirmField.style.display = isSignup ? 'block' : 'none';
+        submitBtn.textContent = isSignup ? 'Sign Up' : 'Log In';
+        tabLogin.classList.toggle('on', !isSignup);
+        tabSignup.classList.toggle('on', isSignup);
+        passInput.value = '';
+        confirmInput.value = '';
+        userInput.focus();
+      }
+
+      tabLogin.addEventListener('click', function () { setMode('login'); });
+      tabSignup.addEventListener('click', function () { setMode('signup'); });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        clearError();
+
+        var username = userInput.value.trim();
+        var password = passInput.value;
+
+        if (mode === 'signup') {
+          if (password !== confirmInput.value) {
+            showError('Passwords do not match');
+            return;
+          }
+          var result = await B0Auth.signup(username, password);
+          if (result.ok) {
+            showWelcome(result.user);
+          } else {
+            showError(result.error);
+          }
+        } else {
+          var result2 = await B0Auth.login(username, password);
+          if (result2.ok) {
+            showWelcome(result2.user);
+          } else {
+            showError(result2.error);
+          }
+        }
+      });
+
+      function showWelcome(user) {
+        loginForms.style.display = 'none';
+        welcomeBox.classList.add('show');
+        document.getElementById('welcomeAvatar').textContent = user.avatar || '🎮';
+        document.getElementById('welcomeName').textContent = user.username;
+        document.getElementById('welcomeRole').textContent = user.role === 'admin' ? '⚡ Admin' : '👤 Member';
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        B0Auth.logout();
+        welcomeBox.classList.remove('show');
+        loginForms.style.display = 'block';
+        setMode('login');
+      });
+
+      document.getElementById('playBtn').addEventListener('click', function () {
+        location.href = 'index.html';
+      });
+
+      /* if already logged in, show the welcome state */
+      var existing = B0Auth.getCurrentUser();
+      if (existing) {
+        showWelcome(existing);
+      } else {
+        setMode('signup'); /* default to signup for new users */
+      }
+    })();
+  </script>
+</body>
+</html>
