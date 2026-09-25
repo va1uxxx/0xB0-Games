@@ -58,11 +58,22 @@
   </div>
 
   <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/games-data.js"></script>
   <script>
     (function () {
       'use strict';
       var params = new URLSearchParams(location.search);
       var src = params.get('game');
+
+      /* if the param is a slug (not a URL), resolve it from the registry */
+      if (src && !/^https?:\/\//i.test(src)) {
+        var g = (typeof findGame === 'function') ? findGame(src) : null;
+        if (g && g.src) {
+          src = g.src;
+          B0Settings.setPageTitle(g.title + ' — 0xB0 Games');
+        }
+      }
 
       var frame = document.getElementById('gameFrame');
       var loading = document.getElementById('loading');
@@ -71,12 +82,10 @@
         loading.style.display = 'none';
         var err = document.createElement('div');
         err.className = 'u-error';
-        err.innerHTML = '<div class="code">404</div><div>No game URL — use unity.html?game=<game url></div>';
+        err.innerHTML = '<div class="code">404</div><div>No game URL — use unity.html?game=<slug or url></div>';
         document.body.appendChild(err);
         return;
       }
-
-      B0Settings.setPageTitle('Unity Game — 0xB0 Games');
 
       frame.addEventListener('load', function () { loading.classList.add('hide'); });
       frame.src = src;

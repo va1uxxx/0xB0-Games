@@ -1672,13 +1672,13 @@ function gameCategories() {
   return list;
 }
 
-/* Which player template a game opens in (sz-games style URL params) */
+/* Which player template a game opens in.
+   ALWAYS uses the slug so the URL bar NEVER exposes where
+   the game is actually loaded from. The templates resolve
+   the slug to the real URL internally via the registry. */
 function gameHref(g) {
-  if (g.external) {
-    if (g.engine === 'unity') return 'unity.html?game=' + encodeURIComponent(g.src);
-    if (g.engine === 'flash') return 'flash.html?game=' + encodeURIComponent(g.src);
-    return 'play.html?game=' + encodeURIComponent(g.src);
-  }
+  if (g.engine === 'unity') return 'unity.html?game=' + encodeURIComponent(g.slug);
+  if (g.engine === 'flash') return 'flash.html?game=' + encodeURIComponent(g.slug);
   return 'play.html?game=' + encodeURIComponent(g.slug);
 }
 
