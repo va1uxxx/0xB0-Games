@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — 0xB0 Games</title>
+  <meta name="description" content="Privacy policy for 0xB0 Games." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex"><svg width="26" height="30" viewBox="0 0 26 30" fill="none"><path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="#ff6ea9" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/><path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="about.html">About</a>
+        <a href="privacy.html" class="active">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:640px">
+    <h1 style="font-size:32px;margin:0 0 24px;letter-spacing:-1px">🔒 Privacy Policy</h1>
+
+    <div class="info-card" style="margin-bottom:14px">
+      <h3>> what_we_collect</h3>
+      <p><b>Nothing.</b> We don't have accounts, we don't use analytics, we don't track you, we don't serve ads, and we don't send your data anywhere.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px">
+      <h3>> local_storage</h3>
+      <p>Your browser's localStorage stores your settings (theme, tab disguise, panic key). This data stays on your device and never leaves it. Clearing your browser data removes it.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px">
+      <h3>> external_games</h3>
+      <p>Most games are loaded from other public websites. Those sites may have their own privacy policies. We don't control them and don't share any data with them.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px">
+      <h3>> cookies</h3>
+      <p>We don't set cookies. If you use the unblocker, its proxy may need cookies for the sites you visit — those are handled by the proxy service, not us.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px">
+      <h3>> children</h3>
+      <p>This site is designed for students. We intentionally collect no personal information from anyone, regardless of age.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px">
+      <h3>> changes</h3>
+      <p>If we ever need to change this policy, we'll update this page. Since we don't collect data, changes would only affect localStorage usage.</p>
+    </div>
+
+    <p style="color:var(--muted);font-size:13px;text-align:center;margin-top:32px">Last updated: September 2026</p>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

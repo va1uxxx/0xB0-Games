@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About — 0xB0 Games</title>
+  <meta name="description" content="About 0xB0 Games — the unblocked sakura arcade with 500+ games." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex"><svg width="26" height="30" viewBox="0 0 26 30" fill="none"><path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="#ff6ea9" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/><path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="unblocker.html">Unblocker</a>
+        <a href="settings.html">Settings</a>
+        <a href="about.html" class="active">About</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:640px">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="font-size:64px;margin-bottom:16px">🌸</div>
+      <h1 style="font-size:36px;margin:0 0 8px;letter-spacing:-1.5px">About 0xB0 Games</h1>
+      <p style="color:var(--muted);font-size:16px;margin:0">The unblocked sakura arcade</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px">
+      <h3>> what_is_this</h3>
+      <p>
+        0xB0 Games is a free, browser-based arcade for places where fun gets filtered out.
+        It runs entirely in your browser — no downloads, no installs, no accounts.
+        Just open the link and press play.
+      </p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px">
+      <h3>> how_it_works</h3>
+      <p>
+        The site is 100% static (HTML + CSS + JavaScript) hosted on GitHub Pages.
+        It includes 15 hand-built neon originals plus 490+ games linked from public hosts
+        across the web. Every game opens in our clean player with fullscreen, reload,
+        and tab-cloaking built in.
+      </p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px">
+      <h3>> features</h3>
+      <p>
+        🔍 Instant search & 12 category filters<br>
+        🎲 Random game button<br>
+        🎨 6 themes + falling petals<br>
+        🕶️ Tab disguise (Google Docs, Drive, Canvas…)<br>
+        ⌨️ Panic key — press <b>`</b> to teleport<br>
+        🕶️ Boss mode — blur the page when you switch away<br>
+        🎮 Request games via GitHub Issues
+      </p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px">
+      <h3>> privacy</h3>
+      <p>
+        We collect <b>nothing</b>. No accounts, no trackers, no analytics, no cookies
+        (except your own browser's localStorage for settings). Your school can't see
+        what you play because the site never sends data anywhere.
+      </p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px">
+      <h3>> credits</h3>
+      <p>
+        Games belong to their respective creators — we host our originals and link the rest
+        from public hosts. Proxy tech: <a href="https://github.com/titaniumnetwork-dev/ultraviolet" style="color:var(--accent)" target="_blank" rel="noopener">Ultraviolet</a> by
+        <a href="https://titaniumnetwork.org" style="color:var(--accent)" target="_blank" rel="noopener">TitaniumNetwork</a>.
+        Flash support: <a href="https://ruffle.rs" style="color:var(--accent)" target="_blank" rel="noopener">Ruffle</a>.
+        Inspired by sz-games and the unblocked-games community.
+      </p>
+    </div>
+
+    <div style="text-align:center;margin-top:32px">
+      <a class="btn btn-primary" href="index.html">▶ Play Games</a>
+      <a class="btn btn-ghost" href="https://github.com/va1uxxx/0xB0-Games" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
