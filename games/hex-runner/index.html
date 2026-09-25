@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Hex Runner — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #0c2b1e, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none; overflow: hidden;
+  }
+  h1 { font-size: 22px; margin: 0; color: #00e5a0; }
+  h1 span { color: #93a5c8; font-size: 10px; letter-spacing: 3px; display: block; text-align: center; }
+  canvas { display: block; border-radius: 14px; border: 2px solid #1d2a47; box-shadow: 0 14px 50px rgba(0,0,0,.5); max-width: 95vw; touch-action: none; }
+  .hint { color: #93a5c8; font-size: 12px; text-align: center; }
+  button {
+    background: linear-gradient(92deg, #00e5a0, #00b3ff); color: #04121c;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 20px rgba(0,229,160,.3); display: none;
+  }
+  .score { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #00e5a0; }
+</style>
+</head>
+<body>
+  <h1>🏃 HEX RUNNER<span>0xB0 GAMES</span></h1>
+  <div class="score" id="score">0</div>
+  <canvas id="cv" width="600" height="200"></canvas>
+  <button id="restartBtn">↺ Run Again</button>
+  <div class="hint">Tap / Click / Space to jump over obstacles</div>
+
+<script>
+(function () {
+  'use strict';
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var W = 600, H = 200, GROUND = H - 30;
+  var scoreEl = document.getElementById('score');
+  var restartBtn = document.getElementById('restartBtn');
+
+  var runner, obstacles, frame, speed, score, state, best;
+  best = +(localStorage.getItem('0xb0-runner-best') || 0);
+
+  function reset() {
+    runner = { y: GROUND, vy: 0, jumping: false, size: 24 };
+    obstacles = [];
+    frame = 0; speed = 5; score = 0; state = 'ready';
+    scoreEl.textContent = '0';
+    restartBtn.style.display = 'none';
+  }
+
+  function jump() {
+    if (state === 'dead') { reset(); state = 'play'; return; }
+    if (state === 'ready') { state = 'play'; }
+    if (!runner.jumping) { runner.vy = -11; runner.jumping = true; }
+  }
+
+  function spawn() {
+    obstacles.push({
+      x: W + 30, w: 16 + Math.random() * 24,
+      h: 22 + Math.random() * 30
+    });
+  }
+
+  function step() {
+    frame++;
+    if (state !== 'play') { draw(); requestAnimationFrame(step); return; }
+    score = Math.floor(frame / 10);
+    scoreEl.textContent = score;
+
+    if (frame % 3 === 0) speed += 0.002;
+
+    /* physics */
+    runner.vy += 0.55;
+    runner.y += runner.vy;
+    if (runner.y >= GROUND) { runner.y = GROUND; runner.vy = 0; runner.jumping = false; }
+
+    /* spawn */
+    var lastObs = obstacles[obstacles.length - 1];
+    if (!lastObs || lastObs.x < W - 140 - Math.random() * 120) spawn();
+
+    /* move */
+    obstacles.forEach(function (o) { o.x -= speed; });
+    obstacles = obstacles.filter(function (o) { return o.x + o.w > -10; });
+
+    /* collide */
+    for (var i = 0; i < obstacles.length; i++) {
+      var o = obstacles[i];
+      var rx = 70, rw = runner.size;
+      if (rx + rw > o.x && rx < o.x + o.w && runner.y + runner.size > GROUND - o.h + 5) {
+        state = 'dead';
+        if (score > best) { best = score; localStorage.setItem('0xb0-runner-best', best); }
+        restartBtn.style.display = 'block';
+        break;
+      }
+    }
+
+    draw();
+    requestAnimationFrame(step);
+  }
+
+  function draw() {
+    var sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#06231c'); sky.addColorStop(1, '#070b14');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+    /* stars */
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    for (var s = 0; s < 20; s++) {
+      var sx = (s * 37 - frame * 0.3) % W;
+      if (sx < 0) sx += W;
+      ctx.fillRect(sx, (s * 23) % (GROUND - 20), 2, 2);
+    }
+
+    /* ground */
+    ctx.fillStyle = '#101a2e';
+    ctx.fillRect(0, GROUND, W, H - GROUND);
+    ctx.strokeStyle = '#00e5a0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND); ctx.stroke();
+    /* ground dashes */
+    ctx.strokeStyle = 'rgba(0,229,160,.2)';
+    for (var gx = -((frame * speed) % 40); gx < W; gx += 40) {
+      ctx.beginPath(); ctx.moveTo(gx, GROUND + 6); ctx.lineTo(gx - 15, H); ctx.stroke();
+    }
+
+    /* obstacles (neon crystals) */
+    obstacles.forEach(function (o) {
+      ctx.fillStyle = '#ff5470';
+      ctx.shadowColor = '#ff5470'; ctx.shadowBlur = 8;
+      ctx.beginPath();
+      var cx = o.x + o.w / 2, cy = GROUND - o.h / 2;
+      ctx.moveTo(cx, cy - o.h / 2);
+      ctx.lineTo(cx + o.w / 2, cy);
+      ctx.lineTo(cx, cy + o.h / 2);
+      ctx.lineTo(cx - o.w / 2, cy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    /* runner (green hex) */
+    ctx.save();
+    ctx.translate(70, runner.y + runner.size / 2);
+    ctx.shadowColor = '#00e5a0'; ctx.shadowBlur = 12;
+    ctx.fillStyle = state === 'dead' ? '#ff5470' : '#00e5a0';
+    ctx.beginPath();
+    for (var h = 0; h < 6; h++) {
+      var a = Math.PI / 3 * h - Math.PI / 2;
+      var px = Math.cos(a) * runner.size / 2;
+      var py = Math.sin(a) * runner.size / 2;
+      if (h === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#7dfccd'; ctx.lineWidth = 2; ctx.stroke();
+    /* eye */
+    ctx.fillStyle = '#04121c';
+    ctx.beginPath(); ctx.arc(4, -3, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    if (state === 'ready') {
+      ctx.fillStyle = 'rgba(232,240,255,.6)';
+      ctx.font = '600 14px "Segoe UI"';
+      ctx.textAlign = 'center';
+      ctx.fillText('Tap / Click / Space to start', W / 2, GROUND - 50);
+    }
+    if (state === 'dead') {
+      ctx.fillStyle = 'rgba(232,240,255,.9)';
+      ctx.font = '800 28px "Segoe UI"';
+      ctx.textAlign = 'center';
+      ctx.fillText('💀 Score: ' + score, W / 2, H / 2 - 10);
+      ctx.font = '600 13px "Segoe UI"';
+      ctx.fillStyle = '#93a5c8';
+      ctx.fillText('Best: ' + best + ' — tap to restart', W / 2, H / 2 + 16);
+    }
+  }
+
+  cv.addEventListener('pointerdown', function (e) { e.preventDefault(); jump(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.key === 'ArrowUp') { e.preventDefault(); jump(); }
+  });
+  restartBtn.addEventListener('click', function () { reset(); state = 'play'; });
+
+  reset();
+  step();
+})();
+</script>
+</body>
+</html>

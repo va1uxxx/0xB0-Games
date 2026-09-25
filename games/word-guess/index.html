@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>0xB0 Word — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #2b1030, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #ff6ea9; }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .board { display: flex; flex-direction: column; gap: 6px; }
+  .row { display: flex; gap: 6px; }
+  .tile {
+    width: 52px; height: 52px;
+    border: 2px solid #3f2464; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; text-transform: uppercase;
+    transition: transform 0.15s, background 0.3s, border-color 0.3s;
+  }
+  .tile.pop { animation: pop .18s ease; }
+  @keyframes pop { 50% { transform: scale(1.12); } }
+  .tile.hit { background: #17c964; border-color: #17c964; color: #04121c; }
+  .tile.near { background: #ffd166; border-color: #ffd166; color: #20160b; }
+  .tile.miss { background: #1e1233; border-color: #1e1233; color: #5c5c7a; }
+  .kbd-row { display: flex; gap: 4px; justify-content: center; }
+  .key {
+    min-width: 32px; height: 44px; padding: 0 6px;
+    border: 1px solid #3f2464; border-radius: 6px;
+    background: #170d26; color: #e8f0ff;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit; transition: 0.1s; touch-action: manipulation;
+  }
+  .key:active { background: #2a1b47; transform: scale(.95); }
+  .key.hit { background: #17c964; border-color: #17c964; color: #04121c; }
+  .key.near { background: #ffd166; border-color: #ffd166; color: #20160b; }
+  .key.miss { background: #1a1a2e; border-color: #1a1a2e; color: #444; }
+  .msg { min-height: 20px; font-size: 14px; font-weight: 700; text-align: center; color: #93a5c8; }
+  .msg.win { color: #ff9ec7; }
+  button.reset {
+    background: linear-gradient(92deg, #ff6ea9, #b46bff);
+    color: #240a18; font-weight: 800; font-size: 13px; border: none;
+    padding: 10px 20px; border-radius: 10px; cursor: pointer; margin-top: 6px;
+    box-shadow: 0 6px 20px rgba(255,110,169,.3); font-family: inherit;
+  }
+  @media (max-width: 400px) { .tile { width: 44px; height: 44px; font-size: 20px; } .key { min-width: 27px; height: 40px; font-size: 13px; } }
+</style>
+</head>
+<body>
+  <h1>🟩 0xB0 WORD<span>0xB0 GAMES</span></h1>
+  <div class="msg" id="msg">Guess the 5-letter word in 6 tries</div>
+  <div class="board" id="board"></div>
+  <div style="display:flex;flex-direction:column;gap:5px;margin-top:14px" id="keyboard"></div>
+  <button class="reset" id="resetBtn">↺ New Word</button>
+<script>
+(function () {
+  'use strict';
+  var WORDS = ['apple','beach','candy','dream','eagle','flame','ghost','happy','ivory','joker','knife','lemon','magic','night','ocean','pixel','quest','robot','sugar','tiger','ultra','vivid','water','xenon','yield','zebra','blaze','crisp','dough','earth','frost','gloom','haven','index','jelly','karma','lunar','mount','noble','orbit','prism','quilt','raven','spice','track','unity','vapor','waltz','yield'];
+  var word, row, col, over, guesses;
+  var boardEl = document.getElementById('board');
+  var msgEl = document.getElementById('msg');
+  var kbEl = document.getElementById('keyboard');
+  var best = +(localStorage.getItem('0xb0-word-streak') || 0);
+  var streak = +(sessionStorage.getItem('word-streak') || 0);
+
+  var KB_ROWS = ['qwertyuiop','asdfghjkl','zxcvbnm'];
+  var tiles = [];
+  var keyEls = {};
+
+  function init() {
+    word = WORDS[~~(Math.random() * WORDS.length)];
+    row = 0; col = 0; over = false; guesses = [];
+    msgEl.textContent = 'Guess the 5-letter word in 6 tries';
+    msgEl.className = 'msg';
+    buildBoard();
+    buildKeyboard();
+  }
+
+  function buildBoard() {
+    boardEl.innerHTML = '';
+    tiles = [];
+    for (var r = 0; r < 6; r++) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'row';
+      tiles.push([]);
+      for (var c = 0; c < 5; c++) {
+        var t = document.createElement('div');
+        t.className = 'tile';
+        rowEl.appendChild(t);
+        tiles[r].push(t);
+      }
+      boardEl.appendChild(rowEl);
+    }
+  }
+
+  function buildKeyboard() {
+    kbEl.innerHTML = '';
+    keyEls = {};
+    KB_ROWS.forEach(function (letters, i) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'kbd-row';
+      if (i === 1) {
+        var sp = document.createElement('div'); sp.style.flex = '0 0 14px';
+        rowEl.appendChild(sp);
+      }
+      for (var j = 0; j < letters.length; j++) {
+        var k = document.createElement('button');
+        k.className = 'key';
+        k.textContent = letters[j];
+        k.addEventListener('pointerdown', (function (letter) {
+          return function () { press(letter); };
+        })(letters[j]));
+        keyEls[letters[j]] = k;
+        rowEl.appendChild(k);
+      }
+      if (i === 1) {
+        var sp2 = document.createElement('div'); sp2.style.flex = '0 0 14px';
+        rowEl.appendChild(sp2);
+      }
+      if (i === 2) {
+        var enter = document.createElement('button');
+        enter.className = 'key'; enter.textContent = '↵'; enter.style.minWidth = '52px';
+        enter.addEventListener('pointerdown', function () { press('ENTER'); });
+        rowEl.insertBefore(enter, rowEl.firstChild);
+        var del = document.createElement('button');
+        del.className = 'key'; del.textContent = '⌫'; del.style.minWidth = '52px';
+        del.addEventListener('pointerdown', function () { press('BACK'); });
+        rowEl.appendChild(del);
+      }
+      kbEl.appendChild(rowEl);
+    });
+  }
+
+  function press(key) {
+    if (over) return;
+    if (key === 'ENTER') { submit(); return; }
+    if (key === 'BACK') {
+      if (col > 0) { col--; tiles[row][col].textContent = ''; }
+      return;
+    }
+    if (col < 5 && /^[a-z]$/.test(key)) {
+      tiles[row][col].textContent = key;
+      tiles[row][col].classList.add('pop');
+      setTimeout(function () { tiles[row][col].classList.remove('pop'); }, 180);
+      col++;
+    }
+  }
+
+  function submit() {
+    if (col !== 5) { msgEl.textContent = 'Type all 5 letters!'; return; }
+    var guess = '';
+    for (var c = 0; c < 5; c++) guess += tiles[row][c].textContent;
+    if (!WORDS.includes(guess)) { msgEl.textContent = 'Not in word list — try again'; return; }
+
+    var used = {};
+    for (var i = 0; i < 5; i++) {
+      if (guess[i] === word[i]) {
+        tiles[row][i].classList.add('hit');
+        used[i] = true;
+      }
+    }
+    for (var j = 0; j < 5; j++) {
+      if (used[j]) continue;
+      var idx = word.indexOf(guess[j]);
+      var found = false;
+      while (idx !== -1) { if (!used[idx]) { found = true; break; } idx = word.indexOf(guess[j], idx + 1); }
+      tiles[row][j].classList.add(found ? 'near' : 'miss');
+    }
+
+    /* update keyboard */
+    for (var k = 0; k < 5; k++) {
+      var key = guess[k];
+      var el = keyEls[key];
+      if (!el) continue;
+      if (guess[k] === word[k]) el.className = 'key hit';
+      else if (word.includes(guess[k]) && !el.classList.contains('hit')) el.className = 'key near';
+      else if (!el.classList.contains('hit') && !el.classList.contains('near')) el.className = 'key miss';
+    }
+
+    guesses.push(guess);
+    if (guess === word) {
+      over = true;
+      streak++;
+      if (streak > best) { best = streak; localStorage.setItem('0xb0-word-streak', best); }
+      msgEl.textContent = '🎉 Correct! Streak: ' + streak + ' (best: ' + best + ')';
+      msgEl.className = 'msg win';
+      return;
+    }
+    row++; col = 0;
+    if (row >= 6) {
+      over = true;
+      streak = 0;
+      msgEl.textContent = '💀 The word was "' + word.toUpperCase() + '"';
+    } else {
+      msgEl.textContent = 'Attempt ' + (row + 1) + ' of 6';
+    }
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { press('ENTER'); }
+    else if (e.key === 'Backspace') { press('BACK'); }
+    else if (/^[a-zA-Z]$/.test(e.key)) { press(e.key.toLowerCase()); }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    sessionStorage.setItem('word-streak', over && guesses[guesses.length-1] === word ? streak : 0);
+    init();
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
