@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — 0xB0 Games</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:700px">
+    <div id="authGate" style="text-align:center;padding:60px 20px">
+      <div style="font-size:56px;margin-bottom:12px">??</div>
+      <h1>Restricted Area</h1>
+      <p style="color:var(--muted)">This page is for the site owner only.</p>
+      <a class="btn btn-primary" href="login.html" style="margin-top:16px">Log in as owner</a>
+    </div>
+
+    <div id="adminPanel" style="display:none">
+      <div style="text-align:center;margin-bottom:30px">
+        <div style="font-size:48px;margin-bottom:8px">?</div>
+        <h1 style="font-size:28px;margin:0">Admin Panel</h1>
+        <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Manage user accounts and roles</p>
+      </div>
+
+      <div class="info-card" style="margin-bottom:16px">
+        <h3>> your_account</h3>
+        <p id="adminInfo">...</p>
+      </div>
+
+      <div class="info-card" style="margin-bottom:16px">
+        <h3>> signed_up_users</h3>
+        <div id="userTable" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <button class="btn btn-ghost" id="logoutBtn" style="color:var(--danger);border-color:var(--danger)">Log out</button>
+    </div>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var user = B0Auth.getCurrentUser();
+      var gate = document.getElementById('authGate');
+      var panel = document.getElementById('adminPanel');
+
+      if (!user || user.role !== 'admin') {
+        gate.style.display = 'block';
+        panel.style.display = 'none';
+        return;
+      }
+
+      gate.style.display = 'none';
+      panel.style.display = 'block';
+      document.getElementById('adminInfo').textContent = 'Logged in as ' + user.username + ' (Owner). Your password is never shown to anyone.';
+
+      var users = B0Auth.getAllUsers();
+      var table = document.getElementById('userTable');
+
+      if (users.length === 0) {
+        table.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No users signed up yet.</p>';
+      } else {
+        table.innerHTML = users.map(function (u) {
+          return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 14px">' +
+            '<span style="font-size:22px">' + (u.avatar || '??') + '</span>' +
+            '<span style="flex:1;font-weight:700">' + u.username + '</span>' +
+            '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' + (u.role === 'admin' ? 'linear-gradient(92deg,#ffd166,#ff9f43)' : 'rgba(255,110,169,.15)') + ';color:' + (u.role === 'admin' ? '#20160b' : '#ffb3d1') + ';font-weight:800">' + (u.role === 'admin' ? '? ADMIN' : '?? Member') + '</span>' +
+            (u.username !== 'va1uxxx' ?
+              '<button onclick="toggleRole(\'' + u.username + '\')" style="background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:inherit">Toggle Role</button>' : '') +
+            '</div>';
+        }).join('');
+      }
+
+      window.toggleRole = function (username) {
+        var users = JSON.parse(localStorage.getItem('0xb0-users') || '[]');
+        var u = users.find(function (u) { return u.username === username; });
+        if (u) {
+          u.role = u.role === 'admin' ? 'member' : 'admin';
+          localStorage.setItem('0xb0-users', JSON.stringify(users));
+          location.reload();
+        }
+      };
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        B0Auth.logout();
+        location.href = 'index.html';
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Proxy Links — 0xB0 Games</title>
+  <meta name="description" content="Working proxy links to unblock any website at school." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex"><svg width="26" height="30" viewBox="0 0 26 30" fill="none"><path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="#ff6ea9" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/><path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="proxy-links.html" class="active">Proxy Links</a>
+        <a href="settings.html">Settings</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:800px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:56px;margin-bottom:12px">🔗</div>
+      <h1 style="font-size:32px;margin:0 0 8px;letter-spacing:-1px">Proxy Links</h1>
+      <p style="color:var(--muted);font-size:15px;margin:0">Working proxy links to unblock any website. Each one runs on its own domain.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:20px">
+      <h3>> how_to_use</h3>
+      <p>Click any link to open the proxy. Type the website you want to visit in its search box. Bookmark your favorites — if one gets blocked, try another.</p>
+    </div>
+
+    <!-- Mirror Proxies (InvisiProxy infrastructure on different domains) -->
+    <section class="section">
+      <div class="section-head"><h2>🌲 Mirror Proxies</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">Same engine as InvisiProxy but on rotating mirror domains that schools haven't blocked yet.</p>
+      <div class="proxy-list" id="mirrorList"></div>
+    </section>
+
+    <!-- Public Proxies -->
+    <section class="section">
+      <div class="section-head"><h2>🛡️ Public Proxies</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">Dedicated proxy sites with their own infrastructure.</p>
+      <div class="proxy-list" id="publicList"></div>
+    </section>
+
+    <!-- Community Proxies -->
+    <section class="section">
+      <div class="section-head"><h2>🌐 Community Proxies</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">Proxies made by the unblocked-games community.</p>
+      <div class="proxy-list" id="communityList"></div>
+    </section>
+
+    <div class="info-card" style="margin-top:24px">
+      <h3>> more_links</h3>
+      <p>
+        Links get blocked over time. For fresh ones, join the
+        <a href="https://discord.gg/unblock" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">TitaniumNetwork Discord</a>
+        and type <b>/proxy</b> in the #panel channel. New links are restocked monthly.
+      </p>
+    </div>
+  </main>
+
+  <style>
+    .proxy-list { display: grid; gap: 10px; }
+    .proxy-link {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; text-decoration: none; color: var(--text);
+      transition: 0.15s; font-family: var(--sans);
+    }
+    .proxy-link:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+    .proxy-link .icon { font-size: 28px; flex-shrink: 0; }
+    .proxy-link .info { flex: 1; min-width: 0; }
+    .proxy-link .name { font-weight: 800; font-size: 15px; }
+    .proxy-link .url { font-size: 12px; color: var(--muted); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .proxy-link .arrow { color: var(--accent); font-size: 18px; font-weight: 800; flex-shrink: 0; }
+  </style>
+
+  <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    var MIRROR = [
+      { name: 'Mirror A', icon: '🌲', url: 'https://forestrywolf.org/browsing', desc: 'Looks like a nature site' },
+      { name: 'Mirror B', icon: '🦭', url: 'https://seaofseals.org/browsing', desc: 'Marine biology themed' },
+      { name: 'Mirror C', icon: '🧮', url: 'https://sixseventimesfour.space/browsing', desc: 'Math-themed domain' },
+      { name: 'Mirror D', icon: '🌀', url: 'https://definitechaos.org/browsing', desc: 'Philosophy blog style' },
+      { name: 'Mirror E', icon: '🕵️', url: 'https://welcomeagent.lol/browsing', desc: 'Gaming site style' },
+    ];
+    var PUBLIC = [
+      { name: 'InvisiProxy LTS', icon: '🛡️', url: 'https://invisiproxy.com/browsing', desc: 'TitaniumNetwork official proxy' },
+      { name: 'Lunar', icon: '🌙', url: 'https://lunaron.top/welcome', desc: 'Cloaked as IXL (math site)' },
+      { name: 'DayDreamX', icon: '🌅', url: 'https://daydreamx.pro', desc: 'Full browser in a browser' },
+      { name: 'Nebula', icon: '☁️', url: 'https://nebulaservices.org', desc: 'UV-based proxy service' },
+      { name: 'Glushilok', icon: '🎮', url: 'https://glushilok.net', desc: 'Independent proxy' },
+    ];
+    var COMMUNITY = [
+      { name: 'Holy Unblocker', icon: '⛪', url: 'https://holyunblocker.org', desc: 'Classic community proxy' },
+      { name: 'Interstellar', icon: '🚀', url: 'https://interstellar.tf', desc: 'Community proxy network' },
+      { name: 'Study Hub', icon: '📚', url: 'https://study.hackermack.top', desc: 'Study-themed proxy' },
+      { name: 'Radium', icon: '⚡', url: 'https://sriail.github.io/Radius/', desc: 'Study-themed proxy portal' },
+      { name: 'Truffled', icon: '🍄', url: 'https://truffled.lol', desc: 'Games site with built-in proxy' },
+    ];
+
+    function buildList(el, arr) {
+      el.innerHTML = arr.map(function (p) {
+        return '<a class="proxy-link" href="' + p.url + '" target="_blank" rel="noopener">' +
+          '<span class="icon">' + p.icon + '</span>' +
+          '<span class="info"><span class="name">' + p.name + '</span>' +
+          '<span class="url" style="display:block">' + p.url.replace(/https?:\/\//, '') + '</span></span>' +
+          '<span class="arrow">↗</span></a>';
+      }).join('');
+    }
+    buildList(document.getElementById('mirrorList'), MIRROR);
+    buildList(document.getElementById('publicList'), PUBLIC);
+    buildList(document.getElementById('communityList'), COMMUNITY);
+  </script>
+</body>
+</html>
