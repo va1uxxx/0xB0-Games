@@ -131,6 +131,33 @@ time was skipped.
   fast lane to a DMCA takedown. Use open-source games (MIT/Apache) or
   officially embeddable ones (itch.io, GameDistribution).
 
+### 🌐 Current external game sources (in `js/games-data.js`)
+
+| Source | Used by | Notes |
+|---|---|---|
+| `games/<slug>/` (this repo) | ~19 original games | Can never be blocked |
+| `selenite-cc.github.io/selenite-old/<game>/` | ~120 games | Selenite archive on GitHub Pages — different domain from sz-games |
+| `cdn.statically.io/gl/3kh0/3kh0-assets@main/<game>/index.html` | ~115 games | 3kh0's GitLab repo served via the Statically CDN. **Use the `@main` format** — the `/main/` path 301s through an `http://` hop that browsers block as mixed content |
+| Official sites (shellshock.io, krunker.io, cookieclickerunblocked.github.io, …) | ~20 popular games | Ads removed where possible (the official Cookie Clicker loads school-blocked ad networks, so we use the ad-free mirror) |
+| `sz-games.github.io` | ~229 remaining games | No equivalent found in the other sources yet. These are the tiles most likely to break on school networks |
+
+To repoint a game, change its `src:` in `js/games-data.js` — nothing else
+needs updating since all links use slugs.
+
+### 👤 Profile system + cosmetic titles
+
+- `js/auth.js` stores accounts in localStorage (per device). Each user has a
+  **functional role** (`member`/`admin` — only `va1uxxx` is admin/owner) and a
+  **cosmetic title** badge (anyone can pick: Member, VIP, Legend, Pro Gamer,
+  Noob, Tryhard, Speedrunner, Sakura, OG, Ghost). `👑 Founder` is locked to
+  the owner's account.
+- Users customize avatar + name + title in **Settings → Profile**
+  (`settings.html`), handled by the profile block at the bottom of
+  `js/settings-page.js`.
+- The hidden admin panel (`admin.html`, no nav link) lets the owner flip
+  functional roles and set anyone's cosmetic title. **Passwords are only ever
+  stored as SHA-256 hashes and are never rendered anywhere.**
+
 ---
 
 ## 🔓 Unblocker setup

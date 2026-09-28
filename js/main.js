@@ -66,11 +66,20 @@
     try {
       var authUser = window.B0Auth ? B0Auth.getCurrentUser() : null;
       if (authUser) {
+        var badge = '';
+        if (authUser.role === 'admin') {
+          badge += '<span class="nav-role" title="Site owner">⚡</span>';
+        }
+        if (window.B0Auth && B0Auth.titleInfo) {
+          var t = B0Auth.titleInfo(authUser.title);
+          var tip = t.label + ' (cosmetic title — change it in Settings)';
+          badge += '<span class="nav-role nav-title" title="' + tip + '" style="color:' + t.color + '">' + t.emoji + '</span>';
+        }
         loginSlot.innerHTML =
           '<a href="login.html" class="nav-link-user" title="Logged in as ' + authUser.username + '">' +
           '<span class="nav-avatar">' + (authUser.avatar || '👤') + '</span>' +
           '<span class="nav-username">' + authUser.username + '</span>' +
-          (authUser.role === 'admin' ? '<span class="nav-role">⚡</span>' : '') +
+          badge +
           '</a>';
       } else {
         loginSlot.innerHTML = '<a href="login.html" title="Sign up or log in">👤 Login</a>';

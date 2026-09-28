@@ -186,3 +186,152 @@
 
   refresh();
 })();
+
+/* ============================================================
+   PROFILE SECTION (avatar, name, cosmetic title)
+   Runs only on settings.html, only when logged in.
+   ============================================================ */
+
+(function () {
+  'use strict';
+  var section = document.getElementById('profileSection');
+  if (!section) return;
+  if (!window.B0Auth) return;
+
+  var user = B0Auth.getCurrentUser();
+  if (!user) return; /* logged-out note stays visible */
+
+  /* show the editor, hide the note */
+  var editor = document.getElementById('profileEditor');
+  var note = document.getElementById('profileLoggedOut');
+  if (editor) editor.style.display = 'block';
+  if (note) note.style.display = 'none';
+
+  var avatarEl = document.getElementById('pfAvatar');
+  var nameEl = document.getElementById('pfName');
+  var badgeEl = document.getElementById('pfTitleBadge');
+  var nameInput = document.getElementById('pfNameInput');
+  var nameMsg = document.getElementById('pfNameMsg');
+  var avatarGrid = document.getElementById('pfAvatarGrid');
+  var customAvatar = document.getElementById('pfCustomAvatar');
+  var titleGrid = document.getElementById('pfTitleGrid');
+
+  function esc(s) {
+    var A = String.fromCharCode(38); /* the ampersand entity prefix */
+    var map = {};
+    map[A] = A + 'amp;';
+    map['<'] = A + 'lt;';
+    map['>'] = A + 'gt;';
+    map['"'] = A + 'quot;';
+    map["'"] = A + '#39;';
+    return String(s).replace(/[&<>"']/g, function (c) { return map[c]; });
+  }
+
+  function refresh() {
+    user = B0Auth.getCurrentUser();
+    if (!user) return;
+    if (avatarEl) avatarEl.textContent = user.avatar || '👤';
+    if (nameEl) nameEl.textContent = user.username;
+    if (badgeEl) {
+      var t = B0Auth.titleInfo(user.title);
+      badgeEl.textContent = t.emoji + ' ' + t.label;
+      badgeEl.style.color = t.color;
+      badgeEl.style.borderColor = t.color;
+    }
+    if (nameInput && document.activeElement !== nameInput) nameInput.value = user.username;
+    renderAvatarGrid();
+    renderTitleGrid();
+  }
+
+  function renderAvatarGrid() {
+    if (!avatarGrid) return;
+    var opts = B0Auth.getAvatarOptions();
+    var html = '';
+    opts.forEach(function (a) {
+      var active = user.avatar === a ? ' active' : '';
+      html += '<button class="avatar-cell' + active + '" data-emoji="' + a + '" title="Set avatar ' + a + '">' + a + '</button>';
+    });
+    avatarGrid.innerHTML = html;
+  }
+
+  function renderTitleGrid() {
+    if (!titleGrid) return;
+    var titles = B0Auth.getTitles();
+    var html = '';
+    titles.forEach(function (t) {
+      var active = user.title === t.key ? ' active' : '';
+      var locked = t.locked ? ' locked' : '';
+      html += '<button class="title-cell' + active + locked + '" data-key="' + t.key + '"' +
+        ' style="--tc:' + t.color + '"' +
+        ' title="' + (t.locked ? 'Reserved for the site owner' : 'Wear the ' + t.label + ' badge') + '">' +
+        t.emoji + ' ' + esc(t.label) + (t.locked ? ' 🔒' : '') + '</button>';
+    });
+    titleGrid.innerHTML = html;
+  }
+
+  /* pick avatar from grid */
+  if (avatarGrid) {
+    avatarGrid.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.avatar-cell');
+      if (!btn) return;
+      B0Auth.setAvatar(btn.getAttribute('data-emoji'));
+      refresh();
+    });
+  }
+
+  /* custom emoji avatar */
+  var saveAvatarBtn = document.getElementById('pfSaveAvatar');
+  if (saveAvatarBtn) {
+    saveAvatarBtn.addEventListener('click', function () {
+      var res = B0Auth.setAvatar(customAvatar ? customAvatar.value : '');
+      if (nameMsg) {
+        nameMsg.textContent = res.ok ? 'Avatar updated ✓' : (res.error || '');
+        nameMsg.style.color = res.ok ? 'var(--accent)' : 'var(--danger)';
+      }
+      if (res.ok && customAvatar) customAvatar.value = '';
+      refresh();
+    });
+  }
+
+  /* rename */
+  var saveNameBtn = document.getElementById('pfSaveName');
+  if (saveNameBtn) {
+    saveNameBtn.addEventListener('click', function () {
+      var res = B0Auth.rename(nameInput ? nameInput.value : '');
+      if (nameMsg) {
+        nameMsg.textContent = res.ok ? 'Name saved ✓' : (res.error || '');
+        nameMsg.style.color = res.ok ? 'var(--accent)' : 'var(--danger)';
+      }
+      refresh();
+      /* refresh the nav badge too */
+      var slot = document.getElementById('loginSlot');
+      if (slot && window.B0Auth) {
+        var u2 = B0Auth.getCurrentUser();
+        if (u2) {
+          var t2 = B0Auth.titleInfo(u2.title);
+          slot.innerHTML = '<a href="login.html" class="nav-link-user" title="Logged in as ' + esc(u2.username) + '">' +
+            '<span class="nav-avatar">' + (u2.avatar || '👤') + '</span>' +
+            '<span class="nav-username">' + esc(u2.username) + '</span>' +
+            (u2.role === 'admin' ? '<span class="nav-role" title="Site owner">⚡</span>' : '') +
+            '<span class="nav-role nav-title" style="color:' + t2.color + '">' + t2.emoji + '</span></a>';
+        }
+      }
+    });
+  }
+
+  /* pick cosmetic title */
+  if (titleGrid) {
+    titleGrid.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.title-cell');
+      if (!btn) return;
+      var res = B0Auth.setTitle(btn.getAttribute('data-key'));
+      if (!res.ok && nameMsg) {
+        nameMsg.textContent = res.error || '';
+        nameMsg.style.color = 'var(--danger)';
+      }
+      refresh();
+    });
+  }
+
+  refresh();
+})();

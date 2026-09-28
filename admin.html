@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin � 0xB0 Games</title>
+  <title>Admin — 0xB0 Games</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <canvas id="petalCanvas"></canvas>
 
-  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:700px">
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:720px">
     <div id="authGate" style="text-align:center;padding:60px 20px">
-      <div style="font-size:56px;margin-bottom:12px">??</div>
+      <div style="font-size:56px;margin-bottom:12px">🔒</div>
       <h1>Restricted Area</h1>
       <p style="color:var(--muted)">This page is for the site owner only.</p>
       <a class="btn btn-primary" href="login.html" style="margin-top:16px">Log in as owner</a>
@@ -20,19 +20,22 @@
 
     <div id="adminPanel" style="display:none">
       <div style="text-align:center;margin-bottom:30px">
-        <div style="font-size:48px;margin-bottom:8px">?</div>
+        <div style="font-size:48px;margin-bottom:8px">⚡</div>
         <h1 style="font-size:28px;margin:0">Admin Panel</h1>
-        <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Manage user accounts and roles</p>
+        <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Manage accounts, roles and badge titles</p>
       </div>
 
       <div class="info-card" style="margin-bottom:16px">
         <h3>> your_account</h3>
-        <p id="adminInfo">...</p>
+        <p id="adminInfo">…</p>
       </div>
 
       <div class="info-card" style="margin-bottom:16px">
         <h3>> signed_up_users</h3>
-        <div id="userTable" style="display:flex;flex-direction:column;gap:8px"></div>
+        <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 12px">
+          Passwords are stored as SHA-256 hashes and are never displayed anywhere — not even here.
+        </p>
+        <div id="userTable" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
       <button class="btn btn-ghost" id="logoutBtn" style="color:var(--danger);border-color:var(--danger)">Log out</button>
@@ -58,22 +61,62 @@
 
       gate.style.display = 'none';
       panel.style.display = 'block';
-      document.getElementById('adminInfo').textContent = 'Logged in as ' + user.username + ' (Owner). Your password is never shown to anyone.';
+      document.getElementById('adminInfo').textContent =
+        'Logged in as ' + user.username + ' (Owner). Your password is never shown to anyone.';
 
-      var users = B0Auth.getAllUsers();
-      var table = document.getElementById('userTable');
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': String.fromCharCode(38) + 'amp;', '<': String.fromCharCode(38) + 'lt;',
+                   '>': String.fromCharCode(38) + 'gt;', '"': String.fromCharCode(38) + 'quot;',
+                   "'": String.fromCharCode(38) + '#39;' }[c];
+        });
+      }
 
-      if (users.length === 0) {
-        table.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No users signed up yet.</p>';
-      } else {
+      var titleOptions = B0Auth.getTitles();
+      var sel = titleOptions.map(function (t) {
+        return '<option value="' + t.key + '">' + t.emoji + ' ' + t.label + '</option>';
+      }).join('');
+
+      function render() {
+        var users = B0Auth.getAllUsers();
+        var table = document.getElementById('userTable');
+
+        if (users.length === 0) {
+          table.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No users signed up yet.</p>';
+          return;
+        }
+
         table.innerHTML = users.map(function (u) {
-          return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 14px">' +
-            '<span style="font-size:22px">' + (u.avatar || '??') + '</span>' +
-            '<span style="flex:1;font-weight:700">' + u.username + '</span>' +
-            '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' + (u.role === 'admin' ? 'linear-gradient(92deg,#ffd166,#ff9f43)' : 'rgba(255,110,169,.15)') + ';color:' + (u.role === 'admin' ? '#20160b' : '#ffb3d1') + ';font-weight:800">' + (u.role === 'admin' ? '? ADMIN' : '?? Member') + '</span>' +
+          var info = B0Auth.titleInfo(u.title);
+          var isAdmin = u.role === 'admin';
+          var row =
+            '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:10px 14px">' +
+            '<span style="font-size:22px">' + (u.avatar || '👤') + '</span>' +
+            '<span style="flex:1;font-weight:700;min-width:100px">' + esc(u.username) + '</span>' +
+
+            /* functional role badge */
+            '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' +
+            (isAdmin ? 'linear-gradient(92deg,#ffd166,#ff9f43)' : 'rgba(255,110,169,.15)') +
+            ';color:' + (isAdmin ? '#20160b' : '#ffb3d1') +
+            ';font-weight:800">' + (isAdmin ? '⚡ ADMIN' : '👤 Member') + '</span>' +
+
+            /* cosmetic title badge */
+            '<span style="font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid ' +
+            info.color + ';color:' + info.color + ';font-weight:800">' + info.emoji + ' ' + info.label + '</span>' +
+
+            /* cosmetic title picker (owner can change anyone's) */
+            '<select onchange="setUserTitle(\'' + esc(u.username) + '\', this.value)" ' +
+            'style="background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);font-size:11px;padding:5px 8px;border-radius:8px;font-family:inherit">' +
+            sel.replace('value="' + u.title + '"', 'value="' + u.title + '" selected') +
+            '</select>' +
+
+            /* functional role toggle */
             (u.username !== 'va1uxxx' ?
-              '<button onclick="toggleRole(\'' + u.username + '\')" style="background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:inherit">Toggle Role</button>' : '') +
+              '<button onclick="toggleRole(\'' + esc(u.username) + '\')" ' +
+              'style="background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:inherit">' +
+              (isAdmin ? 'Demote' : 'Promote') + '</button>' : '') +
             '</div>';
+          return row;
         }).join('');
       }
 
@@ -83,9 +126,17 @@
         if (u) {
           u.role = u.role === 'admin' ? 'member' : 'admin';
           localStorage.setItem('0xb0-users', JSON.stringify(users));
-          location.reload();
+          render();
         }
       };
+
+      window.setUserTitle = function (username, key) {
+        var res = B0Auth.setUserTitle(username, key);
+        if (!res.ok) { render(); return; }
+        render();
+      };
+
+      render();
 
       document.getElementById('logoutBtn').addEventListener('click', function () {
         B0Auth.logout();

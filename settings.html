@@ -64,6 +64,47 @@
       </div>
     </div>
 
+    <!-- ============ PROFILE ============ -->
+    <section class="section" id="profileSection">
+      <div class="section-head"><h2>👤 Profile</h2></div>
+      <p class="settings-sub" id="profileLoggedOut">
+        <a href="login.html"><b>Log in or sign up</b></a> to pick an avatar, a badge title and save your high scores.
+      </p>
+
+      <div id="profileEditor" style="display:none">
+        <div class="profile-usercard">
+          <span class="profile-usercard-avatar" id="pfAvatar">👤</span>
+          <div class="profile-usercard-info">
+            <div class="profile-usercard-name" id="pfName">…</div>
+            <span class="title-badge" id="pfTitleBadge">👤 Member</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pfNameInput">Display name</label>
+          <input id="pfNameInput" type="text" maxlength="20" placeholder="2-20 letters, numbers, _ or -" />
+          <div class="row-actions">
+            <button class="btn btn-primary" id="pfSaveName" style="font-size:13px;padding:9px 16px">Save name</button>
+            <span id="pfNameMsg" class="profile-msg"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Avatar</label>
+          <div class="avatar-grid" id="pfAvatarGrid"></div>
+          <div class="row-actions">
+            <input id="pfCustomAvatar" type="text" maxlength="8" placeholder="or paste any emoji" style="max-width:180px" />
+            <button class="btn btn-ghost" id="pfSaveAvatar" style="font-size:13px;padding:9px 16px">Set avatar</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Badge title <span class="settings-sub" style="display:inline">(cosmetic — shows next to your name)</span></label>
+          <div class="title-grid" id="pfTitleGrid"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ TAB DISGUISE ============ -->
     <section class="section">
       <div class="section-head"><h2>🕶️ Tab disguise (favicon + title)</h2></div>

@@ -2385,3 +2385,115 @@ body.grid-compact .card .meta .cat {
   background: var(--panel);
   color: var(--text);
 }
+
+/* ============================================================
+   PROFILE SECTION (avatar, name, cosmetic title badges)
+   ============================================================ */
+
+.profile-usercard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.profile-usercard-avatar {
+  font-size: 40px;
+  line-height: 1;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+
+.profile-usercard-name {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+
+.title-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 110, 169, 0.08);
+}
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.avatar-cell {
+  width: 46px;
+  height: 46px;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.avatar-cell:hover { border-color: var(--accent); transform: translateY(-2px); }
+.avatar-cell.active {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  background: rgba(255, 110, 169, 0.1);
+}
+
+.title-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title-cell {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.title-cell:hover { border-color: var(--tc, var(--accent)); transform: translateY(-2px); }
+.title-cell.active {
+  border-color: var(--tc, var(--accent));
+  color: var(--tc, var(--accent));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--tc, #ff6ea9) 35%, transparent);
+}
+
+.title-cell.locked { opacity: 0.55; cursor: not-allowed; }
+.title-cell.locked:hover { transform: none; border-color: var(--border); }
+
+.profile-msg {
+  font-size: 12.5px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* nav cosmetic title emoji */
+.nav-login .nav-title { font-size: 12px; }

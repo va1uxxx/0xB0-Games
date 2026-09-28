@@ -61,6 +61,25 @@
     return AVATARS[Math.abs(hash) % AVATARS.length];
   }
 
+  /* ---------- cosmetic titles (badges anyone can pick) ----------
+     These are 100% cosmetic — the functional "role" field
+     (member/admin) stays separate and only the owner can
+     change it from the hidden admin panel.                    */
+
+  var TITLES = {
+    member:  { label: 'Member',      emoji: '👤', color: '#9aa4b2' },
+    vip:     { label: 'VIP',         emoji: '⭐', color: '#ffd166' },
+    legend:  { label: 'Legend',      emoji: '🏆', color: '#ff9f43' },
+    pro:     { label: 'Pro Gamer',   emoji: '🎮', color: '#5eead4' },
+    noob:    { label: 'Noob',        emoji: '🐌', color: '#94a3b8' },
+    tryhard: { label: 'Tryhard',     emoji: '💀', color: '#f87171' },
+    speed:   { label: 'Speedrunner', emoji: '⚡', color: '#60a5fa' },
+    sakura:  { label: 'Sakura',      emoji: '🌸', color: '#ff6ea9' },
+    og:      { label: 'OG',          emoji: '🧊', color: '#a78bfa' },
+    ghost:   { label: 'Ghost',       emoji: '👻', color: '#cbd5e1' },
+    founder: { label: 'Founder',     emoji: '👑', color: '#ff6ea9', locked: true }
+  };
+
   /* ---------- storage helpers ---------- */
 
   function loadUsers() {
@@ -78,7 +97,26 @@
     var username = localStorage.getItem(CURRENT_KEY);
     if (!username) return null;
     var users = loadUsers();
-    return users.find(function (u) { return u.username === username; }) || null;
+    var user = users.find(function (u) { return u.username === username; }) || null;
+    /* backfill cosmetic title for accounts made before titles existed */
+    if (user && !user.title) {
+      user.title = user.username.toLowerCase() === 'va1uxxx' ? 'founder' : 'member';
+      saveUsers(users);
+    }
+    return user;
+  }
+
+  /* ---------- profile helpers ---------- */
+
+  function updateCurrentUser(mutate) {
+    var username = localStorage.getItem(CURRENT_KEY);
+    if (!username) return { ok: false, error: 'Not logged in' };
+    var users = loadUsers();
+    var user = users.find(function (u) { return u.username === username; });
+    if (!user) return { ok: false, error: 'Not logged in' };
+    mutate(user);
+    saveUsers(users);
+    return { ok: true, user: user };
   }
 
   /* ---------- game data (save/restore) ---------- */
@@ -131,6 +169,7 @@
         username: username,
         passwordHash: hash,
         role: username.toLowerCase() === 'va1uxxx' ? 'admin' : 'member',
+        title: username.toLowerCase() === 'va1uxxx' ? 'founder' : 'member',
         createdAt: new Date().toISOString(),
         avatar: avatarFor(username),
         gameData: {}
@@ -184,11 +223,95 @@
       saveGameDataToUser();
     },
 
-    /* list all users (for admin) */
+    /* list all users (for admin) — passwords are NEVER included */
     getAllUsers: function () {
       return loadUsers().map(function (u) {
-        return { username: u.username, role: u.role, createdAt: u.createdAt, avatar: u.avatar };
+        return { username: u.username, role: u.role, title: u.title || 'member', createdAt: u.createdAt, avatar: u.avatar };
       });
+    },
+
+    /* ---------- cosmetic titles ---------- */
+
+    /* catalog of pickable titles (for the settings page) */
+    getTitles: function () {
+      var isOwner = false;
+      var u = currentUser();
+      if (u && u.username.toLowerCase() === 'va1uxxx') isOwner = true;
+      return Object.keys(TITLES).map(function (key) {
+        return {
+          key: key,
+          label: TITLES[key].label,
+          emoji: TITLES[key].emoji,
+          color: TITLES[key].color,
+          locked: !!TITLES[key].locked && !isOwner
+        };
+      });
+    },
+
+    /* look up one title's style (used by nav/admin rendering) */
+    titleInfo: function (key) {
+      return TITLES[key || 'member'] || TITLES.member;
+    },
+
+    /* pick a cosmetic title (anyone can, founder is owner-only) */
+    setTitle: function (key) {
+      if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
+      var me = currentUser();
+      if (TITLES[key].locked && (!me || me.username.toLowerCase() !== 'va1uxxx')) {
+        return { ok: false, error: 'That title is locked to the site owner' };
+      }
+      return updateCurrentUser(function (u) { u.title = key; });
+    },
+
+    /* ---------- profile customization ---------- */
+
+    /* change avatar emoji (any emoji, max 8 chars to fit multi-codepoint) */
+    setAvatar: function (emoji) {
+      emoji = (emoji || '').trim();
+      if (!emoji) return { ok: false, error: 'Pick an emoji' };
+      if (emoji.length > 8) return { ok: false, error: 'That is too long for an avatar' };
+      return updateCurrentUser(function (u) { u.avatar = emoji; });
+    },
+
+    /* the list of suggested avatars (for the picker grid) */
+    getAvatarOptions: function () { return AVATARS.slice(); },
+
+    /* rename the current account (keeps role, avatar, scores) */
+    rename: function (newName) {
+      newName = (newName || '').trim();
+      if (newName.length < 2) return { ok: false, error: 'Username must be at least 2 characters' };
+      if (newName.length > 20) return { ok: false, error: 'Username too long (max 20)' };
+      if (!/^[a-zA-Z0-9_-]+$/.test(newName)) return { ok: false, error: 'Only letters, numbers, _ and - allowed' };
+
+      var users = loadUsers();
+      var oldName = localStorage.getItem(CURRENT_KEY);
+      if (!oldName) return { ok: false, error: 'Not logged in' };
+      var taken = users.some(function (u) {
+        return u.username.toLowerCase() === newName.toLowerCase() && u.username !== oldName;
+      });
+      if (taken) return { ok: false, error: 'That username is already taken' };
+
+      var user = users.find(function (u) { return u.username === oldName; });
+      if (!user) return { ok: false, error: 'Not logged in' };
+      user.username = newName;
+      saveUsers(users);
+      localStorage.setItem(CURRENT_KEY, newName);
+      return { ok: true, user: user };
+    },
+
+    /* change another user's title (owner only, used by admin panel) */
+    setUserTitle: function (username, key) {
+      if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
+      var me = currentUser();
+      if (!me || me.username.toLowerCase() !== 'va1uxxx') {
+        return { ok: false, error: 'Owner only' };
+      }
+      var users = loadUsers();
+      var user = users.find(function (u) { return u.username === username; });
+      if (!user) return { ok: false, error: 'User not found' };
+      user.title = key;
+      saveUsers(users);
+      return { ok: true };
     },
 
     /* delete account */
