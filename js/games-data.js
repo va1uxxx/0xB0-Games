@@ -1336,6 +1336,15 @@ const EXTERNAL_GAMES = [
   { slug: "watermelon-game", title: "Watermelon Game", category: "Puzzle", emoji: "??", badge: "New",
     description: "Drop and merge fruits — from cherry to watermelon. Simple concept, dangerously addictive.",
     src: "https://selenite-cc.github.io/selenite-old/watermelongame/", external: true, engine: "html5" },
+  { slug: "time-shooter-1", title: "Time Shooter", category: "Action", emoji: "??",
+    description: "Time only moves when you do — a minimalist action puzzle shooter.",
+    src: "https://selenite-cc.github.io/selenite-old/timeshooter1/", external: true, engine: "html5" },
+  { slug: "temple-run-2-official", title: "Temple Run 2", category: "Arcade", emoji: "??", badge: "Hot",
+    description: "The endless running sequel with new environments, power-ups and obstacles.",
+    src: "https://selenite-cc.github.io/selenite-old/templerun2/", external: true, engine: "html5" },
+  { slug: "super-stickman-golf-2", title: "Super Stickman Golf", category: "Sports", emoji: "?",
+    description: "Golf with power-ups, sticky walls and tons of creative levels.",
+    src: "https://selenite-cc.github.io/selenite-old/stickmangolf/", external: true, engine: "html5" },
 /* ===== open-source games from original authors (not sz-games mirrors) ===== */
 
   { slug: "orbium", title: "Orbium", category: "Puzzle", emoji: "ðŸ”µ", badge: "Open",
