@@ -87,16 +87,53 @@
         return;
       }
 
-      frame.addEventListener('load', function () { loading.classList.add('hide'); });
-      frame.src = src;
+      frame.addEventListener('load', function () { loading.classList.add('hide'); booted = true; });
+
+      /* boot watchdog — Unity games are chunky so allow 60s,
+         but never spin forever on a blocked/dead host          */
+      var booted = false;
+      var LOADING_HTML = loading.innerHTML;
+
+      function bootGame() {
+        booted = false;
+        loading.classList.remove('hide');
+        loading.innerHTML = LOADING_HTML;
+        frame.src = src;
+        clearTimeout(window.__bootTimer);
+        window.__bootTimer = setTimeout(function () {
+          if (!booted) showBootError();
+        }, 60000);
+      }
+
+      function showBootError(reason) {
+        clearTimeout(window.__bootTimer);
+        loading.classList.remove('hide');
+        loading.classList.add('boot-fail');
+        loading.innerHTML =
+          '<div class="boot-error">' +
+          '<div class="boot-emoji">\u26A0\uFE0F</div>' +
+          '<h3>This game won\u2019t load</h3>' +
+          '<p>' + (reason || 'The Unity build didn\u2019t arrive in 60s — the host may be blocked on this network or down.') + '</p>' +
+          '<div class="boot-actions">' +
+          '<button class="btn btn-primary" id="bootRetry">\u21BB Retry</button>' +
+          '<a class="btn btn-ghost" href="' + src + '" target="_blank" rel="noopener">\u2197 Open direct</a>' +
+          '<a class="btn btn-ghost" href="proxy-links.html">🔗 Proxy links</a>' +
+          '</div></div>';
+        var retry = document.getElementById('bootRetry');
+        if (retry) retry.addEventListener('click', bootGame);
+      }
+
+      /* instant reachability check */
+      fetch(src, { mode: 'no-cors', redirect: 'follow' }).catch(function () {
+        if (!booted) showBootError('This game\u2019s host can\u2019t be reached from this network \u2014 it looks blocked here.');
+      });
+
+      bootGame();
 
       document.getElementById('backBtn').addEventListener('click', function () {
         location.href = 'index.html';
       });
-      document.getElementById('reloadBtn').addEventListener('click', function () {
-        loading.classList.remove('hide');
-        frame.src = src;
-      });
+      document.getElementById('reloadBtn').addEventListener('click', bootGame);
       document.getElementById('fullBtn').addEventListener('click', function () {
         var el = document.getElementById('stageWrap');
         if (document.fullscreenElement) document.exitFullscreen();

@@ -602,6 +602,37 @@ img { max-width: 100%; }
 
 .stage .loading.hide { opacity: 0; pointer-events: none; }
 
+.stage .loading.boot-fail { background: rgba(10, 5, 18, 0.97); }
+
+.boot-error {
+  text-align: center;
+  max-width: 440px;
+  padding: 22px;
+}
+
+.boot-emoji { font-size: 44px; margin-bottom: 10px; }
+
+.boot-error h3 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 20px;
+  letter-spacing: -0.4px;
+}
+
+.boot-error p {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0 0 18px;
+}
+
+.boot-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .spinner {
   width: 42px; height: 42px;
   border-radius: 50%;

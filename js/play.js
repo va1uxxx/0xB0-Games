@@ -56,17 +56,75 @@
   var stage = document.getElementById('stage');
   var stageWrap = document.getElementById('stageWrap');
 
+  /* ---- boot watchdog -----------------------------------------
+     If the iframe never fires "load" (blocked host, dead server,
+     very slow CDN) the old code spun "Booting game…" forever.
+     Now: a reachability probe + a 15s timeout + an error panel
+     with retry / open-direct / proxy-links escape hatches.    */
+
+  var LOADING_HTML = loading.innerHTML;
+  var booted = false;
+  var slowTimer = null;
+  var bootTimer = null;
+
+  function bootGame() {
+    booted = false;
+    loading.classList.remove('hide');
+    loading.innerHTML = LOADING_HTML;
+    frame.src = src;
+    clearTimeout(slowTimer);
+    clearTimeout(bootTimer);
+    slowTimer = setTimeout(function () {
+      if (booted) return;
+      var s = loading.querySelector('span');
+      if (s) s.textContent = 'Still booting… (this game\u2019s host can be slow)';
+    }, 6000);
+    bootTimer = setTimeout(function () {
+      if (!booted) showBootError();
+    }, 15000);
+  }
+
+  function showBootError(reason) {
+    clearTimeout(slowTimer);
+    clearTimeout(bootTimer);
+    loading.classList.remove('hide');
+    loading.classList.add('boot-fail');
+    loading.innerHTML =
+      '<div class="boot-error">' +
+      '<div class="boot-emoji">\u26A0\uFE0F</div>' +
+      '<h3>This game won\u2019t load</h3>' +
+      '<p>' + (reason || 'The game host didn\u2019t respond. It\u2019s probably blocked on this network or temporarily down.') + '</p>' +
+      '<div class="boot-actions">' +
+      '<button class="btn btn-primary" id="bootRetry">\u21BB Retry</button>' +
+      '<a class="btn btn-ghost" href="' + src + '" target="_blank" rel="noopener">\u2197 Open direct</a>' +
+      '<a class="btn btn-ghost" href="proxy-links.html">🔗 Proxy links</a>' +
+      '</div></div>';
+    var retry = document.getElementById('bootRetry');
+    if (retry) retry.addEventListener('click', bootGame);
+  }
+
   frame.addEventListener('load', function () {
+    booted = true;
+    clearTimeout(slowTimer);
+    clearTimeout(bootTimer);
     loading.classList.add('hide');
   });
-  frame.src = src;
+
+  /* instant reachability check — blocked networks fail in ~1s
+     instead of the user staring at a spinner for a minute    */
+  if (/^https?:\/\//i.test(src)) {
+    fetch(src, { mode: 'no-cors', redirect: 'follow' }).catch(function () {
+      if (!booted) {
+        showBootError('This game\u2019s host can\u2019t be reached from this network \u2014 it looks blocked here. Try \u201COpen direct\u201D or the proxy links.');
+      }
+    });
+  }
+
+  bootGame();
 
   /* ---- buttons ----------------------------------------------- */
 
-  document.getElementById('reloadBtn').addEventListener('click', function () {
-    loading.classList.remove('hide');
-    frame.src = src;
-  });
+  document.getElementById('reloadBtn').addEventListener('click', bootGame);
 
   document.getElementById('fullBtn').addEventListener('click', function () {
     if (document.fullscreenElement) {
