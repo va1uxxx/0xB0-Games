@@ -37,43 +37,50 @@
   }
 
   /* ---------------- public proxies ------------------------------ */
+  /* All links are CLOAKED — disguised as SVG images on jsDelivr,
+     classwork sites, math tools or school pages so filters
+     ignore them. Mirrors: if one dies, try the next.           */
 
-  /* ---------------- public proxies ------------------------------ */
-  /* Mirror domains are InvisiProxy on alternate domains that
-     look like random websites — schools can't block them all. */
-
-  var PROXIES = [
-    { id: 'builtin', name: '0xB0 Built-in', emoji: '⛩️',
-      desc: 'Our own Ultraviolet engine — fastest when the server is reachable.',
-      url: null },
-    { id: 'mirror1', name: 'Mirror A', emoji: '🌲',
-      desc: 'Fast proxy on a rotating mirror domain. Refreshes monthly.',
-      url: 'https://forestrywolf.org/browsing' },
-    { id: 'mirror2', name: 'Mirror B', emoji: '🦭',
-      desc: 'Same proxy, different domain. Looks like a nature site.',
-      url: 'https://seaofseals.org/browsing' },
-    { id: 'mirror3', name: 'Mirror C', emoji: '🧮',
-      desc: 'Proxy on a math-looking domain. Hard to block.',
-      url: 'https://sixseventimesfour.space/browsing' },
-    { id: 'mirror4', name: 'Mirror D', emoji: '🌀',
-      desc: 'Backup mirror with full Scramjet support.',
-      url: 'https://definitechaos.org/browsing' },
-    { id: 'mirror5', name: 'Mirror E', emoji: '🕵️',
-      desc: 'Another rotating mirror domain.',
-      url: 'https://welcomeagent.lol/browsing' },
-    { id: 'glushilok', name: 'Glushilok', emoji: '🎮',
-      desc: 'Independent proxy with its own infrastructure.',
-      url: 'https://glushilok.net' },
-    { id: 'invisiproxy', name: 'InvisiProxy', emoji: '🛡️',
-      desc: 'TitaniumNetwork official (main domain — often blocked).',
-      url: 'https://invisiproxy.com/browsing' },
-    { id: 'lunar', name: 'Lunar', emoji: '🌙',
-      desc: 'Tab-based browser disguised as IXL.',
-      url: 'https://lunaron.top/welcome' },
-    { id: 'daydreamx', name: 'DayDreamX', emoji: '🌅',
-      desc: 'Full browser running inside your browser.',
-      url: 'https://daydreamx.pro' }
+  var CHERRI_BASE = 'https://cdn.jsdelivr.net/gh/hameslabybu-web/svg@';
+  var CHERRI_HASHES = [
+    '09af14ebc4f1838ae8cb0c668ee772a01221524a',
+    '07e679612b9bfa3d82b718b0f5d2fe0a25f83770',
+    'c6ca00e53e6d46de1af1d6a43f7721d0570c4609',
+    '9bf008da390e6e5afbcfe4b3d464df8ebbe5fabb',
+    '35bd6d80d933297f38b9f15c51259a2a1ee851c1',
+    '4315f8b3aa9613e083cd6db988e1c9baff7b22e1',
+    '2d317e4284c622e3eec9566ef3d90704b93c1bd1',
+    'b2338905d832101a4f0d8856a71f9a9fc9050512',
+    'a7a5e61ccbab2337107a6f52c77bf7711e125582',
+    'abf7d817f27c8fd8f191895e4ed34f5c71edd1eb',
+    '5866557a754f7108f3ba3fbd3e289be9e5697d20',
+    'fac06db6a519895840daf68ffad03ca2e2949a6d'
   ];
+
+  var PROXIES = [{ id: 'builtin', name: '0xB0 Built-in', emoji: '⛩️',
+      desc: 'Our own Ultraviolet engine — fastest when the server is reachable.',
+      url: null }];
+
+  CHERRI_HASHES.forEach(function (h, i) {
+    PROXIES.push({
+      id: 'cherri' + (i + 1),
+      name: 'Cherri Mirror #' + (i + 1),
+      emoji: '🍒',
+      desc: 'Full proxy disguised as an SVG image on jsDelivr — practically unblockable.',
+      url: CHERRI_BASE + h + '/index.svg'
+    });
+  });
+
+  [
+    { id: 'saugatr',   name: 'Saugatr Learning',   emoji: '📚', desc: 'Proxy disguised as a study-notes site (GitHub Pages).', url: 'https://saugatr.github.io/learn/' },
+    { id: 'lg677',     name: 'Learning Games 677', emoji: '🎲', desc: 'Disguised as a Google Sites games page.',              url: 'https://sites.google.com/view/learninggames677/home' },
+    { id: 'desmosl',   name: 'Desmos Learning',    emoji: '🧮', desc: 'Poses as a Desmos-style math site (Vercel).',          url: 'https://desm0slearning.vercel.app/' },
+    { id: 'desmos',    name: 'Desmos',             emoji: '📐', desc: 'Calculator-looking proxy frontend (Vercel).',          url: 'https://desm0s.vercel.app/' },
+    { id: 'english',   name: 'English Class',      emoji: '📖', desc: 'Disguised as an English class page.',                   url: 'https://english.jswords.xyz/' },
+    { id: 'ila',       name: 'ILA Class',          emoji: '✏️', desc: 'Poses as Integrated Language Arts classwork.',         url: 'https://ila.centraloff.org/' },
+    { id: 'tiw',       name: 'TIW School',         emoji: '🏫', desc: 'School-site looking frontend (Vercel).',                url: 'https://tiwschool.vercel.app/' },
+    { id: 'static',    name: 'Static Files',       emoji: '🗂️', desc: 'Looks like a boring file server.',                     url: 'https://static.starttiw.org/static/' }
+  ].forEach(function (p) { PROXIES.push(p); });
 
   function proxyStatus(id, ok, note) {
     var el = portalGrid && portalGrid.querySelector('[data-proxy="' + id + '"]');
@@ -289,9 +296,8 @@
     var encoded = Ultraviolet.codec.xor.encode(url);
 
     /* Try the least-likely-to-be-blocked mirrors first */
-    var mirrorIds = ['mirror1', 'mirror2', 'mirror3', 'mirror4', 'mirror5', 'glushilok'];
     var mirrorUrls = PROXIES.filter(function (p) {
-      return mirrorIds.includes(p.id) && p.url;
+      return p.id && p.id.indexOf('cherri') === 0 && p.url;
     });
     var pick = mirrorUrls[~~(Math.random() * mirrorUrls.length)] || PROXIES[1];
 

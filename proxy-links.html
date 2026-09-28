@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Proxy Links — 0xB0 Games</title>
-  <meta name="description" content="Working proxy links to unblock any website at school." />
+  <meta name="description" content="Cloaked proxy links that work at school." />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -34,41 +34,42 @@
     <div style="text-align:center;margin-bottom:32px">
       <div style="font-size:56px;margin-bottom:12px">🔗</div>
       <h1 style="font-size:32px;margin:0 0 8px;letter-spacing:-1px">Proxy Links</h1>
-      <p style="color:var(--muted);font-size:15px;margin:0">Working proxy links to unblock any website. Each one runs on its own domain.</p>
+      <p style="color:var(--muted);font-size:15px;margin:0">Every link here is <b>cloaked</b> — disguised as school-safe stuff so filters ignore it.</p>
     </div>
 
     <div class="info-card" style="margin-bottom:20px">
       <h3>> how_to_use</h3>
-      <p>Click any link to open the proxy. Type the website you want to visit in its search box. Bookmark your favorites — if one gets blocked, try another.</p>
+      <p>Click a link → it opens in a new tab → type the website you want into its search bar and hit Enter. Bookmark your favorites. If one stops working, come back and try another mirror.</p>
     </div>
 
-    <!-- Mirror Proxies (InvisiProxy infrastructure on different domains) -->
+    <!-- ============ CHERRI UNBLOCKER ============ -->
     <section class="section">
-      <div class="section-head"><h2>🌲 Mirror Proxies</h2></div>
-      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">Same engine as InvisiProxy but on rotating mirror domains that schools haven't blocked yet.</p>
-      <div class="proxy-list" id="mirrorList"></div>
+      <div class="section-head"><h2>🍒 Cherri Unblocker — 12 mirrors</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">
+        The hardest kind to block: they look like plain <b>image files on jsDelivr</b> (the mainstream CDN used by
+        millions of normal websites), but they're actually a full proxy. Each link below is a separate mirror —
+        if one ever gets reported, the others keep working.
+      </p>
+      <div class="proxy-list" id="cherriList"></div>
     </section>
 
-    <!-- Public Proxies -->
+    <!-- ============ CLOAKED COMMUNITY ============ -->
     <section class="section">
-      <div class="section-head"><h2>🛡️ Public Proxies</h2></div>
-      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">Dedicated proxy sites with their own infrastructure.</p>
-      <div class="proxy-list" id="publicList"></div>
-    </section>
-
-    <!-- Community Proxies -->
-    <section class="section">
-      <div class="section-head"><h2>🌐 Community Proxies</h2></div>
-      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">Proxies made by the unblocked-games community.</p>
+      <div class="section-head"><h2>🕶️ Cloaked community links</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">
+        Community proxies disguised as classwork, math tools and school sites. Domains like
+        Google Sites, GitHub Pages and Vercel host millions of legit sites — filters can't block them wholesale.
+      </p>
       <div class="proxy-list" id="communityList"></div>
     </section>
 
     <div class="info-card" style="margin-top:24px">
-      <h3>> more_links</h3>
+      <h3>> stay_safe</h3>
       <p>
-        Links get blocked over time. For fresh ones, join the
+        A proxy can see the traffic you send through it — never log into important accounts (email, bank, school
+        portal) inside one. Links like these die over time; for fresh restocks join the
         <a href="https://discord.gg/unblock" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">TitaniumNetwork Discord</a>
-        and type <b>/proxy</b> in the #panel channel. New links are restocked monthly.
+        and type <b>/proxy</b> in #panel.
       </p>
     </div>
   </main>
@@ -87,6 +88,10 @@
     .proxy-link .name { font-weight: 800; font-size: 15px; }
     .proxy-link .url { font-size: 12px; color: var(--muted); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .proxy-link .arrow { color: var(--accent); font-size: 18px; font-weight: 800; flex-shrink: 0; }
+    .mirror-badge {
+      font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
+      background: rgba(255,110,169,.15); color: #ffb3d1; flex-shrink: 0;
+    }
   </style>
 
   <script src="js/settings.js"></script>
@@ -94,40 +99,66 @@
   <script src="js/petals.js"></script>
   <script src="js/main.js"></script>
   <script>
-    var MIRROR = [
-      { name: 'Mirror A', icon: '🌲', url: 'https://forestrywolf.org/browsing', desc: 'Looks like a nature site' },
-      { name: 'Mirror B', icon: '🦭', url: 'https://seaofseals.org/browsing', desc: 'Marine biology themed' },
-      { name: 'Mirror C', icon: '🧮', url: 'https://sixseventimesfour.space/browsing', desc: 'Math-themed domain' },
-      { name: 'Mirror D', icon: '🌀', url: 'https://definitechaos.org/browsing', desc: 'Philosophy blog style' },
-      { name: 'Mirror E', icon: '🕵️', url: 'https://welcomeagent.lol/browsing', desc: 'Gaming site style' },
-    ];
-    var PUBLIC = [
-      { name: 'InvisiProxy LTS', icon: '🛡️', url: 'https://invisiproxy.com/browsing', desc: 'TitaniumNetwork official proxy' },
-      { name: 'Lunar', icon: '🌙', url: 'https://lunaron.top/welcome', desc: 'Cloaked as IXL (math site)' },
-      { name: 'DayDreamX', icon: '🌅', url: 'https://daydreamx.pro', desc: 'Full browser in a browser' },
-      { name: 'Nebula', icon: '☁️', url: 'https://nebulaservices.org', desc: 'UV-based proxy service' },
-      { name: 'Glushilok', icon: '🎮', url: 'https://glushilok.net', desc: 'Independent proxy' },
-    ];
-    var COMMUNITY = [
-      { name: 'Holy Unblocker', icon: '⛪', url: 'https://holyunblocker.org', desc: 'Classic community proxy' },
-      { name: 'Interstellar', icon: '🚀', url: 'https://interstellar.tf', desc: 'Community proxy network' },
-      { name: 'Study Hub', icon: '📚', url: 'https://study.hackermack.top', desc: 'Study-themed proxy' },
-      { name: 'Radium', icon: '⚡', url: 'https://sriail.github.io/Radius/', desc: 'Study-themed proxy portal' },
-      { name: 'Truffled', icon: '🍄', url: 'https://truffled.lol', desc: 'Games site with built-in proxy' },
+    /* ---- Cherri Unblocker: full proxy apps disguised as SVG images on jsDelivr ---- */
+    var CHERRI_BASE = 'https://cdn.jsdelivr.net/gh/hameslabybu-web/svg@';
+    var CHERRI_HASHES = [
+      '09af14ebc4f1838ae8cb0c668ee772a01221524a',
+      '07e679612b9bfa3d82b718b0f5d2fe0a25f83770',
+      'c6ca00e53e6d46de1af1d6a43f7721d0570c4609',
+      '9bf008da390e6e5afbcfe4b3d464df8ebbe5fabb',
+      '35bd6d80d933297f38b9f15c51259a2a1ee851c1',
+      '4315f8b3aa9613e083cd6db988e1c9baff7b22e1',
+      '2d317e4284c622e3eec9566ef3d90704b93c1bd1',
+      'b2338905d832101a4f0d8856a71f9a9fc9050512',
+      'a7a5e61ccbab2337107a6f52c77bf7711e125582',
+      'abf7d817f27c8fd8f191895e4ed34f5c71edd1eb',
+      '5866557a754f7108f3ba3fbd3e289be9e5697d20',
+      'fac06db6a519895840daf68ffad03ca2e2949a6d'
     ];
 
-    function buildList(el, arr) {
-      el.innerHTML = arr.map(function (p) {
-        return '<a class="proxy-link" href="' + p.url + '" target="_blank" rel="noopener">' +
-          '<span class="icon">' + p.icon + '</span>' +
-          '<span class="info"><span class="name">' + p.name + '</span>' +
-          '<span class="url" style="display:block">' + p.url.replace(/https?:\/\//, '') + '</span></span>' +
+    /* ---- cloaked community proxies (all liveness-tested) ---- */
+    var COMMUNITY = [
+      { name: 'Saugatr Learning',        icon: '📚', url: 'https://saugatr.github.io/learn/',                desc: 'Looks like a study-notes site (GitHub Pages)' },
+      { name: 'Learning Games 677',      icon: '🎲', url: 'https://sites.google.com/view/learninggames677/home', desc: 'Disguised as a Google Sites games page' },
+      { name: 'Desmos Learning',         icon: '🧮', url: 'https://desm0slearning.vercel.app/',          desc: 'Poses as a Desmos-style math site' },
+      { name: 'Desmos',                  icon: '📐', url: 'https://desm0s.vercel.app/',                  desc: 'Calculator-looking frontend (Vercel)' },
+      { name: 'English Class',           icon: '📖', url: 'https://english.jswords.xyz/',               desc: 'Disguised as an English class page' },
+      { name: 'ILA Class',               icon: '✏️', url: 'https://ila.centraloff.org/',                  desc: 'Poses as Integrated Language Arts' },
+      { name: 'TIW School',              icon: '🏫', url: 'https://tiwschool.vercel.app/',                desc: 'School-site looking frontend (Vercel)' },
+      { name: 'Static Files',            icon: '🗂️', url: 'https://static.starttiw.org/static/',          desc: 'Looks like a boring file server' }
+    ];
+
+    function shortUrl(u) {
+      return u.replace(/^https?:\/\//, '').split('?')[0];
+    }
+
+    function buildCherri() {
+      var el = document.getElementById('cherriList');
+      el.innerHTML = CHERRI_HASHES.map(function (h, i) {
+        var url = CHERRI_BASE + h + '/index.svg';
+        return '<a class="proxy-link" href="' + url + '" target="_blank" rel="noopener">' +
+          '<span class="icon">🍒</span>' +
+          '<span class="info"><span class="name">Cherri Mirror #' + (i + 1) + '</span>' +
+          '<span class="url" style="display:block">cdn.jsdelivr.net/gh/hameslabybu-web/svg@' + h.slice(0, 8) + '…/index.svg</span></span>' +
+          '<span class="mirror-badge">jsDelivr</span>' +
           '<span class="arrow">↗</span></a>';
       }).join('');
     }
-    buildList(document.getElementById('mirrorList'), MIRROR);
-    buildList(document.getElementById('publicList'), PUBLIC);
-    buildList(document.getElementById('communityList'), COMMUNITY);
+
+    function buildCommunity() {
+      var el = document.getElementById('communityList');
+      el.innerHTML = COMMUNITY.map(function (p) {
+        return '<a class="proxy-link" href="' + p.url + '" target="_blank" rel="noopener">' +
+          '<span class="icon">' + p.icon + '</span>' +
+          '<span class="info"><span class="name">' + p.name + '</span>' +
+          '<span class="url" style="display:block">' + p.desc + '</span></span>' +
+          '<span class="mirror-badge">' + shortUrl(p.url).split('/')[0] + '</span>' +
+          '<span class="arrow">↗</span></a>';
+      }).join('');
+    }
+
+    buildCherri();
+    buildCommunity();
   </script>
 </body>
 </html>

@@ -164,9 +164,13 @@ needs updating since all links use slugs.
 
 **It works out of the box** — `uv/servers.js` ships with the public TompHTTP
 server (`https://tomp.app/`, verified fast, CORS-open, speaks bare v1/v2).
-The Unblocker page also has **backup launchers** — one-tap links to the big
-public TitaniumNetwork proxies (**InvisiProxy**, **Lunar** — cloaked as IXL —
-and **DayDreamX**) for networks where the built-in proxy is blocked.
+The Unblocker page and **Proxy Links** page also list **cloaked backup
+launchers** — Cherri Unblocker (12 mirrors disguised as SVG images on
+jsDelivr, practically unblockable) plus community proxies disguised as
+classwork/math/school sites (GitHub Pages, Google Sites, Vercel).
+All links are liveness-tested before being added; update them in
+`js/unblocker.js` (`PROXIES`) and `proxy-links.html` (`CHERRI_HASHES` +
+`COMMUNITY`).
 
 **When to deploy your own** bare server (recommended for reliability — public
 servers can be blocked, rate-limited, or go offline). Free, ~5 minutes, no
