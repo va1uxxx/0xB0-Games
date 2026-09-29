@@ -98,10 +98,21 @@
     if (!username) return null;
     var users = loadUsers();
     var user = users.find(function (u) { return u.username === username; }) || null;
-    /* backfill cosmetic title for accounts made before titles existed */
-    if (user && !user.title) {
-      user.title = user.username.toLowerCase() === 'va1uxxx' ? 'founder' : 'member';
-      saveUsers(users);
+    /* backfill cosmetic title for accounts made before titles existed,
+       and make sure the owner account ALWAYS has admin + founder      */
+    if (user) {
+      var isOwner = user.username.toLowerCase() === 'va1uxxx';
+      var changed = false;
+      if (!user.title) {
+        user.title = isOwner ? 'founder' : 'member';
+        changed = true;
+      }
+      if (isOwner && (user.role !== 'admin' || user.title !== 'founder')) {
+        user.role = 'admin';
+        user.title = 'founder';
+        changed = true;
+      }
+      if (changed) saveUsers(users);
     }
     return user;
   }
@@ -253,13 +264,14 @@
       return TITLES[key || 'member'] || TITLES.member;
     },
 
-    /* pick a cosmetic title (anyone can, founder is owner-only) */
+    /* pick a cosmetic title — OWNER ONLY. Users cannot change their own
+       title; the owner assigns them from the hidden admin panel.       */
     setTitle: function (key) {
-      if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
       var me = currentUser();
-      if (TITLES[key].locked && (!me || me.username.toLowerCase() !== 'va1uxxx')) {
-        return { ok: false, error: 'That title is locked to the site owner' };
+      if (!me || me.username.toLowerCase() !== 'va1uxxx') {
+        return { ok: false, error: 'Only the site owner can change titles' };
       }
+      if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
       return updateCurrentUser(function (u) { u.title = key; });
     },
 

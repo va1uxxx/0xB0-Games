@@ -147,16 +147,21 @@ needs updating since all links use slugs.
 ### 👤 Profile system + cosmetic titles
 
 - `js/auth.js` stores accounts in localStorage (per device). Each user has a
-  **functional role** (`member`/`admin` — only `va1uxxx` is admin/owner) and a
-  **cosmetic title** badge (anyone can pick: Member, VIP, Legend, Pro Gamer,
-  Noob, Tryhard, Speedrunner, Sakura, OG, Ghost). `👑 Founder` is locked to
-  the owner's account.
-- Users customize avatar + name + title in **Settings → Profile**
+  **functional role** (`member`/`admin` — only `va1uxxx` is admin/owner; the
+  account is force-promoted on every page load) and a **cosmetic title**
+  badge (👤 Member, ⭐ VIP, 🏆 Legend, 🎮 Pro Gamer, 🐌 Noob, 💀 Tryhard,
+  ⚡ Speedrunner, 🌸 Sakura, 🧊 OG, 👻 Ghost, 👑 Founder).
+- **Titles are owner-assigned only** — users can NOT pick their own title.
+  The owner sets them from the hidden admin panel (`admin.html`, no nav link),
+  which also lets the owner flip functional roles. **Passwords are only ever
+  stored as SHA-256 hashes and are never rendered anywhere.**
+- Users customize their **avatar + display name** in **Settings → Profile**
   (`settings.html`), handled by the profile block at the bottom of
   `js/settings-page.js`.
-- The hidden admin panel (`admin.html`, no nav link) lets the owner flip
-  functional roles and set anyone's cosmetic title. **Passwords are only ever
-  stored as SHA-256 hashes and are never rendered anywhere.**
+- The nav has an sz-games-style **"More ▾" dropdown** (a `<details>`
+  element — no JS needed) with Proxy Links, Unblocker, Settings and About.
+  To change the menu, edit the `nav-drop` block in each page's nav (all
+  pages share the same markup).
 
 ---
 

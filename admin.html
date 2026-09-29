@@ -14,7 +14,7 @@
     <div id="authGate" style="text-align:center;padding:60px 20px">
       <div style="font-size:56px;margin-bottom:12px">🔒</div>
       <h1>Restricted Area</h1>
-      <p style="color:var(--muted)">This page is for the site owner only.</p>
+      <p id="gateReason" style="color:var(--muted)">This page is for the site owner only.</p>
       <a class="btn btn-primary" href="login.html" style="margin-top:16px">Log in as owner</a>
     </div>
 
@@ -34,6 +34,8 @@
         <h3>> signed_up_users</h3>
         <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 12px">
           Passwords are stored as SHA-256 hashes and are never displayed anywhere — not even here.
+          Accounts are saved per-device (that is how a static site works), so this list shows everyone
+          who signed up <b>on this device</b>.
         </p>
         <div id="userTable" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
@@ -56,6 +58,15 @@
       if (!user || user.role !== 'admin') {
         gate.style.display = 'block';
         panel.style.display = 'none';
+        var reason = document.getElementById('gateReason');
+        if (reason) {
+          if (!user) {
+            reason.textContent = 'Not logged in — log in with the owner account (va1uxxx) to manage users.';
+          } else {
+            reason.textContent = 'You are signed in as ' + user.username + ' (role: ' + user.role +
+              '). The admin panel only opens for the owner account.';
+          }
+        }
         return;
       }
 

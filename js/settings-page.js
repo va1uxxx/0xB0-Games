@@ -214,7 +214,6 @@
   var nameMsg = document.getElementById('pfNameMsg');
   var avatarGrid = document.getElementById('pfAvatarGrid');
   var customAvatar = document.getElementById('pfCustomAvatar');
-  var titleGrid = document.getElementById('pfTitleGrid');
 
   function esc(s) {
     var A = String.fromCharCode(38); /* the ampersand entity prefix */
@@ -240,7 +239,6 @@
     }
     if (nameInput && document.activeElement !== nameInput) nameInput.value = user.username;
     renderAvatarGrid();
-    renderTitleGrid();
   }
 
   function renderAvatarGrid() {
@@ -252,21 +250,6 @@
       html += '<button class="avatar-cell' + active + '" data-emoji="' + a + '" title="Set avatar ' + a + '">' + a + '</button>';
     });
     avatarGrid.innerHTML = html;
-  }
-
-  function renderTitleGrid() {
-    if (!titleGrid) return;
-    var titles = B0Auth.getTitles();
-    var html = '';
-    titles.forEach(function (t) {
-      var active = user.title === t.key ? ' active' : '';
-      var locked = t.locked ? ' locked' : '';
-      html += '<button class="title-cell' + active + locked + '" data-key="' + t.key + '"' +
-        ' style="--tc:' + t.color + '"' +
-        ' title="' + (t.locked ? 'Reserved for the site owner' : 'Wear the ' + t.label + ' badge') + '">' +
-        t.emoji + ' ' + esc(t.label) + (t.locked ? ' 🔒' : '') + '</button>';
-    });
-    titleGrid.innerHTML = html;
   }
 
   /* pick avatar from grid */
@@ -319,19 +302,7 @@
     });
   }
 
-  /* pick cosmetic title */
-  if (titleGrid) {
-    titleGrid.addEventListener('click', function (e) {
-      var btn = e.target.closest && e.target.closest('.title-cell');
-      if (!btn) return;
-      var res = B0Auth.setTitle(btn.getAttribute('data-key'));
-      if (!res.ok && nameMsg) {
-        nameMsg.textContent = res.error || '';
-        nameMsg.style.color = 'var(--danger)';
-      }
-      refresh();
-    });
-  }
+  /* pick cosmetic title — removed: only the owner changes titles, from the admin panel */
 
   refresh();
 })();

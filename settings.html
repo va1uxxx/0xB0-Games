@@ -32,8 +32,15 @@
       <div class="nav-links" id="navLinks">
         <a href="index.html">Home</a>
         <a href="index.html#games">Games</a>
-        <a href="unblocker.html">Unblocker</a>
-        <a href="settings.html" class="active">Settings</a><a href="about.html">About</a>
+        <details class="nav-drop open-active" id="navDrop">
+          <summary>More</summary>
+          <div class="nav-drop-menu">
+            <a href="proxy-links.html">🔗 Proxy Links</a>
+            <a href="unblocker.html">🔓 Unblocker</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="about.html">🌸 About</a>
+          </div>
+        </details>
       </div>
       <span id="loginSlot" class="nav-login"></span><div class="nav-actions">
         <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
@@ -68,7 +75,7 @@
     <section class="section" id="profileSection">
       <div class="section-head"><h2>👤 Profile</h2></div>
       <p class="settings-sub" id="profileLoggedOut">
-        <a href="login.html"><b>Log in or sign up</b></a> to pick an avatar, a badge title and save your high scores.
+        <a href="login.html"><b>Log in or sign up</b></a> to pick an avatar and save your high scores.
       </p>
 
       <div id="profileEditor" style="display:none">
@@ -99,8 +106,10 @@
         </div>
 
         <div class="field">
-          <label>Badge title <span class="settings-sub" style="display:inline">(cosmetic — shows next to your name)</span></label>
-          <div class="title-grid" id="pfTitleGrid"></div>
+          <label>Badge title</label>
+          <p class="settings-sub" style="margin:0">
+            Badges are assigned by the site owner and show next to your name (see your card above).
+          </p>
         </div>
       </div>
     </section>
