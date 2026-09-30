@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="referrer" content="no-referrer" />
+<title>Loading game — 0xB0 Games</title>
+  <meta name="description" content="Loading a game from its CDN host." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/game-host.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Loading game — 0xB0 Games" />
+  <meta property="og:description" content="Loading a game from its CDN host." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/game-host.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Loading game — 0xB0 Games" />
+  <meta name="twitter:description" content="Loading a game from its CDN host." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <link rel="icon" href="assets/favicon.svg" />
+<link rel="stylesheet" href="css/style.css" />
+<style>
+  /* This page shows for a second or two, then the game document
+     replaces it completely (see js/game-host.js). Nothing here
+     should be able to scroll, flash or fight with the game. */
+  html, body { overflow: hidden; }
+  .host-boot {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    padding: 24px;
+  }
+  .host-boot p { color: var(--muted); font-size: 14px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="host-boot" id="hostBoot">
+  <div class="spinner" aria-hidden="true"></div>
+  <p id="hostMsg">Loading game…</p>
+</div>
+<script src="js/settings.js"></script>
+<script src="js/games-data.js"></script>
+<script src="js/game-host.js"></script>
+</body>
+</html>

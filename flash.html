@@ -4,6 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Flash Game — 0xB0 Games</title>
+  <meta name="description" content="Play a classic Flash game, re-emulated right in your browser with Ruffle." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/flash.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Flash Game — 0xB0 Games" />
+  <meta property="og:description" content="Play a classic Flash game, re-emulated right in your browser with Ruffle." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/flash.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Flash Game — 0xB0 Games" />
+  <meta name="twitter:description" content="Play a classic Flash game, re-emulated right in your browser with Ruffle." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
@@ -62,8 +85,10 @@
 </head>
 <body>
 
-  <!-- Ruffle: the open-source Flash emulator (same loader sz-games uses) -->
-  <script src="https://unpkg.com/@ruffle-rs/ruffle" onerror="document.getElementById('flashError').style.display='flex'"></script>
+  <!-- Ruffle: the open-source Flash emulator (same loader sz-games uses).
+       It is loaded by the script at the bottom of <body>, which walks a
+       list of CDNs — an inline onerror up here fired before #flashError
+       had even been parsed into the DOM, so the message never showed. -->
 
   <div class="flash-wrap">
     <div class="flash-stage" id="stageWrap">
@@ -83,10 +108,10 @@
     <div>
       <div style="font-size:40px">🔌</div>
       <h2 style="margin:10px 0 6px">Ruffle failed to load</h2>
-      <p style="color:#93a5c8;max-width:420px;margin:0 auto;line-height:1.5">
+      <p id="flashErrMsg" style="color:#93a5c8;max-width:420px;margin:0 auto;line-height:1.5">
         The Flash emulator is fetched from a CDN which your network may block.
         Try again on a different network, or host a copy of Ruffle in this repo
-        (see README → “Flash games”).
+        (see README &rarr; “Flash games”).
       </p>
     </div>
   </div>
@@ -100,42 +125,84 @@
       var params = new URLSearchParams(location.search);
       var src = params.get('game');
 
-      /* if the param is a slug (not a URL), resolve it from the registry */
-      if (src && !/^https?:\/\//i.test(src)) {
-        var g = (typeof findGame === 'function') ? findGame(src) : null;
-        if (g && g.src) {
-          src = g.src;
-          B0Settings.setPageTitle(g.title + ' — 0xB0 Games');
+      var errBox = document.getElementById('flashError');
+      var errMsg = document.getElementById('flashErrMsg');
+
+      function fail(title, msg) {
+        errBox.style.display = 'flex';
+        errBox.querySelector('h2').textContent = title;
+        errMsg.textContent = msg;
+      }
+
+      /* ---- 1. load Ruffle, falling back through several CDNs ----
+         School networks routinely block one CDN and not the next. */
+      var CDNS = [
+        'https://unpkg.com/@ruffle-rs/ruffle',
+        'https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@latest/ruffle.min.js'
+      ];
+
+      function loadRuffle(i) {
+        if (i >= CDNS.length) {
+          fail('Ruffle failed to load',
+            'The Flash emulator could not be fetched from any CDN (all of them are blocked on this network). ' +
+            'Try a different network, or host a copy of Ruffle in this repo (see README → “Flash games”).');
+          return;
         }
+        var s = document.createElement('script');
+        s.src = CDNS[i];
+        s.async = false;
+        s.onerror = function () { loadRuffle(i + 1); };
+        s.onload = function () { start(); };
+        document.head.appendChild(s);
       }
 
-      if (!src || !/^https?:\/\//i.test(src)) {
-        document.getElementById('flashError').style.display = 'flex';
-        document.getElementById('flashError').querySelector('h2').textContent = 'No game URL';
-        document.getElementById('flashError').querySelector('p').textContent = 'Use flash.html?game=<slug or url>';
-        return;
-      }
+      /* ---- 2. start the game ---- */
+      function start() {
+        /* if the param is a slug (not a URL), resolve it from the registry */
+        if (src && !/^https?:\/\//i.test(src)) {
+          var g = (typeof findGame === 'function') ? findGame(src) : null;
+          if (g && g.src) {
+            src = g.src;
+            try { B0Settings.setPageTitle(g.title + ' — 0xB0 Games'); } catch (e) {}
+          }
+        }
 
-      document.getElementById('game').src = src;
+        if (!src || !/^https?:\/\//i.test(src)) {
+          fail('No game URL', 'Nothing to play — open a Flash game from the arcade instead.');
+          return;
+        }
+
+        var embed = document.getElementById('game');
+        embed.src = src;
+        document.getElementById('backBtn').addEventListener('click', function () {
+          location.href = 'index.html';
+        });
+      }
 
       document.getElementById('backBtn').addEventListener('click', function () {
         location.href = 'index.html';
       });
       document.getElementById('fullBtn').addEventListener('click', function () {
         var el = document.getElementById('stageWrap');
-        if (document.fullscreenElement) document.exitFullscreen();
-        else if (el.requestFullscreen) el.requestFullscreen();
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) document.exitFullscreen();
+        } else if (el.requestFullscreen) {
+          el.requestFullscreen();
+        }
       });
       document.getElementById('cloakTabBtn').addEventListener('click', function () {
         var w = window.open('about:blank', '_blank');
         if (!w) { alert('Allow pop-ups to use cloaked tabs.'); return; }
         w.document.write(
-          '<!DOCTYPE html><html><head><title>Home</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
+          '<!DOCTYPE html><html><head><title>Course materials</title>' +
+          '<style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
           'iframe{border:0;width:100%;height:100%}</style></head>' +
-          '<body><iframe src="' + location.href + '"></iframe></body></html>'
+          '<body><iframe src="' + location.href + '" allow="autoplay; fullscreen; gamepad"></iframe></body></html>'
         );
         w.document.close();
       });
+
+      loadRuffle(0);
     })();
   </script>
 </body>

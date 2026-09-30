@@ -4,9 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Proxy Links — 0xB0 Games</title>
-  <meta name="description" content="Cloaked proxy links that work at school." />
+  <meta name="description" content="Cloaked proxy links that get past school web filters." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/proxy-links.html" />
+  <meta name="robots" content="index, follow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Proxy Links — 0xB0 Games" />
+  <meta property="og:description" content="Cloaked proxy links that get past school web filters." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/proxy-links.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Proxy Links — 0xB0 Games" />
+  <meta name="twitter:description" content="Cloaked proxy links that get past school web filters." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .proxy-list { display: grid; gap: 10px; }
+    .proxy-link {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; text-decoration: none; color: var(--text);
+      transition: 0.15s; font-family: var(--sans);
+    }
+    .proxy-link:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+    .proxy-link .icon { font-size: 28px; flex-shrink: 0; }
+    .proxy-link .info { flex: 1; min-width: 0; }
+    .proxy-link .name { font-weight: 800; font-size: 15px; display: block; }
+    .proxy-link .url { font-size: 12px; color: var(--muted); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    .proxy-link .arrow { color: var(--accent); font-size: 18px; font-weight: 800; flex-shrink: 0; }
+    .mirror-badge {
+      font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
+      background: rgba(255,110,169,.15); color: #ffb3d1; flex-shrink: 0;
+    }
+  </style>
 </head>
 <body>
   <canvas id="petalCanvas"></canvas>
@@ -23,14 +64,17 @@
         <details class="nav-drop open-active" id="navDrop">
           <summary>More</summary>
           <div class="nav-drop-menu">
-            <a href="proxy-links.html">🔗 Proxy Links</a>
+            <a href="rip.html">🪄 Game Rip</a>
+
             <a href="unblocker.html">🔓 Unblocker</a>
             <a href="settings.html">⚙️ Settings</a>
             <a href="about.html">🌸 About</a>
           </div>
         </details>
       </div>
+      <span id="loginSlot" class="nav-login"></span>
       <div class="nav-actions">
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
         <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
         <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
       </div>
@@ -80,26 +124,6 @@
       </p>
     </div>
   </main>
-
-  <style>
-    .proxy-list { display: grid; gap: 10px; }
-    .proxy-link {
-      display: flex; align-items: center; gap: 14px;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px 16px; text-decoration: none; color: var(--text);
-      transition: 0.15s; font-family: var(--sans);
-    }
-    .proxy-link:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
-    .proxy-link .icon { font-size: 28px; flex-shrink: 0; }
-    .proxy-link .info { flex: 1; min-width: 0; }
-    .proxy-link .name { font-weight: 800; font-size: 15px; }
-    .proxy-link .url { font-size: 12px; color: var(--muted); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .proxy-link .arrow { color: var(--accent); font-size: 18px; font-weight: 800; flex-shrink: 0; }
-    .mirror-badge {
-      font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
-      background: rgba(255,110,169,.15); color: #ffb3d1; flex-shrink: 0;
-    }
-  </style>
 
   <script src="js/settings.js"></script>
   <script src="js/auth.js"></script>

@@ -4,7 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>0xB0 Games — Unblocked Games</title>
-  <meta name="description" content="0xB0 Games — unblocked HTML5 games you can play anywhere: school, Chromebook, anywhere. No downloads, no installs, just press play." />
+  <meta name="description" content="Play 544 free unblocked HTML5 games anywhere — school, Chromebook or home. No downloads, no installs, just press play." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/" />
+  <meta name="robots" content="index, follow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="0xB0 Games — Unblocked Games" />
+  <meta property="og:description" content="Play 544 free unblocked HTML5 games anywhere — school, Chromebook or home. No downloads, no installs, just press play." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="0xB0 Games — Unblocked Games" />
+  <meta name="twitter:description" content="Play 544 free unblocked HTML5 games anywhere — school, Chromebook or home. No downloads, no installs, just press play." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -40,7 +62,8 @@
         <details class="nav-drop" id="navDrop">
           <summary>More</summary>
           <div class="nav-drop-menu">
-            <a href="proxy-links.html">🔗 Proxy Links</a>
+            <a href="rip.html">🪄 Game Rip</a>
+
             <a href="unblocker.html">🔓 Unblocker</a>
             <a href="settings.html">⚙️ Settings</a>
             <a href="about.html">🌸 About</a>
@@ -48,7 +71,8 @@
         </details>
       </div>
 
-      <span id="loginSlot" class="nav-login"></span><div class="nav-actions">
+      <span id="loginSlot" class="nav-login"></span>
+      <div class="nav-actions">
         <button class="icon-btn" id="randomBtn" title="Play a random game">🎲 <span class="label">Random</span></button>
         <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
         <button class="icon-btn danger" id="panicBtn" title="Panic! (also press the ` key)" aria-label="Panic button">🛡️</button>
@@ -72,20 +96,23 @@
         <circle cx="11" cy="11" r="7"></circle>
         <path d="M20 20l-4-4"></path>
       </svg>
-      <input id="searchInput" type="text" placeholder="Search games… try “snake” or “puzzle”" autocomplete="off" />
+      <input id="searchInput" type="text" placeholder="Search games… try “snake” or “puzzle”" autocomplete="off" aria-label="Search games" />
+      <button class="search-clear" id="searchClear" type="button" aria-label="Clear search" hidden>✕</button>
+      <kbd class="search-kbd">/</kbd>
     </div>
 
     <div class="hero-cta">
       <a class="btn btn-primary" href="#games">▶ Browse Games</a>
-      <a class="btn btn-ghost" href="unblocker.html">🔓 Open the Unblocker</a>
+      <a class="btn btn-ghost" href="rip.html">🪄 Game Rip</a>
+      <a class="btn btn-ghost" href="proxy-links.html">🔗 Proxy Links</a>
     </div>
 
     <div class="hero-stage" id="heroStage"><div class="sc-inner" id="scInner"></div></div>
 
     <div class="hero-stats">
-      <span><b id="statGames">9</b> playable games</span>
-      <span><b>100%</b> static — nothing to install</span>
-      <span><b>∞</b> free forever</span>
+      <span><b id="statGames">…</b> playable games</span>
+      <span><b id="statLocal">…</b> hosted on this site</span>
+      <span><b>100%</b> free — no downloads, ever</span>
     </div>
 
     <!-- Unblocker mini-banner -->
@@ -99,19 +126,21 @@
     </div>
   </header>
 
-    <div class="unbanner">
-      <div class="info">
-        <h3>🔥 Popular Right Now</h3>
-        <p>The games everyone's playing this week — tap to jump in.</p>
-      </div>
-    </div>
-
   <!-- ============ GAMES ============ -->
   <main class="wrap" id="games">
+    <!-- Popular rail -->
+    <section class="section" id="popular">
+      <div class="section-head">
+        <h2>🔥 Popular right now</h2>
+        <span class="count">the ones everyone opens first</span>
+      </div>
+      <div class="rail-wrap"><div class="rail" id="popularRail"></div></div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <h2>All Games</h2>
-        <span class="count" id="gameCount">9 games</span>
+        <span class="count" id="gameCount">…</span>
       </div>
 
       <div class="chips" id="chips"></div>

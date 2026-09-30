@@ -4,18 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin — 0xB0 Games</title>
+  <meta name="description" content="Owner-only account management." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/admin.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Admin — 0xB0 Games" />
+  <meta property="og:description" content="Owner-only account management." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/admin.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Admin — 0xB0 Games" />
+  <meta name="twitter:description" content="Owner-only account management." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <canvas id="petalCanvas"></canvas>
 
-  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:720px">
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:760px">
     <div id="authGate" style="text-align:center;padding:60px 20px">
       <div style="font-size:56px;margin-bottom:12px">🔒</div>
       <h1>Restricted Area</h1>
       <p id="gateReason" style="color:var(--muted)">This page is for the site owner only.</p>
       <a class="btn btn-primary" href="login.html" style="margin-top:16px">Log in as owner</a>
+      <p style="margin-top:22px"><a href="index.html" style="color:var(--muted);font-size:13px">← Back to the site</a></p>
     </div>
 
     <div id="adminPanel" style="display:none">
@@ -26,35 +50,47 @@
       </div>
 
       <div class="info-card" style="margin-bottom:16px">
-        <h3>> your_account</h3>
+        <h3>&gt; your_account</h3>
         <p id="adminInfo">…</p>
+        <p id="adminStats" style="color:var(--muted);font-size:12.5px;margin:10px 0 0"></p>
       </div>
 
       <div class="info-card" style="margin-bottom:16px">
-        <h3>> signed_up_users</h3>
+        <h3>&gt; signed_up_users</h3>
         <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 12px">
-          Passwords are stored as SHA-256 hashes and are never displayed anywhere — not even here.
+          Passwords are stored as SHA-256 hashes and are <b>never</b> displayed anywhere — not even here.
           Accounts are saved per-device (that is how a static site works), so this list shows everyone
           who signed up <b>on this device</b>.
         </p>
+        <input id="userFilter" type="search" placeholder="Filter by username…" autocomplete="off"
+               aria-label="Filter accounts by username"
+               style="width:100%;box-sizing:border-box;background:var(--bg-2);border:1px solid var(--border-2);color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;border-radius:10px;margin-bottom:12px;outline:none" />
+        <div id="adminMsg" class="admin-msg" role="status" aria-live="polite"></div>
         <div id="userTable" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
-      <button class="btn btn-ghost" id="logoutBtn" style="color:var(--danger);border-color:var(--danger)">Log out</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-ghost" id="logoutBtn" style="color:var(--danger);border-color:var(--danger)">Log out</button>
+        <a class="btn btn-ghost" href="index.html">← Back to the site</a>
+      </div>
     </div>
   </main>
 
   <script src="js/settings.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/petals.js"></script>
+  <script src="js/games-data.js"></script>
   <script src="js/main.js"></script>
   <script>
     (function () {
       'use strict';
-      var user = B0Auth.getCurrentUser();
+
+      var A = window.B0Auth;
+      var user = A ? A.getCurrentUser() : null;
       var gate = document.getElementById('authGate');
       var panel = document.getElementById('adminPanel');
 
+      /* ---------- gate: owner only ---------- */
       if (!user || user.role !== 'admin') {
         gate.style.display = 'block';
         panel.style.display = 'none';
@@ -72,85 +108,206 @@
 
       gate.style.display = 'none';
       panel.style.display = 'block';
-      document.getElementById('adminInfo').textContent =
-        'Logged in as ' + user.username + ' (Owner). Your password is never shown to anyone.';
 
+      var AMP = String.fromCharCode(38);
       function esc(s) {
-        return String(s).replace(/[&<>"']/g, function (c) {
-          return { '&': String.fromCharCode(38) + 'amp;', '<': String.fromCharCode(38) + 'lt;',
-                   '>': String.fromCharCode(38) + 'gt;', '"': String.fromCharCode(38) + 'quot;',
-                   "'": String.fromCharCode(38) + '#39;' }[c];
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return {
+            '&': AMP + 'amp;', '<': AMP + 'lt;', '>': AMP + 'gt;',
+            '"': AMP + 'quot;', "'": AMP + '#39;'
+          }[c];
         });
       }
 
-      var titleOptions = B0Auth.getTitles();
-      var sel = titleOptions.map(function (t) {
-        return '<option value="' + t.key + '">' + t.emoji + ' ' + t.label + '</option>';
-      }).join('');
+      document.getElementById('adminInfo').textContent =
+        'Logged in as ' + user.username + ' (Owner). Your password is never shown to anyone.';
+
+      /* ---------- site stats ---------- */
+      var statsEl = document.getElementById('adminStats');
+      if (statsEl && typeof ALL_GAMES !== 'undefined') {
+        var localCount = ALL_GAMES.filter(function (g) { return !g.external; }).length;
+        statsEl.textContent = ALL_GAMES.length + ' games in the catalog · ' + localCount +
+          ' hosted on this site · ' + A.getAllUsers().length + ' account(s) on this device.';
+      }
+
+      /* ---------- inline status line (no blocking alert/confirm) ---- */
+
+      var msgEl = document.getElementById('adminMsg');
+      var msgTimer = null;
+
+      function say(text, kind) {
+        if (!msgEl) return;
+        msgEl.textContent = text;
+        msgEl.className = 'admin-msg show ' + (kind || 'ok');
+        clearTimeout(msgTimer);
+        msgTimer = setTimeout(function () {
+          msgEl.className = 'admin-msg';
+          msgEl.textContent = '';
+        }, 4000);
+      }
+
+      /* ---------- users ---------- */
+      var table = document.getElementById('userTable');
+      var filter = document.getElementById('userFilter');
+      var titles = A.getTitles();
+      var filterVal = '';
+
+      /* Two-step delete: the first click arms the button, the second one
+         actually deletes. Anything else disarms it — no confirm() dialog,
+         which also keeps the page responsive and testable. */
+      var armed = '';
+
+      function armDelete(username) {
+        armed = username;
+        var row = table.querySelector('.admin-row[data-user="' +
+          username.replace(/"/g, '\\"') + '"]');
+        if (!row) return;
+        var btn = row.querySelector('[data-act="delete"]');
+        if (!btn) return;
+        btn.textContent = 'Really delete?';
+        btn.classList.add('armed');
+      }
+
+      function disarmDelete() {
+        armed = '';
+        var list = table.querySelectorAll('[data-act="delete"].armed');
+        for (var i = 0; i < list.length; i++) {
+          list[i].textContent = 'Delete';
+          list[i].classList.remove('armed');
+        }
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && armed) {
+          disarmDelete();
+          say('Delete cancelled.', 'warn');
+        }
+      });
+
+      function titleOptions(selected) {
+        return titles.map(function (t) {
+          return '<option value="' + esc(t.key) + '"' +
+            (t.key === selected ? ' selected' : '') + '>' + t.emoji + ' ' + esc(t.label) +
+            (t.locked ? ' 🔒' : '') + '</option>';
+        }).join('');
+      }
 
       function render() {
-        var users = B0Auth.getAllUsers();
-        var table = document.getElementById('userTable');
+        var users = A.getAllUsers();
+        var q = filterVal.trim().toLowerCase();
+        if (q) {
+          users = users.filter(function (u) {
+            return u.username.toLowerCase().indexOf(q) !== -1;
+          });
+        }
 
-        if (users.length === 0) {
-          table.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No users signed up yet.</p>';
+        if (!users.length) {
+          table.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">' +
+            (q ? 'No user matches “' + esc(filterVal) + '”.' : 'No users signed up yet.') + '</p>';
           return;
         }
 
         table.innerHTML = users.map(function (u) {
-          var info = B0Auth.titleInfo(u.title);
+          var info = A.titleInfo(u.title);
           var isAdmin = u.role === 'admin';
-          var row =
-            '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:10px 14px">' +
-            '<span style="font-size:22px">' + (u.avatar || '👤') + '</span>' +
-            '<span style="flex:1;font-weight:700;min-width:100px">' + esc(u.username) + '</span>' +
+          var isOwner = A.isOwnerName(u.username);
+          return (
+            '<div class="admin-row" data-user="' + esc(u.username) + '">' +
+              '<span class="admin-ava">' + (u.avatar || '👤') + '</span>' +
+              '<span class="admin-name">' + esc(u.username) +
+                (isOwner ? ' <span class="admin-owner-tag" title="Site owner">owner</span>' : '') +
+              '</span>' +
 
-            /* functional role badge */
-            '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' +
-            (isAdmin ? 'linear-gradient(92deg,#ffd166,#ff9f43)' : 'rgba(255,110,169,.15)') +
-            ';color:' + (isAdmin ? '#20160b' : '#ffb3d1') +
-            ';font-weight:800">' + (isAdmin ? '⚡ ADMIN' : '👤 Member') + '</span>' +
+              /* functional role badge */
+              '<span class="admin-badge" style="' +
+              (isAdmin ? 'background:linear-gradient(92deg,#ffd166,#ff9f43);color:#20160b'
+                       : 'background:rgba(255,110,169,.15);color:#ffb3d1') + '">' +
+              (isAdmin ? '⚡ ADMIN' : '👤 Member') + '</span>' +
 
-            /* cosmetic title badge */
-            '<span style="font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid ' +
-            info.color + ';color:' + info.color + ';font-weight:800">' + info.emoji + ' ' + info.label + '</span>' +
+              /* cosmetic title badge */
+              '<span class="admin-badge" style="border:1px solid ' + esc(info.color) +
+              ';color:' + esc(info.color) + '">' + info.emoji + ' ' + esc(info.label) + '</span>' +
 
-            /* cosmetic title picker (owner can change anyone's) */
-            '<select onchange="setUserTitle(\'' + esc(u.username) + '\', this.value)" ' +
-            'style="background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);font-size:11px;padding:5px 8px;border-radius:8px;font-family:inherit">' +
-            sel.replace('value="' + u.title + '"', 'value="' + u.title + '" selected') +
-            '</select>' +
+              /* cosmetic title picker (owner-assigned) */
+              '<select class="admin-select" data-act="title" aria-label="Title for ' + esc(u.username) + '">' +
+                titleOptions(u.title) +
+              '</select>' +
 
-            /* functional role toggle */
-            (u.username !== 'va1uxxx' ?
-              '<button onclick="toggleRole(\'' + esc(u.username) + '\')" ' +
-              'style="background:var(--panel-2);border:1px solid var(--border-2);color:var(--text);font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:inherit">' +
-              (isAdmin ? 'Demote' : 'Promote') + '</button>' : '') +
-            '</div>';
-          return row;
+              /* functional role toggle — never shown for the owner */
+              (isOwner ? '' :
+                '<button class="admin-btn" data-act="role">' +
+                (isAdmin ? 'Demote' : 'Promote') + '</button>') +
+
+              /* delete — the owner account can never delete itself */
+              (isOwner ? '' :
+                '<button class="admin-btn admin-del" data-act="delete">Delete</button>') +
+            '</div>'
+          );
         }).join('');
       }
 
-      window.toggleRole = function (username) {
-        var users = JSON.parse(localStorage.getItem('0xb0-users') || '[]');
-        var u = users.find(function (u) { return u.username === username; });
-        if (u) {
-          u.role = u.role === 'admin' ? 'member' : 'admin';
-          localStorage.setItem('0xb0-users', JSON.stringify(users));
+      /* ---------- delegated events (no inline handlers) ---------- */
+      table.addEventListener('click', function (e) {
+        var btn = e.target.closest('.admin-btn');
+        if (!btn) return;
+        var row = btn.closest('.admin-row');
+        var username = row ? row.getAttribute('data-user') : '';
+        if (!username) return;
+
+        if (btn.getAttribute('data-act') === 'role') {
+          var u = A.getAllUsers().find(function (x) { return x.username === username; });
+          var next = u && u.role === 'admin' ? 'member' : 'admin';
+          var res = A.setUserRole(username, next);
+          if (!res.ok) {
+            say(res.error, 'err');
+          } else {
+            disarmDelete();
+            say(username + ' is now ' +
+              (next === 'admin' ? 'an admin ⚡' : 'a member 👤') + '.', 'ok');
+          }
+          render();
+        } else if (btn.getAttribute('data-act') === 'delete') {
+          if (armed !== username) {
+            armDelete(username);
+            say('Press “Really delete?” again to remove the account ' + username +
+              '. This cannot be undone — Esc cancels.', 'warn');
+            return;
+          }
+          disarmDelete();
+          var del = A.deleteAccount(username);
+          if (!del.ok) {
+            say(del.error, 'err');
+          } else {
+            say('Deleted ' + username + '.', 'ok');
+          }
           render();
         }
-      };
+      });
 
-      window.setUserTitle = function (username, key) {
-        var res = B0Auth.setUserTitle(username, key);
-        if (!res.ok) { render(); return; }
+      table.addEventListener('change', function (e) {
+        var sel = e.target.closest('select[data-act="title"]');
+        if (!sel) return;
+        var row = sel.closest('.admin-row');
+        var username = row ? row.getAttribute('data-user') : '';
+        var res = A.setUserTitle(username, sel.value);
+        if (!res.ok) {
+          say(res.error, 'err');
+        } else {
+          var t = A.titleInfo(res.user ? res.user.title : sel.value);
+          say(username + ' is now ' + t.emoji + ' ' + t.label + '.', 'ok');
+        }
         render();
-      };
+      });
+
+      filter.addEventListener('input', function () {
+        filterVal = filter.value;
+        render();
+      });
 
       render();
 
       document.getElementById('logoutBtn').addEventListener('click', function () {
-        B0Auth.logout();
+        A.logout();
         location.href = 'index.html';
       });
     })();

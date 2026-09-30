@@ -3,8 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login — 0xB0 Games</title>
-  <meta name="description" content="Sign in to 0xB0 Games to save your high scores." />
+  <title>Log in — 0xB0 Games</title>
+  <meta name="description" content="Sign up or log in to save your high scores and carry your profile across the site." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/login.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Log in — 0xB0 Games" />
+  <meta property="og:description" content="Sign up or log in to save your high scores and carry your profile across the site." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/login.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Log in — 0xB0 Games" />
+  <meta name="twitter:description" content="Sign up or log in to save your high scores and carry your profile across the site." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
@@ -231,6 +253,24 @@
       color: var(--text);
       font-family: var(--mono);
     }
+
+    /* the quiet owner-only link on the signed-in card */
+    .admin-quiet {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-2);
+      transition: 0.15s;
+    }
+
+    .admin-quiet:hover {
+      color: var(--accent-3);
+      border-color: var(--accent-3);
+    }
   </style>
 </head>
 <body>
@@ -247,9 +287,12 @@
         <div class="avatar" id="welcomeAvatar">🎮</div>
         <h2 id="welcomeName">Player</h2>
         <div class="role-badge" id="welcomeRole">Member</div>
+        <div class="role-badge" id="welcomeTitle" style="display:none"></div>
+        <p style="margin:14px 0 0"><a id="adminBtn" class="admin-quiet" href="admin.html" style="display:none">⚡ Admin panel</a></p>
         <p style="color:var(--muted);font-size:14px;margin:8px 0 16px">Your game data is saved to this account.</p>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
           <button class="btn btn-primary" id="playBtn" style="padding:11px 24px;font-size:14px">▶ Play Games</button>
+          <a class="btn btn-ghost" id="settingsBtn" href="settings.html" style="padding:11px 20px;font-size:14px">⚙️ Profile</a>
           <button class="btn btn-ghost" id="logoutBtn" style="padding:11px 20px;font-size:14px;color:var(--danger);border-color:var(--danger)">Log out</button>
         </div>
       </div>
@@ -370,11 +413,30 @@
       });
 
       function showWelcome(user) {
+        clearError();
         loginForms.style.display = 'none';
         welcomeBox.classList.add('show');
         document.getElementById('welcomeAvatar').textContent = user.avatar || '🎮';
         document.getElementById('welcomeName').textContent = user.username;
         document.getElementById('welcomeRole').textContent = user.role === 'admin' ? '⚡ Admin' : '👤 Member';
+
+        /* cosmetic title badge — assigned by the owner, not self-picked */
+        var titleEl = document.getElementById('welcomeTitle');
+        if (titleEl) {
+          var t = B0Auth.titleInfo(user.title);
+          titleEl.textContent = t.emoji + ' ' + t.label;
+          titleEl.style.display = 'inline-block';
+          titleEl.style.border = '1px solid ' + t.color;
+          titleEl.style.color = t.color;
+          titleEl.title = 'Cosmetic title — the site owner assigns these';
+        }
+
+        /* the owner gets a quiet way back to the hidden panel */
+        var adminBtn = document.getElementById('adminBtn');
+        if (adminBtn) {
+          if (user.role === 'admin') adminBtn.style.display = '';
+          else adminBtn.style.display = 'none';
+        }
       }
 
       document.getElementById('logoutBtn').addEventListener('click', function () {

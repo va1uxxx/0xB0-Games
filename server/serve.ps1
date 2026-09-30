@@ -16,13 +16,26 @@ Write-Host '  0xB0 GAMES - local server running at http://localhost:8143' -Foreg
 Write-Host '  Keep this window open. Press Ctrl+C (or close it) to stop.' -ForegroundColor DarkGray
 Write-Host ''
 
+# Keep this list in line with what GitHub Pages actually sends, so a
+# page that behaves differently on http://localhost:8143 is a real bug
+# and not just a missing entry here.
 $mime = @{
-  '.html' = 'text/html'
-  '.css'  = 'text/css'
-  '.js'   = 'application/javascript'
+  '.html' = 'text/html; charset=utf-8'
+  '.css'  = 'text/css; charset=utf-8'
+  '.js'   = 'application/javascript; charset=utf-8'
+  '.mjs'  = 'application/javascript; charset=utf-8'
   '.svg'  = 'image/svg+xml'
+  '.png'  = 'image/png'
+  '.jpg'  = 'image/jpeg'
+  '.jpeg' = 'image/jpeg'
+  '.gif'  = 'image/gif'
+  '.webp' = 'image/webp'
+  '.ico'  = 'image/x-icon'
   '.json' = 'application/json'
-  '.md'   = 'text/plain'
+  '.webmanifest' = 'application/manifest+json'
+  '.txt'  = 'text/plain; charset=utf-8'
+  '.xml'  = 'application/xml'
+  '.md'   = 'text/plain; charset=utf-8'
   '.swf'  = 'application/x-shockwave-flash'
   '.wasm' = 'application/wasm'
   '.map'  = 'application/json'

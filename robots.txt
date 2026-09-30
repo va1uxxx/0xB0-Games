@@ -1,0 +1,25 @@
+# robots.txt - 0xB0 Games
+# https://va1uxxx.github.io/0xB0-Games/
+#
+# Every game is reached through play.html?game=<slug>, which is marked
+# noindex on purpose: the same 544 games would otherwise be indexed 544
+# times as thin query-string duplicates. The player, accounts, settings,
+# admin panel and the CDN host page stay out of the index too - none of
+# them are useful search results and the last one is an internal frame.
+
+User-agent: *
+Allow: /
+Disallow: /0xB0-Games/play.html
+Disallow: /0xB0-Games/flash.html
+Disallow: /0xB0-Games/unity.html
+Disallow: /0xB0-Games/game-host.html
+Disallow: /0xB0-Games/admin.html
+Disallow: /0xB0-Games/settings.html
+Disallow: /0xB0-Games/login.html
+Disallow: /0xB0-Games/unblocker.html
+
+# Nothing here is private, but there is no reason to crawl the
+# PowerShell QA scripts either.
+Disallow: /0xB0-Games/server/
+
+Sitemap: https://va1uxxx.github.io/0xB0-Games/sitemap.xml

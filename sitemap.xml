@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  0xB0 Games sitemap.
+
+  Only the pages that are actually meant to be indexed are listed.
+  play.html carries a ?game=<slug> query, is robots-blocked and marked
+  noindex, so the 544 games deliberately do not appear here; adding
+  them would advertise thin duplicates of index.html.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://va1uxxx.github.io/0xB0-Games/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://va1uxxx.github.io/0xB0-Games/rip.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://va1uxxx.github.io/0xB0-Games/proxy-links.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://va1uxxx.github.io/0xB0-Games/about.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://va1uxxx.github.io/0xB0-Games/privacy.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://va1uxxx.github.io/0xB0-Games/terms.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

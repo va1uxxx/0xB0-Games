@@ -9,9 +9,23 @@
 (function () {
   'use strict';
 
+  /* ---------------- tiny helpers ------------------------------ */
+
+  /* HTML-escape anything that lands inside an attribute or text node. */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function $(id) { return document.getElementById(id); }
+
   /* ---------------- Tab disguise button ------------------------ */
 
-  var cloakBtn = document.getElementById('cloakBtn');
+  var cloakBtn = $('cloakBtn');
 
   function refreshCloakBtn() {
     if (!cloakBtn) return;
@@ -32,7 +46,7 @@
 
   /* ---------------- Panic button (key is handled by settings.js) */
 
-  var panicBtn = document.getElementById('panicBtn');
+  var panicBtn = $('panicBtn');
   if (panicBtn) {
     panicBtn.addEventListener('click', function () {
       B0Settings.panic();
@@ -41,27 +55,39 @@
 
   /* ---------------- Mobile nav -------------------------------- */
 
-  var navToggle = document.getElementById('navToggle');
-  var navLinks = document.getElementById('navLinks');
+  var navToggle = $('navToggle');
+  var navLinks = $('navLinks');
   if (navToggle && navLinks) {
     navToggle.addEventListener('click', function () {
       navLinks.classList.toggle('open');
     });
   }
 
+  /* Close the nav dropdown when clicking outside of it, and after
+     picking an item (otherwise <details> stays open on mobile). */
+  var navDrop = $('navDrop');
+  if (navDrop) {
+    document.addEventListener('click', function (e) {
+      if (navDrop.open && !navDrop.contains(e.target)) navDrop.open = false;
+    });
+    navDrop.addEventListener('click', function (e) {
+      if (e.target.closest('a')) navDrop.open = false;
+    });
+  }
+
   /* ---------------- Random game ------------------------------- */
 
-  var randomBtn = document.getElementById('randomBtn');
+  var randomBtn = $('randomBtn');
   if (randomBtn) {
     randomBtn.addEventListener('click', function () {
-      var g = ALL_GAMES[~~(Math.random() * ALL_GAMES.length)];
-      location.href = gameHref(g);
+      if (typeof ALL_GAMES === 'undefined' || !ALL_GAMES.length) return;
+      location.href = gameHref(ALL_GAMES[~~(Math.random() * ALL_GAMES.length)]);
     });
   }
 
   /* ---------------- Login state in nav ---------------------------- */
 
-  var loginSlot = document.getElementById('loginSlot');
+  var loginSlot = $('loginSlot');
   if (loginSlot) {
     try {
       var authUser = window.B0Auth ? B0Auth.getCurrentUser() : null;
@@ -72,13 +98,14 @@
         }
         if (window.B0Auth && B0Auth.titleInfo) {
           var t = B0Auth.titleInfo(authUser.title);
-          var tip = t.label + ' (cosmetic title — change it in Settings)';
-          badge += '<span class="nav-role nav-title" title="' + tip + '" style="color:' + t.color + '">' + t.emoji + '</span>';
+          var tip = t.label + ' — cosmetic title, assigned by the site owner';
+          badge += '<span class="nav-role nav-title" title="' + esc(tip) +
+            '" style="color:' + esc(t.color) + '">' + t.emoji + '</span>';
         }
         loginSlot.innerHTML =
-          '<a href="login.html" class="nav-link-user" title="Logged in as ' + authUser.username + '">' +
+          '<a href="login.html" class="nav-link-user" title="Logged in as ' + esc(authUser.username) + '">' +
           '<span class="nav-avatar">' + (authUser.avatar || '👤') + '</span>' +
-          '<span class="nav-username">' + authUser.username + '</span>' +
+          '<span class="nav-username">' + esc(authUser.username) + '</span>' +
           badge +
           '</a>';
       } else {
@@ -92,7 +119,7 @@
   if (window.matchMedia('(hover: hover)').matches) {
     var tiltCard = null;
     document.addEventListener('mousemove', function (e) {
-      var card = e.target.closest && e.target.closest('.card, .profile-card');
+      var card = e.target && e.target.closest ? e.target.closest('.card, .profile-card') : null;
       if (tiltCard && tiltCard !== card) {
         tiltCard.style.transform = '';
         tiltCard = null;
@@ -110,11 +137,12 @@
 
   /* ---------------- 3D hero showcase (homepage) ---------------- */
 
-  var heroStage = document.getElementById('heroStage');
-  var scInner = document.getElementById('scInner');
+  var heroStage = $('heroStage');
+  var scInner = $('scInner');
   if (heroStage && scInner && typeof ALL_GAMES !== 'undefined') {
     var seenS = {};
     var showcase = [];
+    /* Hot games with real artwork first, then anything else with art. */
     ALL_GAMES.forEach(function (g) {
       if (g.thumb && g.badge === 'Hot' && !seenS[g.slug] && showcase.length < 5) {
         seenS[g.slug] = 1;
@@ -132,9 +160,9 @@
       scInner.innerHTML = showcase.map(function (g, i) {
         return (
           '<div class="sc-slot" style="--i:' + i + '">' +
-          '<a class="sc-card" href="' + gameHref(g) + '" title="Play ' + g.title + '">' +
-          '<img src="' + g.thumb + '" alt="' + g.title + '" loading="lazy"/>' +
-          '<span>' + g.title + '</span>' +
+          '<a class="sc-card" href="' + gameHref(g) + '" title="Play ' + esc(g.title) + '">' +
+          '<img src="' + esc(g.thumb) + '" alt="' + esc(g.title) + '" loading="lazy"/>' +
+          '<span>' + esc(g.title) + '</span>' +
           '</a></div>'
         );
       }).join('');
@@ -215,23 +243,66 @@
 
   /* ---------------- Homepage grid ----------------------------- */
 
-  var grid = document.getElementById('grid');
+  var grid = $('grid');
   if (!grid) return; /* not the homepage */
 
-  var chipsEl = document.getElementById('chips');
-  var searchInput = document.getElementById('searchInput');
-  var countEl = document.getElementById('gameCount');
+  var chipsEl = $('chips');
+  var searchInput = $('searchInput');
+  var searchClear = $('searchClear');
+  var countEl = $('gameCount');
+  var railEl = $('popularRail');
 
   var activeCat = 'All';
   var query = '';
 
+  /* ---------- hero stat counters (no more "9 games" flash) --- */
+
+  var statGames = $('statGames');
+  if (statGames && typeof ALL_GAMES !== 'undefined') statGames.textContent = ALL_GAMES.length;
+
+  var statLocal = $('statLocal');
+  if (statLocal && typeof ALL_GAMES !== 'undefined') {
+    statLocal.textContent = ALL_GAMES.filter(function (g) { return !g.external; }).length;
+  }
+
+  /* ---------- popular rail: the "Hot" games ------------------- */
+
+  function renderRail() {
+    if (!railEl || typeof ALL_GAMES === 'undefined') return;
+    var seen = {};
+    var picks = [];
+    ALL_GAMES.forEach(function (g) {
+      if (picks.length >= 14) return;
+      if (seen[g.slug] || g.badge !== 'Hot') return;
+      seen[g.slug] = 1;
+      picks.push(g);
+    });
+    /* never ship an empty section — top up with local originals */
+    if (picks.length < 8) {
+      ALL_GAMES.forEach(function (g) {
+        if (picks.length >= 14) return;
+        if (seen[g.slug]) return;
+        seen[g.slug] = 1;
+        picks.push(g);
+      });
+    }
+    if (!picks.length) {
+      var sec = railEl.closest ? railEl.closest('.section') : null;
+      if (sec) sec.style.display = 'none';
+      return;
+    }
+    railEl.innerHTML = picks.map(cardHTML).join('');
+  }
+
+  /* ---------- one card, used by both the grid and the rail ----- */
+
   function cardHTML(g) {
-    var badge = g.badge ? '<span class="flag">' + g.badge + '</span>' : '';
+    var badge = g.badge ? '<span class="flag">' + esc(g.badge) + '</span>' : '';
     var newTab = '';
     try { if (B0Settings.get().newTab) newTab = ' target="_blank" rel="noopener"'; } catch (err) {}
     return (
       '<a class="card" href="' + gameHref(g) + '"' + newTab +
-      ' title="Play ' + g.title + '">' +
+      ' title="Play ' + esc(g.title) + '">' +
       '<div class="thumb">' +
       badge +
       tileInnerHTML(g) +
@@ -239,19 +310,41 @@
       '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>' +
       '</div></div>' +
       '</div>' +
-      '<div class="meta"><span class="t">' + g.title + '</span>' +
-      '<span class="cat">' + g.category + '</span></div>' +
+      '<div class="meta"><span class="t">' + esc(g.title) + '</span>' +
+      '<span class="cat">' + esc(g.category) + '</span></div>' +
       '</a>'
     );
   }
 
+  /* ---------- filter + render ---------------------------------- */
+
+  function haystack(g) {
+    /* pre-built once per game; searching 544 titles on every keystroke
+       used to rebuild this string 544 times. */
+    if (g._hay === undefined) {
+      g._hay = (g.title + ' ' + g.category + ' ' + (g.description || '')).toLowerCase();
+    }
+    return g._hay;
+  }
+
+  function matches(g) {
+    if (activeCat !== 'All' && g.category !== activeCat) return false;
+    var q = query.trim().toLowerCase();
+    if (!q) return true;
+    /* every word must appear somewhere, so "snake io" narrows down */
+    var hay = haystack(g);
+    var words = q.split(/\s+/);
+    for (var i = 0; i < words.length; i++) {
+      if (words[i] && hay.indexOf(words[i]) === -1) return false;
+    }
+    return true;
+  }
+
   function render() {
-    var shown = ALL_GAMES.filter(function (g) {
-      var catOk = activeCat === 'All' || g.category === activeCat;
-      var q = query.trim().toLowerCase();
-      var hay = (g.title + ' ' + g.category + ' ' + g.description).toLowerCase();
-      return catOk && (!q || hay.indexOf(q) !== -1);
-    });
+    var shown = [];
+    for (var i = 0; i < ALL_GAMES.length; i++) {
+      if (matches(ALL_GAMES[i])) shown.push(ALL_GAMES[i]);
+    }
 
     grid.innerHTML = shown.length
       ? shown.map(cardHTML).join('')
@@ -260,38 +353,109 @@
         '</div>';
 
     if (countEl) {
-      countEl.textContent = shown.length + (shown.length === 1 ? ' game' : ' games');
+      countEl.textContent = shown.length === ALL_GAMES.length
+        ? shown.length + ' games'
+        : shown.length + ' of ' + ALL_GAMES.length + ' games';
     }
   }
 
-  /* category chips */
-  var cats = ['All'].concat(gameCategories());
-  chipsEl.innerHTML = cats
-    .map(function (c) {
-      return '<button class="chip' + (c === 'All' ? ' on' : '') + '" data-cat="' + c + '">' + c + '</button>';
-    })
-    .join('');
+  /* ---------- category chips ---------------------------------- */
 
-  chipsEl.addEventListener('click', function (e) {
-    var btn = e.target.closest('.chip');
-    if (!btn) return;
-    activeCat = btn.getAttribute('data-cat');
-    chipsEl.querySelectorAll('.chip').forEach(function (c) {
-      c.classList.toggle('on', c === btn);
-    });
-    render();
-  });
+  if (chipsEl) {
+    var cats = ['All'].concat(gameCategories());
+    chipsEl.innerHTML = cats
+      .map(function (c) {
+        return '<button class="chip' + (c === 'All' ? ' on' : '') +
+          '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+      })
+      .join('');
 
-  /* search */
-  if (searchInput) {
-    searchInput.addEventListener('input', function () {
-      query = searchInput.value;
+    chipsEl.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.chip') : null;
+      if (!btn) return;
+      activeCat = btn.getAttribute('data-cat');
+      var all = chipsEl.querySelectorAll('.chip');
+      for (var i = 0; i < all.length; i++) all[i].classList.toggle('on', all[i] === btn);
       render();
     });
   }
 
-  var statGames = document.getElementById('statGames');
-  if (statGames) statGames.textContent = ALL_GAMES.length;
+  /* ---------- search box --------------------------------------- */
 
+  function refreshClearBtn() {
+    if (searchClear) searchClear.hidden = !searchInput || !searchInput.value;
+  }
+
+  if (searchInput) {
+    var debounce = null;
+
+    function onQueryChange() {
+      if (debounce) clearTimeout(debounce);
+      /* 544 cards of HTML per keystroke is janky on a Chromebook —
+         wait until the typing pauses. */
+      debounce = setTimeout(function () {
+        query = searchInput.value;
+        refreshClearBtn();
+        render();
+      }, 90);
+    }
+
+    searchInput.addEventListener('input', onQueryChange);
+
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        if (searchInput.value) {
+          searchInput.value = '';
+          query = '';
+          refreshClearBtn();
+          render();
+        } else {
+          searchInput.blur();
+        }
+      }
+    });
+
+    if (searchClear) {
+      searchClear.addEventListener('click', function () {
+        searchInput.value = '';
+        query = '';
+        refreshClearBtn();
+        render();
+        searchInput.focus();
+      });
+    }
+
+    /* "/" focuses search from anywhere (unless you're already typing) */
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.isContentEditable ||
+          /^(input|textarea|select)$/i.test(t.tagName || ''))) return;
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    });
+
+    refreshClearBtn();
+  }
+
+  /* ---------- deep link: index.html?search=snake ---------------- */
+
+  try {
+    var pre = new URLSearchParams(location.search).get('search');
+    if (pre && searchInput) {
+      searchInput.value = pre;
+      query = pre;
+      refreshClearBtn();
+    }
+    var preCat = new URLSearchParams(location.search).get('cat');
+    if (preCat && chipsEl) {
+      var btn = chipsEl.querySelector('.chip[data-cat="' + preCat.replace(/"/g, '') + '"]');
+      if (btn) btn.click();
+    }
+  } catch (err) {}
+
+  renderRail();
   render();
 })();

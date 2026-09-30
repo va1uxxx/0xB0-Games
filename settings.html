@@ -4,7 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Settings — 0xB0 Games</title>
-  <meta name="description" content="Personalize 0xB0 Games: tab disguise, favicon, panic key, accent color." />
+  <meta name="description" content="Themes, tab disguise, panic key, petals and your profile, all in one place." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/settings.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Settings — 0xB0 Games" />
+  <meta property="og:description" content="Themes, tab disguise, panic key, petals and your profile, all in one place." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/settings.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Settings — 0xB0 Games" />
+  <meta name="twitter:description" content="Themes, tab disguise, panic key, petals and your profile, all in one place." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -35,14 +57,17 @@
         <details class="nav-drop open-active" id="navDrop">
           <summary>More</summary>
           <div class="nav-drop-menu">
-            <a href="proxy-links.html">🔗 Proxy Links</a>
+            <a href="rip.html">🪄 Game Rip</a>
+
             <a href="unblocker.html">🔓 Unblocker</a>
             <a href="settings.html">⚙️ Settings</a>
             <a href="about.html">🌸 About</a>
           </div>
         </details>
       </div>
-      <span id="loginSlot" class="nav-login"></span><div class="nav-actions">
+      <span id="loginSlot" class="nav-login"></span>
+      <div class="nav-actions">
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
         <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
         <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
       </div>
@@ -110,6 +135,12 @@
           <p class="settings-sub" style="margin:0">
             Badges are assigned by the site owner and show next to your name (see your card above).
           </p>
+        </div>
+
+        <div class="row-actions" style="margin-top:18px">
+          <button class="btn btn-ghost" id="pfSettingsBtn" style="font-size:13px;padding:9px 18px">⚙️ Account &amp; badges</button>
+          <a class="btn btn-ghost" id="pfAdminBtn" href="admin.html" style="font-size:13px;padding:9px 18px;display:none">⚡ Admin panel</a>
+          <button class="btn btn-ghost" id="pfLogout" style="font-size:13px;padding:9px 18px;color:var(--danger);border-color:var(--danger)">Log out</button>
         </div>
       </div>
     </section>
@@ -184,7 +215,7 @@
       <div class="settings-row">
         <label class="toggle-row">
           <input type="checkbox" id="bossMode" />
-          <span>🕶️ Boss mode — frost-blur the page when the window loses focus</span>
+          <span>🕶️ Boss mode — cover the screen with a “Paused” card the moment the tab loses focus</span>
         </label>
       </div>
       <div class="settings-row">
@@ -220,6 +251,10 @@
     <!-- ============ DATA ============ -->
     <section class="section">
       <div class="section-head"><h2>🗑️ Reset</h2></div>
+      <p class="settings-sub" style="margin-top:0">
+        Puts the theme, disguise, panic key, petals and grid density back to their defaults.
+        Your account and high scores are <b>not</b> touched.
+      </p>
       <button class="btn btn-ghost" id="resetAll" style="color:var(--danger);border-color:var(--danger)">
         Reset all 0xB0 settings
       </button>

@@ -200,10 +200,14 @@
 
   var settings = load();
 
-  /* migrate the old cloak key so existing users keep their disguise */
-  if (settings.profile === 'off' && localStorage.getItem(OLD_CLOAK_KEY) === '1') {
-    settings.profile = 'docs';
-  }
+  /* migrate the old cloak key so existing users keep their disguise.
+     Guarded because game-host.html runs in a sandboxed iframe with no
+     same-origin access, where reading localStorage throws outright.   */
+  try {
+    if (settings.profile === 'off' && localStorage.getItem(OLD_CLOAK_KEY) === '1') {
+      settings.profile = 'docs';
+    }
+  } catch (err) {}
 
   /* ---------- state ---------- */
   var originalTitle = document.title;
@@ -269,11 +273,24 @@
     location.replace(url);
   }
 
+  /* Never hijack the panic key while someone is typing — otherwise
+     pressing ` inside the search box or a settings field teleports
+     them away mid-sentence.                                     */
+  function isTyping(e) {
+    var t = e.target;
+    if (!t) return false;
+    if (t.isContentEditable) return true;
+    var tag = (t.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'textarea' || tag === 'select';
+  }
+
   document.addEventListener('keydown', function (e) {
-    if (e.key === '`' && settings.panic !== false) {
-      e.preventDefault();
-      panic();
-    }
+    if (e.key !== '`' && e.code !== 'Backquote') return;
+    if (settings.panic === false) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (isTyping(e)) return;
+    e.preventDefault();
+    panic();
   });
 
   applyAll();

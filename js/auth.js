@@ -4,11 +4,20 @@
    Static sites have no server, so accounts are stored in the
    browser's localStorage. Each account has:
      - username, password (SHA-256 hashed), role ("member"),
-     - createdAt, avatar emoji, gameData (high scores)
+     - createdAt, avatar emoji, cosmetic title badge, gameData
 
    Game data is saved to the user's account on logout and
    restored on login — different users on the same Chromebook
    can have different high scores.
+
+   Permissions:
+     - "va1uxxx" is the site owner (role: admin). The account is
+       re-promoted on every page load and can never be demoted
+       or deleted, so the owner can never lose their own panel.
+     - Cosmetic titles are assigned by the OWNER only, from the
+       hidden admin panel. Users pick their own avatar + name.
+     - Passwords are stored only as SHA-256 hashes and are never
+       rendered anywhere in the site, admin panel included.
 
    NOTE: This is per-device only. Clearing browser data or
    switching devices loses the account. A real backend would
@@ -20,14 +29,24 @@
 
   var USERS_KEY = '0xb0-users';
   var CURRENT_KEY = '0xb0-current-user';
+  var OWNER = 'va1uxxx';
 
-  /* keys used by games for high scores */
-  var GAME_KEYS = [
-    '0xb0-2048-best', '0xb0-snake-best', '0xb0-flappy-best',
-    '0xb0-astro-best', '0xb0-hexjump-best', '0xb0-tetris-best',
-    '0xb0-tennis-best', '0xb0-flappy-best',
-    '0xb0-ttt-scores', '0xb0-c4-scores', '0xb0-memory-best'
+  /* Keys that are NOT per-user game data (device-wide, not profile-wide).
+     Everything else under the 0xb0- prefix is treated as a game's save
+     file and gets saved to / restored from the account. That way a new
+     game never silently loses its high scores — no list to maintain. */
+  var NON_GAME_KEYS = [
+    USERS_KEY,
+    CURRENT_KEY,
+    '0xb0-settings-v1',
+    '0xb0-last-profile',
+    '0xb0-cloak-on',
+    '0xb0-rips-v1'
   ];
+
+  function isOwner(user) {
+    return !!user && user.username.toLowerCase() === OWNER;
+  }
 
   /* ---------- password hashing (SHA-256 via Web Crypto) ---------- */
 
@@ -61,10 +80,10 @@
     return AVATARS[Math.abs(hash) % AVATARS.length];
   }
 
-  /* ---------- cosmetic titles (badges anyone can pick) ----------
+  /* ---------- cosmetic titles (badges, assigned by the owner) ----------
      These are 100% cosmetic — the functional "role" field
      (member/admin) stays separate and only the owner can
-     change it from the hidden admin panel.                    */
+     change it from the hidden admin panel.                        */
 
   var TITLES = {
     member:  { label: 'Member',      emoji: '👤', color: '#9aa4b2' },
@@ -101,13 +120,13 @@
     /* backfill cosmetic title for accounts made before titles existed,
        and make sure the owner account ALWAYS has admin + founder      */
     if (user) {
-      var isOwner = user.username.toLowerCase() === 'va1uxxx';
+      var owner = isOwner(user);
       var changed = false;
       if (!user.title) {
-        user.title = isOwner ? 'founder' : 'member';
+        user.title = owner ? 'founder' : 'member';
         changed = true;
       }
-      if (isOwner && (user.role !== 'admin' || user.title !== 'founder')) {
+      if (owner && (user.role !== 'admin' || user.title !== 'founder')) {
         user.role = 'admin';
         user.title = 'founder';
         changed = true;
@@ -132,9 +151,23 @@
 
   /* ---------- game data (save/restore) ---------- */
 
+  /* every localStorage entry a game has written (prefix 0xb0-) */
+  function gameDataKeys() {
+    var keys = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k || k.indexOf('0xb0-') !== 0) continue;
+        if (NON_GAME_KEYS.indexOf(k) !== -1) continue;
+        keys.push(k);
+      }
+    } catch (err) { /* storage blocked */ }
+    return keys;
+  }
+
   function snapshotGameData() {
     var data = {};
-    GAME_KEYS.forEach(function (key) {
+    gameDataKeys().forEach(function (key) {
       var val = localStorage.getItem(key);
       if (val !== null) data[key] = val;
     });
@@ -176,11 +209,12 @@
       }
 
       var hash = await hashPassword(password);
+      var owner = username.toLowerCase() === OWNER;
       var user = {
         username: username,
         passwordHash: hash,
-        role: username.toLowerCase() === 'va1uxxx' ? 'admin' : 'member',
-        title: username.toLowerCase() === 'va1uxxx' ? 'founder' : 'member',
+        role: owner ? 'admin' : 'member',
+        title: owner ? 'founder' : 'member',
         createdAt: new Date().toISOString(),
         avatar: avatarFor(username),
         gameData: {}
@@ -243,18 +277,16 @@
 
     /* ---------- cosmetic titles ---------- */
 
-    /* catalog of pickable titles (for the settings page) */
+    /* catalog of cosmetic titles (used by the owner in admin.html) */
     getTitles: function () {
-      var isOwner = false;
-      var u = currentUser();
-      if (u && u.username.toLowerCase() === 'va1uxxx') isOwner = true;
+      var owner = isOwner(currentUser());
       return Object.keys(TITLES).map(function (key) {
         return {
           key: key,
           label: TITLES[key].label,
           emoji: TITLES[key].emoji,
           color: TITLES[key].color,
-          locked: !!TITLES[key].locked && !isOwner
+          locked: !!TITLES[key].locked && !owner
         };
       });
     },
@@ -267,8 +299,7 @@
     /* pick a cosmetic title — OWNER ONLY. Users cannot change their own
        title; the owner assigns them from the hidden admin panel.       */
     setTitle: function (key) {
-      var me = currentUser();
-      if (!me || me.username.toLowerCase() !== 'va1uxxx') {
+      if (!isOwner(currentUser())) {
         return { ok: false, error: 'Only the site owner can change titles' };
       }
       if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
@@ -313,26 +344,64 @@
 
     /* change another user's title (owner only, used by admin panel) */
     setUserTitle: function (username, key) {
-      if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
-      var me = currentUser();
-      if (!me || me.username.toLowerCase() !== 'va1uxxx') {
+      if (!isOwner(currentUser())) {
         return { ok: false, error: 'Owner only' };
       }
+      if (!TITLES[key]) return { ok: false, error: 'Unknown title' };
+      if (key === 'founder') return { ok: false, error: 'The Founder badge belongs to the owner' };
       var users = loadUsers();
       var user = users.find(function (u) { return u.username === username; });
       if (!user) return { ok: false, error: 'User not found' };
       user.title = key;
       saveUsers(users);
+      return { ok: true, user: user };
+    },
+
+    /* change another user's FUNCTIONAL role (owner only).
+       The owner account can never be demoted — that would lock the
+       site owner out of their own admin panel.                 */
+    setUserRole: function (username, role) {
+      if (!isOwner(currentUser())) {
+        return { ok: false, error: 'Owner only' };
+      }
+      if (role !== 'admin' && role !== 'member') {
+        return { ok: false, error: 'Unknown role' };
+      }
+      var users = loadUsers();
+      var user = users.find(function (u) { return u.username === username; });
+      if (!user) return { ok: false, error: 'User not found' };
+      if (user.username.toLowerCase() === OWNER) {
+        return { ok: false, error: 'The owner account always stays admin' };
+      }
+      user.role = role;
+      saveUsers(users);
       return { ok: true };
     },
 
-    /* delete account */
+    /* delete an account — owner only. (Anyone can delete their OWN
+       account; nobody can delete anyone else's without the owner.)
+       The owner account itself is undeletable: it is the only key to
+       the admin panel, so losing it would be unrecoverable.        */
     deleteAccount: function (username) {
+      var me = currentUser();
+      var target = loadUsers().find(function (u) { return u.username === username; });
+      if (!target) return { ok: false, error: 'User not found' };
+      var self = me && me.username === username;
+      if (!self && !isOwner(me)) return { ok: false, error: 'Owner only' };
+      if (target.username.toLowerCase() === OWNER) {
+        return { ok: false, error: 'The owner account cannot be deleted' };
+      }
       var users = loadUsers().filter(function (u) { return u.username !== username; });
       saveUsers(users);
       if (localStorage.getItem(CURRENT_KEY) === username) {
         localStorage.removeItem(CURRENT_KEY);
       }
+      return { ok: true };
+    },
+
+    /* true when the given username is the site owner */
+    isOwnerName: function (username) {
+      return String(username || '').toLowerCase() === OWNER;
     }
   };
 

@@ -4,6 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Unity Game — 0xB0 Games</title>
+  <meta name="description" content="Play a Unity WebGL game, streamed straight into your browser." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/unity.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Unity Game — 0xB0 Games" />
+  <meta property="og:description" content="Play a Unity WebGL game, streamed straight into your browser." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/unity.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Unity Game — 0xB0 Games" />
+  <meta name="twitter:description" content="Play a Unity WebGL game, streamed straight into your browser." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
@@ -42,7 +65,15 @@
 <body>
 
   <div class="unity-stage" id="stageWrap">
-    <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking; clipboard-write; cross-origin-isolated" allowfullscreen></iframe>
+    <!-- "cross-origin-isolated" is not a valid Permissions-Policy feature
+         and only produced a console warning; the real requirement for
+         SharedArrayBuffer (some Unity builds want it) is a server header,
+         which a static host cannot set.
+         The motion sensors are listed because several Unity builds
+         request them and otherwise log hard permission-policy errors.
+         `allowfullscreen` is omitted on purpose: it duplicates
+         allow="fullscreen" and Chrome warns about the conflict. -->
+    <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking; clipboard-write; accelerometer; gyroscope; magnetometer"></iframe>
   </div>
 
   <div class="unity-loading" id="loading">
@@ -87,16 +118,33 @@
         return;
       }
 
-      frame.addEventListener('load', function () { loading.classList.add('hide'); booted = true; });
+      frame.addEventListener('load', function () {
+        /* a dead host still fires "load" (for the browser's error page) —
+           never let that wipe the error panel */
+        if (errored) return;
+        /* the initial about:blank of a fresh iframe also fires "load" —
+           never treat that as a booted game (see play.js for the full
+           note on why frame.src can't be compared directly). */
+        var here = '';
+        try { here = frame.contentWindow.location.href; } catch (e) { here = frame.src; }
+        if (!here || here === 'about:blank') return;
+        booted = true;
+        clearTimeout(window.__bootTimer);
+        loading.classList.remove('boot-fail');
+        loading.classList.add('hide');
+      });
 
       /* boot watchdog — Unity games are chunky so allow 60s,
          but never spin forever on a blocked/dead host          */
       var booted = false;
+      var errored = false;
       var LOADING_HTML = loading.innerHTML;
 
       function bootGame() {
         booted = false;
+        errored = false;
         loading.classList.remove('hide');
+        loading.classList.remove('boot-fail');
         loading.innerHTML = LOADING_HTML;
         frame.src = src;
         clearTimeout(window.__bootTimer);
@@ -107,6 +155,7 @@
 
       function showBootError(reason) {
         clearTimeout(window.__bootTimer);
+        errored = true;
         loading.classList.remove('hide');
         loading.classList.add('boot-fail');
         loading.innerHTML =
@@ -143,9 +192,10 @@
         var w = window.open('about:blank', '_blank');
         if (!w) { alert('Allow pop-ups to use cloaked tabs.'); return; }
         w.document.write(
-          '<!DOCTYPE html><html><head><title>Home</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
+          '<!DOCTYPE html><html><head><title>Course materials</title>' +
+          '<style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
           'iframe{border:0;width:100%;height:100%}</style></head>' +
-          '<body><iframe src="' + location.href + '"></iframe></body></html>'
+          '<body><iframe src="' + location.href + '" allow="autoplay; fullscreen; gamepad"></iframe></body></html>'
         );
         w.document.close();
       });

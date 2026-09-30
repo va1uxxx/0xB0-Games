@@ -1,0 +1,61 @@
+{
+  "name": "0xB0 Games",
+  "short_name": "0xB0",
+  "description": "Play 544 free unblocked HTML5 games anywhere - school, Chromebook or home. No downloads, no installs, just press play.",
+  "id": "/0xB0-Games/",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d0714",
+  "theme_color": "#0d0714",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["games", "entertainment", "kids"],
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Proxy links",
+      "short_name": "Proxy",
+      "url": "proxy-links.html",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Unblocker",
+      "short_name": "Unblocker",
+      "url": "unblocker.html",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Sign in",
+      "short_name": "Sign in",
+      "url": "login.html",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

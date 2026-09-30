@@ -176,13 +176,37 @@
     B0Settings.set({ searchEngine: searchEngine.value });
   });
 
-  /* ---- reset ---- */
-  document.getElementById('resetAll').addEventListener('click', function () {
-    if (confirm('Reset ALL 0xB0 settings?')) {
+  /* ---- reset (two-step, no blocking dialog) ---- */
+  var resetBtn = document.getElementById('resetAll');
+  if (resetBtn) {
+    var resetArmed = false;
+    var resetTimer = null;
+    resetBtn.addEventListener('click', function () {
+      if (!resetArmed) {
+        resetArmed = true;
+        resetBtn.textContent = 'Reset everything?';
+        resetBtn.classList.add('armed');
+        resetBtn.style.color = 'var(--danger)';
+        resetBtn.style.borderColor = 'var(--danger)';
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(function () {
+          resetArmed = false;
+          resetBtn.textContent = 'Reset all settings';
+          resetBtn.classList.remove('armed');
+          resetBtn.style.color = '';
+          resetBtn.style.borderColor = '';
+        }, 4000);
+        return;
+      }
       B0Settings.set(B0Settings.defaults());
       refresh();
-    }
-  });
+      resetArmed = false;
+      resetBtn.textContent = 'Reset all settings';
+      resetBtn.classList.remove('armed');
+      resetBtn.style.color = '';
+      resetBtn.style.borderColor = '';
+    });
+  }
 
   refresh();
 })();
@@ -303,6 +327,37 @@
   }
 
   /* pick cosmetic title — removed: only the owner changes titles, from the admin panel */
+
+  /* ---- account actions in the profile card ---- */
+
+  var adminBtn = document.getElementById('pfAdminBtn');
+  if (adminBtn) adminBtn.style.display = user.role === 'admin' ? '' : 'none';
+
+  var acctBtn = document.getElementById('pfSettingsBtn');
+  if (acctBtn) acctBtn.addEventListener('click', function () { location.href = 'login.html'; });
+
+  var logoutBtn = document.getElementById('pfLogout');
+  if (logoutBtn) {
+    /* two-step, no blocking confirm() dialog */
+    var armed = false;
+    var armTimer = null;
+    logoutBtn.addEventListener('click', function () {
+      if (!armed) {
+        armed = true;
+        logoutBtn.textContent = 'Log out for sure?';
+        logoutBtn.classList.add('armed');
+        clearTimeout(armTimer);
+        armTimer = setTimeout(function () {
+          armed = false;
+          logoutBtn.textContent = 'Log out';
+          logoutBtn.classList.remove('armed');
+        }, 4000);
+        return;
+      }
+      B0Auth.logout();
+      location.href = 'index.html';
+    });
+  }
 
   refresh();
 })();
