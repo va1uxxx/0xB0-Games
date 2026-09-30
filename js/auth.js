@@ -41,7 +41,6 @@
     '0xb0-settings-v1',
     '0xb0-last-profile',
     '0xb0-cloak-on',
-    '0xb0-rips-v1'
   ];
 
   function isOwner(user) {

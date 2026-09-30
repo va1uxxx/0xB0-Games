@@ -6,9 +6,9 @@ info lives in the [README](README.md) — this file is the operator's manual.
 **Live at:** `https://va1uxxx.github.io/0xB0-Games/`
 
 The site is 100% static (HTML + CSS + JS, no backend, no build step) with a
-dark **sakura** theme, **544 games** (19 self-hosted + 525 embedded from
-public hosts, sz-games style), five player templates
-(`play.html` / `unity.html` / `flash.html` / `game-host.html` / `rip.html`),
+dark **sakura** theme, **544 games** (19 self-hosted + 525 embedded),
+four player templates
+(`play.html` / `unity.html` / `flash.html` / `game-host.html`),
 a built-in **Ultraviolet web proxy unblocker** with a 3D torii-gate scene and
 a preconfigured public bare server, a hidden **Owner admin panel**
 (`admin.html`), and a **Settings page** (tab disguise / favicon, panic key,
@@ -24,7 +24,6 @@ accent colors).
 ├── unity.html            Unity WebGL template (?game=<url>) — sz-games style
 ├── flash.html            Flash template (?game=<url.swf>) — runs on Ruffle
 ├── game-host.html        CDN entry-page host (wraps cdn.statically.io games)
-├── rip.html              🪄 "Game Rip" — play ANY game URL in a sandboxed iframe
 ├── admin.html            Hidden owner-only admin panel (no nav link anywhere)
 ├── unblocker.html        Sakura unblocker page (Ultraviolet proxy + boot loader)
 ├── settings.html         User settings (tab disguise, panic key, accent color)
@@ -41,7 +40,6 @@ accent colors).
 │   ├── main.js           Homepage logic (grid, search, 3D, reveals, cloak, panic)
 │   ├── petals.js         Falling sakura petals + parallax
 │   ├── play.js           Game player logic
-│   ├── rip.js            Game Rip engine (URL cleaning, sandbox, probe/watchdog)
 │   ├── game-host.js      CDN wrapper (fetch → <base> inject → document.write)
 │   ├── auth.js           Accounts, roles, cosmetic titles, game-data saves
 │   ├── unblocker.js      Unblocker logic (loader steps, proxy launch, settings)
@@ -162,58 +160,44 @@ then drop the entry and re-run `server/validate-registry.ps1` + `check-site.ps1`
 | `cdn.statically.io/gl/3kh0/3kh0-assets@main/<game>/index.html` | 114 games | 3kh0's GitLab repo served via the Statically CDN. **Use the `@main` format** — the `/main/` path 301s through an `http://` hop that browsers block as mixed content. Served through `game-host.html` because the CDN hands out `.html` as `text/plain`. Deep-audited by `server/audit-3kh0.ps1` |
 | Official sites (shellshock.io, krunker.io, voxiom.io, …) | ~85 games | Some (voxiom.io, deeeep.io) return 403 to a bare script GET — that's bot protection, not death; verify in a browser |
 | `mr-funkinguy.github.io/gfile/<game>/` | ~9 games | Unity WebGL games |
-| `sz-games.github.io` | ~225 games | **Blocked at school** — these rip into `rip.html` instead. Not a bug; see the Game Rip section |
+| `va1uxxx.github.io/*` (our forks of sz-games) | ~225 games | We forked sz-games' game repos (`Games`, `games3`, `Games2`, `Games-2`, `Games4`–`Games11`, `FlashGames`, `RetroGames`, `home`, `anuraOS` + the main `sz-games.github.io` site) and enabled Pages on each. Every sz-games game now loads from **our own GitHub Pages** (`SZ`/`SZMAIN` constants in `js/games-data.js`), so a school filter that blocks `sz-games.github.io` can't kill them — they're on the same account as the site. To refresh a fork after upstream moves: `gh repo sync va1uxxx/Games6` (or push to its `main`) |
 
 To repoint a game, change its `src:` in `js/games-data.js` — nothing else
 needs updating since all links use slugs.
 
-### 🪄 Game Rip page (`rip.html` + `js/rip.js`)
+### 🍴 The sz-games forks (how we self-host their catalog)
 
-"Rip a game from any URL" — the user's spin on sz-games' `game.html?game=<url>`
-idea (using *their idea*, not *their links*). Opened from the **More ▾**
-dropdown or the rip icon in the nav; also reachable directly as
-`rip.html?g=<full-url>` (`&e=flash|unity|html5` forces an engine; `?game=` and
-`?url=` are accepted as aliases).
+Roughly 225 games in the registry come from the **sz-games** collections
+(Games2–11, games3, FlashGames, RetroGames, `sz-games.github.io/games/…`).
+Originally those were iframed from `sz-games.github.io` — which school
+filters block, killing ~225 tiles in class. Fix: the repos are **forked into
+this account** and served from `va1uxxx.github.io/<repo>/…`, i.e. the *same*
+GitHub Pages account as the site itself. A filter that blocks that blocks the
+whole site, so the games ride along everywhere.
 
-- **URL rules** (`cleanUrl`): only `http(s)://`; a bare word is treated as a
-  search term and rejected; our *own* origin returns `'self'` and shows
-  "That is a 0xB0 Games page" (we never frame ourselves — no mirror/summary
-  loophole). Accepts `localhost` when testing locally.
-- **Sandbox model**
-  - HTML5 / Unity → `SANDBOX_CROSS = allow-scripts allow-forms allow-modals
-    allow-popups allow-pointer-lock allow-downloads allow-orientation-lock
-    allow-presentation allow-same-origin`. The frame keeps its OWN real origin,
-    so modern Unity WebGL builds can use the native `caches` API (an
-    opaque-origin frame throws `SecurityError: Failed to read the 'caches'
-    property` and never starts). SOP still bars the frame from our
-    localStorage, and there is **no `allow-top-navigation`** so the game can't
-    tab-nab the school tab. The Chrome dev warning about
-    `allow-scripts + allow-same-origin` is inert: the frame is
-    cross-origin, so the escape path (`frameElement`) is a cross-origin read
-    that is just blocked.
-  - Flash → `SANDBOX_OPAQUE` (same minus `allow-same-origin`). `flash.html`
-    (one of OUR pages) handles the `.swf` with Ruffle; granting same-origin
-    would hand our origin to the flash host. `.swf` senders are permissive
-    about CORS, so Ruffle works even on an opaque origin.
-- **Boot honesty (the "no fake loading" fix).** A bare iframe `load` event
-  proves nothing — when DNS is blocked or a server is gone, Chrome still fires
-  `load` for its own error page. So before trusting anything, `rip.js` sends a
-  `no-cors` `fetch()` probe (12s cap, aborted via `AbortController`). Success
-  = host answered; failure = immediate "That host cannot be reached" panel with
-  Open direct / Proxy links. The loading message only clears once **both** the
-  probe passed **and** the frame document loaded (`settle()`), and a pair of
-  timers (7s "still loading…" nudge + 20s watchdog) catch the slow-and-dead
-  cases. `history.replaceState` keeps the address bar shareable.
-- **History.** Last 12 rips are kept per device in localStorage
-  `0xb0-rips-v1` (excluded from account game-data snapshots via
-  `NON_GAME_KEYS` in `js/auth.js`), rendered as "Your rips on this device"
-  with a per-entry remove button. Engine override chips + copy-share row too.
-- **What it can't do (told to the user on the page):** if the school filter
-  blocks the game's *host*, ripping can't fix that — a filter that blocks a
-  domain blocks it inside an iframe too. The page says so and offers
-  Open direct → Proxy Links instead.
-- The rip page is indexed (`index, follow`, canonical via `?g=`), the four
-  engine host pages are `noindex`.
+- **Repos forked & Pages-enabled (branch `main`, all content from upstream):**
+  `Games`, `games3`, `Games2`, `Games-2`, `Games4`, `Games5`, `Games6`,
+  `Games7`, `Games8`, `Games9`, `Games10`, `Games11`, `FlashGames`,
+  `RetroGames`, `home`, `anuraOS`, and `sz-games.github.io` (the main site —
+  holds the `/games/` folder plus `sz-brawlers.html` / `roblox.html`).
+- **Registry mapping** — two constants in `js/games-data.js`:
+  - `SZ = 'https://va1uxxx.github.io'` → the `Games*` / `games3` /
+    `FlashGames` / `RetroGames` / `home` / `anuraOS` forks (same paths as the
+    original, just our subdomain).
+  - `SZMAIN = 'https://va1uxxx.github.io/sz-games.github.io'` → the fork of
+    sz-games' main site repo (`/games/<game>/`, `sz-brawlers.html`,
+    `roblox.html`). Tar-pit: GitHub serves a fork of `name.github.io` under
+    `/<repo-name>`, so the main repo's path keeps its full name.
+- **Refreshing:** forks aren't auto-synced. If sz-games pushes a fix to a game
+  we use, run `gh repo sync va1uxxx/<repo>` (or open the fork UI → **Sync fork**
+  → **Update branch**). Only needed for games we actually reference.
+- **Why not copy the files instead?** The collections are ~9 GB combined —
+  far past GitHub's per-repo limits. Forks keep it server-side.
+- The old **Game Rip** page (`rip.html`) is gone — with the sz-games catalog
+  now on our own domain there was no longer a need to iframe arbitrary
+  school-blocked URLs, and the open-anything iframe was the one feature that
+  could pass a flaggable URL into the address bar. `js/rip.js` and the
+  `🪄 Game Rip` nav entries were removed with it.
 
 ### 👤 Profile system + cosmetic titles
 
@@ -290,12 +274,11 @@ servers that are actually online.
     Service Workers are therefore **removed from the registry** instead of
     listed (see "Dead tiles" above).
   - **flash games** (`engine: "flash"`, a raw `.swf`) → `flash.html?game=<url>`.
-    A browser can't render a raw `.swf` in an iframe, so these go through our
-    Ruffle host page (same path the rip page uses).
+    A browser can't render a raw `.swf` in an iframe, so these go through the
+    Ruffle host page.
   - **everything else** → the URL itself, no sandbox (direct hosts like
     selenite/io games need their own origin to boot).
 - `unity.html` and `flash.html` are the per-engine hosts and accept any URL.
-- `rip.html` is the open-anything page — see the Game Rip section above.
 
 ## 🧰 QA tooling (in `server/`)
 

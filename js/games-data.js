@@ -28,7 +28,8 @@
    your own copy of an open-source game in /games.
    ============================================================ */
 
-var SZ = 'https://sz-games.github.io'; /* public game host used by many entries */
+var SZ = 'https://va1uxxx.github.io'; /* our forks of sz-games' game repos: Games*, games3, FlashGames, RetroGames, home, anuraOS */
+var SZMAIN = 'https://va1uxxx.github.io/sz-games.github.io'; /* our fork of sz-games' main site repo (/games + root pages) */
 
 /* ---------------- LOCAL GAMES (hosted in /games) ------------ */
 
@@ -260,7 +261,7 @@ const EXTERNAL_GAMES = [
     src: "https://selenite-cc.github.io/selenite-old/wordle/", external: true, engine: "html5" },
   { slug: "agario", title: "Agar.io", category: "io", emoji: "🦠",
     description: "Eat cells, grow huge, get eaten by someone huge-er. The original blob battle.",
-    src: SZ + "/games/agario", external: true, engine: "html5" },
+    src: SZMAIN + "/games/agario", external: true, engine: "html5" },
   { slug: "crossy-road", title: "Crossy Road", category: "Arcade", emoji: "🐔",
     description: "Why did the chicken cross the road? Because YOU told it to.",
     src: "https://selenite-cc.github.io/selenite-old/crossyroad/", external: true, engine: "html5" },
@@ -393,7 +394,7 @@ const EXTERNAL_GAMES = [
 
   { slug: "brawl-stars-sz", title: "Brawl Stars (SZ Brawlers)", category: "Arcade", emoji: "🎮", badge: "Hot",
     description: "Fan-made browser Brawl Stars — 3v3 scraps, gems and glory.",
-    src: SZ + "/sz-brawlers.html", external: true, engine: "html5" },
+    src: SZMAIN + "/sz-brawlers.html", external: true, engine: "html5" },
   { slug: "rekill", title: "ReKill", category: "io", emoji: "🧟",
     description: "Fast top-down zombie elimination arena. Kill, upgrade, repeat.",
     src: "https://rekill.io/play", external: true, engine: "html5" },
@@ -402,10 +403,10 @@ const EXTERNAL_GAMES = [
     src: SZ + "/home/webb/", external: true, engine: "html5" },
   { slug: "square-meal", title: "Square Meal", category: "Arcade", emoji: "🟨",
     description: "Eat everything smaller than you. Classic Flash greed.",
-    src: SZ + "/games/swf/squaremeal/squaremeal.swf", external: true, engine: "flash" },
+    src: SZMAIN + "/games/swf/squaremeal/squaremeal.swf", external: true, engine: "flash" },
   { slug: "space-war", title: "Space War", category: "Action", emoji: "🚀",
     description: "Old-school space combat with lasers and stubborn enemies.",
-    src: SZ + "/games/spac", external: true, engine: "html5" },
+    src: SZMAIN + "/games/spac", external: true, engine: "html5" },
   { slug: "build-now-gg", title: "Build Now GG", category: "Action", emoji: "🏗️", badge: "Hot",
     description: "Build cover, switch to your gun, out-aim everyone. 1v1 build battles.",
     src: "https://buildnow-gg.io/buildnow-gg.embed", external: true, engine: "html5" },
@@ -414,22 +415,22 @@ const EXTERNAL_GAMES = [
     src: "https://diep.io/", external: true, engine: "html5" },
   { slug: "asteroids-belt", title: "Asteroids Belt", category: "Action", emoji: "☄️",
     description: "Weave through an asteroid belt with infinite ammunition.",
-    src: SZ + "/games/spacesh", external: true, engine: "html5" },
+    src: SZMAIN + "/games/spacesh", external: true, engine: "html5" },
   { slug: "backrooms", title: "Backrooms", category: "Horror", emoji: "🟡", badge: "Hot",
     description: " Wander the endless yellow rooms. Don't look behind you.",
     src: "https://cdn.statically.io/gl/3kh0/3kh0-assets@main/backrooms/index.html", external: true, engine: "html5" },
   { slug: "slide-in-the-woods", title: "Slide In The Woods", category: "Horror", emoji: "🛝",
     description: "A playground slide in a forest. Something slides back.",
-    src: SZ + "/games/woods", external: true, engine: "html5" },
+    src: SZMAIN + "/games/woods", external: true, engine: "html5" },
   { slug: "survivor-mode", title: "Survivor Mode", category: "Action", emoji: "🧟",
     description: "Endless zombie waves. How long can you hold the line?",
-    src: SZ + "/games/zombie", external: true, engine: "html5" },
+    src: SZMAIN + "/games/zombie", external: true, engine: "html5" },
   { slug: "fly-hydra", title: "Fly Hydra", category: "Arcade", emoji: "🐉",
     description: "Fly a multi-headed hydra through surreal obstacle courses.",
-    src: SZ + "/games/Bin/Game_file/call/hydra", external: true, engine: "html5" },
+    src: SZMAIN + "/games/Bin/Game_file/call/hydra", external: true, engine: "html5" },
   { slug: "dungeon-warrior", title: "Dungeon Warrior", category: "Action", emoji: "⚔️",
     description: "Hack and slash through pixel dungeons full of loot and teeth.",
-    src: SZ + "/games/dungeon", external: true, engine: "html5" },
+    src: SZMAIN + "/games/dungeon", external: true, engine: "html5" },
   { slug: "infiltrating-the-airship", title: "Infiltrating the Airship", category: "Adventure", emoji: "🎈",
     description: "Henry Stickmin boards an airship. Every choice is a bad choice.",
     src: "https://selenite-cc.github.io/selenite-old/infiltratingtheairship/", external: true, engine: "html5" },
@@ -480,7 +481,7 @@ const EXTERNAL_GAMES = [
     src: SZ + "/FlashGames/papascupcakeria.swf", external: true, engine: "flash" },
   { slug: "bloxorz", title: "Bloxorz", category: "Puzzle", emoji: "🧱",
     description: "Roll the block, bridge the gaps, don't fall off the edge.",
-    src: SZ + "/games/bloxx", external: true, engine: "html5" },
+    src: SZMAIN + "/games/bloxx", external: true, engine: "html5" },
   { slug: "eel-slap", title: "Eel Slap", category: "Casual", emoji: "🐟",
     description: "Slap people with an eel. That's it. That's the game.",
     src: "https://cdn.statically.io/gl/3kh0/3kh0-assets@main/eel-slap/index.html", external: true, engine: "html5" },
@@ -1170,7 +1171,7 @@ const EXTERNAL_GAMES = [
     src: "https://selenite-cc.github.io/selenite-old/superhot/", external: true, engine: "html5" },
   { slug: "roblox-portal", title: "Roblox Portal", category: "Casual", emoji: "🧱",
     description: "Gateway to Roblox, school-filter friendly.",
-    src: SZ + "/roblox.html", external: true, engine: "html5" },
+    src: SZMAIN + "/roblox.html", external: true, engine: "html5" },
   { slug: "bottle-flip", title: "Bottle Flip", category: "Casual", emoji: "🍾",
     description: "The 2016 trend, immortalized. Flip responsibly.",
     src: SZ + "/Games11/bottle-flip/game", external: true, engine: "html5" },
