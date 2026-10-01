@@ -47,6 +47,12 @@
     } catch (err) { /* private mode etc. — fine */ }
   }
 
+  /* Crop a string to `n` code points (not UTF-16 units) so emoji /
+     surrogate pairs are never split mid-character. */
+  function crop(s, n) {
+    return Array.from(String(s == null ? '' : s)).slice(0, n).join('');
+  }
+
   /* Fetch the shared member list.
      - not configured  -> resolves null
      - ok              -> resolves array of { username, title, avatar, joined }
@@ -57,7 +63,10 @@
     if (!force && cache && Date.now() - cache.t < CACHE_TTL) {
       return Promise.resolve(cache.users);
     }
-    return fetch(CFG.url)
+    /* cache-buster on the query string: Apps Script ignores extra
+       params and this defeats stale copies from proxies/CDNs */
+    var sep = CFG.url.indexOf('?') < 0 ? '?' : '&';
+    return fetch(CFG.url + sep + 'ts=' + Date.now())
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var users = (d && d.ok && d.users) || [];
@@ -80,9 +89,9 @@
       body: JSON.stringify({
         token: CFG.token,
         username: String(user.username),
-        title: String(user.title || 'member').slice(0, 30),
-        avatar: String(user.avatar || '👤').slice(0, 8),
-        joined: String(user.createdAt || new Date().toISOString()).slice(0, 10)
+        title: crop(user.title || 'member', 30),
+        avatar: crop(user.avatar || '👤', 4),
+        joined: crop(user.createdAt || new Date().toISOString(), 10)
       })
     })
       .then(function (r) { return r.json(); })
