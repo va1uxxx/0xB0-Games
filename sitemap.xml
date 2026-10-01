@@ -4,7 +4,7 @@
 
   Only the pages that are actually meant to be indexed are listed.
   play.html carries a ?game=<slug> query, is robots-blocked and marked
-  noindex, so the 544 games deliberately do not appear here; adding
+  noindex, so the 561 games deliberately do not appear here; adding
   them would advertise thin duplicates of index.html.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

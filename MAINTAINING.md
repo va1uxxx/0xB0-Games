@@ -6,7 +6,7 @@ info lives in the [README](README.md) — this file is the operator's manual.
 **Live at:** `https://va1uxxx.github.io/0xB0-Games/`
 
 The site is 100% static (HTML + CSS + JS, no backend, no build step) with a
-dark **sakura** theme, **544 games** (19 self-hosted + 525 embedded),
+dark **sakura** theme, **561 games** (19 self-hosted + 542 embedded),
 four player templates
 (`play.html` / `unity.html` / `flash.html` / `game-host.html`),
 a built-in **Ultraviolet web proxy unblocker** with a 3D torii-gate scene and
@@ -35,6 +35,7 @@ accent colors).
 │   └── style.css         All site styling (sakura theme + 3D polish)
 ├── js/
 │   ├── games-data.js     ★ THE GAME REGISTRY — edit this to add games
+│   ├── assets-status.js  AUTO-GENERATED feed gate (see server/audit-assets.ps1)
 │   ├── settings.js       Settings engine (runs on every page)
 │   ├── settings-page.js  Settings page UI logic
 │   ├── main.js           Homepage logic (grid, search, 3D, reveals, cloak, panic)
@@ -55,7 +56,8 @@ accent colors).
 │   ├── check-site.ps1    Verify every HTML page: ids, assets, anchors, meta
 │   ├── check-urls.ps1    Liveness-check every external game URL (→ url-check.csv)
 │   ├── validate-registry.ps1  Structural checks on js/games-data.js
-│   ├── audit-3kh0.ps1    Deep asset audit of the 114 wrapped statically.io games
+│   ├── audit-assets.ps1   Liveness-audits every game URL → writes js/assets-status.js (feed gate)
+│   ├── audit-3kh0.ps1    Deep asset audit of the wrapped statically.io games
 │   ├── add-meta.ps1      Idempotent <head> meta/title/canonical injector
 │   └── make-og.ps1       Regenerates assets/og.png + icons (game count pill)
 └── uv/                   Ultraviolet proxy runtime (unblocker engine)
@@ -145,22 +147,51 @@ then drop the entry and re-run `server/validate-registry.ps1` + `check-site.ps1`
 - They belong to their creators. This site only *links/embeds* public URLs —
   no game files are copied into the repo. That keeps it DMCA-resistant and
   the repo tiny, but it also means:
-- **If a host takes a game down, that tile dies.** Fix = remove/replace the
-  entry (or self-host an open-source alternative).
+- **If a host takes a game down, that tile dies.** The **asset gate** (below)
+  hides it from the feed automatically instead of showing a dead tile.
 - Don't rehost commercial games (Poki/Coolmath rips) in `/games` — that's the
   fast lane to a DMCA takedown. Use open-source games (MIT/Apache) or
   officially embeddable ones (itch.io, GameDistribution).
+- **New games should only be added from assets we can host or already host**
+  (our forks of sz-games / Mr-funkinguy's repos, or verified-live public
+  pages). "Have the assets" is the whole point of the gate below.
+
+### 🚪 The asset gate ("a game only shows when we have its assets")
+
+`js/main.js` hides any tile whose slug appears in `js/assets-status.js`
+(`window.B0_ASSETS_MISSING`). That file is **auto-generated** — re-run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File server\audit-assets.ps1
+```
+
+It GET/HEADs every `src:` in the registry and lists the unreachable ones.
+Rules:
+- A host that answers (2xx/3xx, or 401/403/407/426/429 — bot protection)
+  counts as **has assets** (those hosts still serve a real browser fine).
+- 400/404/410/451, 5xx, DNS failure, connection refused or timeout counts
+  as **missing** → the tile is hidden until the assets return.
+- Failure is **fail-open**: if `js/assets-status.js` is ever missing the
+  feed shows everything, so a stale deployment can't wipe the catalog.
+- Local `/games/*` are always fine (assets live in this repo).
+
+Deploy flow: edit the registry → run `validate-registry.ps1` →
+run `audit-assets.ps1` → deploy. A game appears in the feed when its
+assets are verifiably on hand; it disappears automatically when they aren't.
 
 ### 🌐 Current external game sources (in `js/games-data.js`)
 
 | Source | Used by | Notes |
 |---|---|---|
 | `games/<slug>/` (this repo) | 19 original games | Can never be blocked |
+| `va1uxxx.github.io/Games*` etc. (sz-games forks) | ~225 games | See "the sz-games forks" below — everything on our own Pages account |
 | `selenite-cc.github.io/selenite-old/<game>/` | ~136 games | Selenite archive on GitHub Pages — different domain from sz-games |
-| `cdn.statically.io/gl/3kh0/3kh0-assets@main/<game>/index.html` | 114 games | 3kh0's GitLab repo served via the Statically CDN. **Use the `@main` format** — the `/main/` path 301s through an `http://` hop that browsers block as mixed content. Served through `game-host.html` because the CDN hands out `.html` as `text/plain`. Deep-audited by `server/audit-3kh0.ps1` |
+| `cdn.statically.io/gl/3kh0/3kh0-assets@main/<game>/index.html` | 109 games | 3kh0's GitLab repo served via the Statically CDN. **Use the `@main` format** — the `/main/` path 301s through an `http://` hop that browsers block as mixed content. Served through `game-host.html` because the CDN hands out `.html` as `text/plain`. Deep-audited by `server/audit-3kh0.ps1` |
+| `va1uxxx.github.io/gfile/<game>/` | 4 games | Mr-funkinguy's 3kh0-style archive — **forked into our account** |
+| `va1uxxx.github.io/swf/<game>.swf` | 13 games | Mr-funkinguy's Flash archive — **forked into our account** (QWOP, Super Mario 63, Motherload, Riddle School, Interactive Buddy, …) |
+| `va1uxxx.github.io/sandboxels`, `/Cube-engine/`, `/wasmStuff/` | 3 games | Mr-funkinguy's standalone game repos — forked into our account |
 | Official sites (shellshock.io, krunker.io, voxiom.io, …) | ~85 games | Some (voxiom.io, deeeep.io) return 403 to a bare script GET — that's bot protection, not death; verify in a browser |
-| `mr-funkinguy.github.io/gfile/<game>/` | ~9 games | Unity WebGL games |
-| `va1uxxx.github.io/*` (our forks of sz-games) | ~225 games | We forked sz-games' game repos (`Games`, `games3`, `Games2`, `Games-2`, `Games4`–`Games11`, `FlashGames`, `RetroGames`, `home`, `anuraOS` + the main `sz-games.github.io` site) and enabled Pages on each. Every sz-games game now loads from **our own GitHub Pages** (`SZ`/`SZMAIN` constants in `js/games-data.js`), so a school filter that blocks `sz-games.github.io` can't kill them — they're on the same account as the site. To refresh a fork after upstream moves: `gh repo sync va1uxxx/Games6` (or push to its `main`) |
+| `mr-funkinguy.github.io/<repo>/` | 1 game | Only `MENU` (FakeUpdate) remains on their site |
 
 To repoint a game, change its `src:` in `js/games-data.js` — nothing else
 needs updating since all links use slugs.
@@ -180,6 +211,14 @@ whole site, so the games ride along everywhere.
   `Games7`, `Games8`, `Games9`, `Games10`, `Games11`, `FlashGames`,
   `RetroGames`, `home`, `anuraOS`, and `sz-games.github.io` (the main site —
   holds the `/games/` folder plus `sz-brawlers.html` / `roblox.html`).
+- **Also forked from Mr-funkinguy's account** (sz-games' owner) — same idea,
+  even more assets on our own domain:
+  `gfile` (1.4 GB, 3kh0-style archive — 4 new games added from it),
+  `swf` (267 MB Flash archive — 13 new flash games added, e.g. QWOP, Super
+  Mario 63, Motherload),
+  `Run3` (12 MB), `slope` (8 MB),
+  `sandboxels` (16 MB), `Cube-engine` (0.5 MB, branch `master`),
+  `wasmStuff` (7.5 MB).
 - **Registry mapping** — two constants in `js/games-data.js`:
   - `SZ = 'https://va1uxxx.github.io'` → the `Games*` / `games3` /
     `FlashGames` / `RetroGames` / `home` / `anuraOS` forks (same paths as the
@@ -315,7 +354,7 @@ Gotchas learned the hard way (PowerShell 5.1):
   0 errors and exactly 1 title/description per head.
 - After a game-count bump, regenerate the share-card pill + icons with
   `server/make-og.ps1` (the index meta description quotes the live count:
-  `Play 544 free unblocked HTML5 games…` — keep them in sync).
+  `Play 561 free unblocked HTML5 games…` — keep them in sync).
 
 ---
 
