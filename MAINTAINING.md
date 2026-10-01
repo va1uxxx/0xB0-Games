@@ -282,14 +282,29 @@ the site behaves exactly as before:
   token) deletes a member.
 - **Writes:** `js/auth.js` `signup()` calls `B0Roster.announce(...)` after
   the local save — fire-and-forget inside `try/catch` so the roster can
-  never block or break a signup.
+  never block or break a signup. Owner actions (remove / set title /
+  set avatar) go through `B0Roster.remove/update`, which POST with the
+  **admin secret**.
+- **Two tokens:** the public `WRITE_TOKEN` ships in `js/roster-config.js`
+  (casual anti-spam only). The **`ADMIN_TOKEN` is never in the site
+  JS** — the owner types it once into `admin.html → > shared_members`
+  (`B0Roster.setAdminToken`), which keeps it in that device's
+  `localStorage` under `0xb0-admin-token`. The Apps Script returns
+  `forbidden` for remove/update unless the admin secret matches.
+- **Admin panel:** `admin.html` gained a **`> shared_members`** card
+  next to the local `signed_up_users` list — it renders the roster from
+  all devices (reusing `.admin-row`/`.admin-select` styles), lets the
+  owner re-assign cosmetic titles/avatars in the sheet, and offers a
+  two-step "Remove". Local role/password management is unchanged
+  (per-device by design).
 - **Reads:** `members.html` polls `B0Roster.list(true)` every 45 s;
   `roster.js` caches the list in localStorage for 60 s and serves the
   cache on failure (graceful offline state).
-- **Important:** the token ships in the site's JS, so it's a casual
-  anti-spam measure, *not* security — anyone determined can write to the
-  Sheet. Clean the Sheet directly or rotate the token (both files) if it
-  gets abused.
+- **Important:** the public token ships in the site's JS, so it's a
+  casual anti-spam measure, *not* security — anyone determined can
+  publish signups. Clean the Sheet directly or rotate tokens (public one
+  in `roster-config.js` + `Code.gs`; admin one in `Code.gs` + each
+  owner device's `localStorage`).
 - The Members page is `noindex` and deliberately **not** in
   `sitemap.xml` (privacy: real usernames shouldn't be indexed).
 

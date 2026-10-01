@@ -69,6 +69,23 @@
         <div id="userTable" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
+      <div class="info-card" style="margin-bottom:16px">
+        <h3>&gt; shared_members</h3>
+        <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 12px">
+          Everyone who signed up on <b>any</b> device, from the Google-Sheet roster.
+          Only username, title, avatar and join date live there - <b>passwords never touch it</b>.
+          Title/avatar edits and removal update the shared sheet and need the admin secret below.
+        </p>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <input id="adminSecret" type="password" placeholder="Admin secret - saved on this device only" autocomplete="off"
+                 aria-label="Admin secret for shared roster actions"
+                 style="flex:1;background:var(--bg-2);border:1px solid var(--border-2);color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;border-radius:10px;outline:none" />
+          <button class="admin-btn" id="adminSecretSave" type="button">Save</button>
+        </div>
+        <div id="rosterMsg" class="admin-msg" role="status" aria-live="polite"></div>
+        <div id="rosterTable" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-ghost" id="logoutBtn" style="color:var(--danger);border-color:var(--danger)">Log out</button>
         <a class="btn btn-ghost" href="index.html">← Back to the site</a>
@@ -81,6 +98,8 @@
   <script src="js/petals.js"></script>
   <script src="js/games-data.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/roster-config.js"></script>
+  <script src="js/roster.js"></script>
   <script>
     (function () {
       'use strict';
@@ -305,6 +324,171 @@
       });
 
       render();
+
+      /* ---------- shared roster (all devices) ---------- */
+      var rosterBoxEl = document.getElementById('rosterTable');
+      var rosterMsgEl = document.getElementById('rosterMsg');
+      var secretEl = document.getElementById('adminSecret');
+      var secretSaveEl = document.getElementById('adminSecretSave');
+      var rosterArmed = '';
+      var rTimer = null;
+
+      function rSay(text, kind) {
+        if (!rosterMsgEl) return;
+        rosterMsgEl.textContent = text;
+        rosterMsgEl.className = 'admin-msg show ' + (kind || 'ok');
+        clearTimeout(rTimer);
+        rTimer = setTimeout(function () {
+          rosterMsgEl.className = 'admin-msg';
+          rosterMsgEl.textContent = '';
+        }, 4000);
+      }
+
+      if (secretEl && secretSaveEl && window.B0Roster) {
+        secretEl.value = B0Roster.adminToken();
+        secretSaveEl.addEventListener('click', function () {
+          var ok = B0Roster.setAdminToken(secretEl.value.trim());
+          rSay(ok ? 'Admin secret saved on this device only.' : 'Could not save the secret.', ok ? 'ok' : 'err');
+        });
+      }
+
+      function rosterTitleOptions(selected) {
+        return titleOptions(selected);
+      }
+
+      function rosterAvatarOptions(selected) {
+        try {
+          return A.getAvatarOptions().map(function (e) {
+            return '<option value="' + esc(e) + '"' + (e === selected ? ' selected' : '') + '>' + esc(e) + '</option>';
+          }).join('');
+        } catch (err) {
+          return '';
+        }
+      }
+
+      function disarmRosterDelete() {
+        rosterArmed = '';
+        var list = rosterBoxEl ? rosterBoxEl.querySelectorAll('[data-r-act="remove"].armed') : [];
+        for (var i = 0; i < list.length; i++) {
+          list[i].textContent = 'Remove';
+          list[i].classList.remove('armed');
+        }
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && rosterArmed) {
+          disarmRosterDelete();
+          rSay('Removal cancelled.', 'warn');
+        }
+      });
+
+      function statsBaseText() {
+        if (typeof ALL_GAMES !== 'undefined') {
+          return ALL_GAMES.length + ' games in the catalog, ' +
+            ALL_GAMES.filter(function (g) { return !g.external; }).length +
+            ' hosted on this site, ' + A.getAllUsers().length + ' account(s) on this device';
+        }
+        return '';
+      }
+
+      function renderRoster(users) {
+        if (!rosterBoxEl) return;
+        if (statsEl) {
+          statsEl.textContent = users === null
+            ? statsBaseText()
+            : statsBaseText() + ', ' + users.length + ' on shared roster';
+        }
+        if (users === null) {
+          rosterBoxEl.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">' +
+            (window.B0Roster && window.B0Roster.configured()
+              ? 'Couldn&#39;t reach the roster - the backend may be offline.'
+              : 'The shared roster isn&#39;t switched on yet (empty url/token in js/roster-config.js).') +
+            '</p>';
+          return;
+        }
+        if (!users.length) {
+          rosterBoxEl.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No shared members yet.</p>';
+          return;
+        }
+        var sorted = users.slice().sort(function (a, b) {
+          return String(b.joined || '').localeCompare(String(a.joined || ''));
+        });
+        rosterBoxEl.innerHTML = sorted.map(function (u) {
+          var info = A.titleInfo(u.title);
+          return (
+            '<div class="admin-row" data-user="' + esc(u.username) + '">' +
+              '<span class="admin-ava">' + esc(u.avatar || '\uD83D\uDC49') + '</span>' +
+              '<span class="admin-name">' + esc(u.username) +
+                ' <span class="admin-shared-tag">shared</span>' +
+              '</span>' +
+              '<span class="admin-badge" style="border:1px solid ' + esc(info.color) +
+                ';color:' + esc(info.color) + '">' + info.emoji + ' ' + esc(info.label) + '</span>' +
+              '<select class="admin-select" data-r-act="title" aria-label="Shared title for ' + esc(u.username) + '">' +
+                rosterTitleOptions(u.title) +
+              '</select>' +
+              '<select class="admin-select" data-r-act="avatar" aria-label="Shared avatar for ' + esc(u.username) + '">' +
+                rosterAvatarOptions(u.avatar) +
+              '</select>' +
+              '<button class="admin-btn admin-del" data-r-act="remove">Remove</button>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      function loadRoster() {
+        if (!window.B0Roster) { renderRoster(null); return; }
+        B0Roster.list(true)
+          .then(renderRoster)
+          .catch(function () { renderRoster(null); });
+      }
+
+      if (rosterBoxEl) {
+        rosterBoxEl.addEventListener('click', function (e) {
+          var btn = e.target.closest('[data-r-act="remove"]');
+          if (!btn) return;
+          var row = btn.closest('.admin-row');
+          var username = row ? row.getAttribute('data-user') : '';
+          if (!username) return;
+          if (rosterArmed !== username) {
+            rosterArmed = username;
+            btn.textContent = 'Really remove?';
+            btn.classList.add('armed');
+            rSay('Press "Really remove?" again to drop ' + username + ' from the shared roster. Esc cancels.', 'warn');
+            return;
+          }
+          disarmRosterDelete();
+          B0Roster.remove(username).then(function (res) {
+            if (!res.ok) {
+              rSay(res.error === 'forbidden' ? 'Wrong or missing admin secret.' : (res.error || 'Could not remove'), 'err');
+            } else {
+              rSay('Removed ' + username + ' from the shared roster.', 'ok');
+            }
+            loadRoster();
+          });
+        });
+
+        rosterBoxEl.addEventListener('change', function (e) {
+          var sel = e.target.closest('select[data-r-act]');
+          if (!sel) return;
+          var row = sel.closest('.admin-row');
+          var username = row ? row.getAttribute('data-user') : '';
+          if (!username) return;
+          var act = sel.getAttribute('data-r-act');
+          var fields = {};
+          if (act === 'title') { fields.title = sel.value; }
+          else if (act === 'avatar') { fields.avatar = sel.value; }
+          B0Roster.update(username, fields).then(function (res) {
+            if (!res.ok) {
+              rSay(res.error === 'forbidden' ? 'Wrong or missing admin secret.' : (res.error || 'Save failed'), 'err');
+            } else {
+              rSay(act === 'title' ? 'Title updated on the shared roster.' : 'Avatar updated on the shared roster.', 'ok');
+            }
+            loadRoster();
+          });
+        });
+
+        loadRoster();
+      }
 
       document.getElementById('logoutBtn').addEventListener('click', function () {
         A.logout();

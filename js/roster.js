@@ -99,9 +99,61 @@
       .catch(function () { return false; });
   }
 
+  /* ---------- owner-only actions (private admin secret) ----------
+     The admin secret is NOT in the site's public JS — it lives only
+     in the Apps Script (ADMIN_TOKEN) and in this browser's
+     localStorage, where the owner types it on the admin page. */
+
+  var ADMIN_KEY = '0xb0-admin-token';
+
+  function adminToken() {
+    try { return localStorage.getItem(ADMIN_KEY) || ''; } catch (err) { return ''; }
+  }
+
+  function setAdminToken(t) {
+    try {
+      if (t) { localStorage.setItem(ADMIN_KEY, t); } else { localStorage.removeItem(ADMIN_KEY); }
+      return true;
+    } catch (err) { return false; }
+  }
+
+  /* Reusable admin POST. Resolves { ok, error? } so the admin panel
+     can show a real message. Never blocks or breaks anything else. */
+  function admin(body) {
+    if (!configured()) return Promise.resolve({ ok: false, error: 'roster not configured' });
+    var tok = adminToken();
+    if (!tok) return Promise.resolve({ ok: false, error: 'no admin secret saved' });
+    var payload = { token: tok };
+    Object.keys(body).forEach(function (k) { payload[k] = body[k]; });
+    return fetch(CFG.url, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        return { ok: !!(d && d.ok), error: (d && d.error) || null };
+      })
+      .catch(function () { return { ok: false, error: 'could not reach roster' }; });
+  }
+
+  function remove(username) {
+    return admin({ action: 'remove', username: String(username) });
+  }
+
+  function update(username, fields) {
+    var body = { action: 'update', username: String(username) };
+    if (fields && fields.title !== undefined) body.title = crop(fields.title, 30);
+    if (fields && fields.avatar !== undefined) body.avatar = crop(fields.avatar, 4);
+    return admin(body);
+  }
+
   window.B0Roster = {
     configured: configured,
     list: list,
-    announce: announce
+    announce: announce,
+    adminToken: adminToken,
+    setAdminToken: setAdminToken,
+    remove: remove,
+    update: update
   };
 })();

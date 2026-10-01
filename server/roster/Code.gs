@@ -25,6 +25,11 @@
 
 var SHEET_NAME = 'roster';
 var WRITE_TOKEN = 'CHANGE_ME_to_a_long_random_string';
+/* Private admin token — used ONLY for destructive/shared-edit actions
+   (remove, set title/avatar). Never ship this in the site's JS: the
+   owner types it into the admin page, which stores it in localStorage
+   on their own devices only. */
+var ADMIN_TOKEN = 'CHANGE_ME_to_a_DIFFERENT_long_secret';
 var MAX_USERS = 500; /* hard cap so nobody can bloat the sheet */
 
 function sheet_() {
@@ -68,15 +73,25 @@ function doPost(e) {
       return json_({ ok: false, error: 'bad body' });
     }
 
-    if (!body.token || body.token !== WRITE_TOKEN) {
+    if (!body.token) {
       return json_({ ok: false, error: 'bad token' });
     }
 
     var sh = sheet_();
     var action = String(body.action || 'add');
 
-    if (action === 'remove') {
-      return remove_(sh, body);
+    /* owner-only actions: require the private admin token, which is
+       never shipped in the site's public JS */
+    if (action === 'remove' || action === 'update') {
+      if (body.token !== ADMIN_TOKEN) {
+        return json_({ ok: false, error: 'forbidden' });
+      }
+      return action === 'remove' ? remove_(sh, body) : update_(sh, body);
+    }
+
+    /* public actions (signup announce) use the write token */
+    if (body.token !== WRITE_TOKEN) {
+      return json_({ ok: false, error: 'bad token' });
     }
     return add_(sh, body);
   } catch (err) {
@@ -120,6 +135,27 @@ function remove_(sh, body) {
   for (var i = data.length - 1; i >= 1; i--) {
     if (data[i][0] && String(data[i][0]).toLowerCase() === username.toLowerCase()) {
       sh.deleteRow(i + 1);
+      return json_({ ok: true, username: username });
+    }
+  }
+  return json_({ ok: false, error: 'not found' });
+}
+
+/* Owner-only: change a member's cosmetic title and/or avatar in the
+   sheet. Fields that are absent are left untouched. */
+function update_(sh, body) {
+  var username = String(body.username || '').trim();
+  if (!username) return json_({ ok: false, error: 'invalid username' });
+  var data = sh.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && String(data[i][0]).toLowerCase() === username.toLowerCase()) {
+      var vals = [
+        data[i][0],
+        body.title !== undefined ? String(body.title).slice(0, 30) : data[i][1],
+        body.avatar !== undefined ? String(body.avatar).slice(0, 8) : data[i][2],
+        data[i][3]
+      ];
+      sh.getRange(i + 1, 1, 1, 4).setValues([vals]);
       return json_({ ok: true, username: username });
     }
   }
