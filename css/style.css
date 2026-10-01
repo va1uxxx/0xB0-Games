@@ -3291,3 +3291,52 @@ body::after {
   .nav-links a::after { transition: none; }
   .chip, .card, .btn-primary, .btn-ghost, .icon-btn, .un-btn, .feature .ico { transition-duration: 0.01ms !important; }
 }
+
+/* ============================================================
+   MEMBERS ROSTER page (shared member list â€” optional backend)
+   ============================================================ */
+
+.members-head { text-align: center; margin: 0 0 26px; }
+.members-head .big { font-size: 60px; line-height: 1; margin-bottom: 14px; filter: drop-shadow(0 8px 24px rgba(255,110,169,0.35)); }
+.members-head h1 { font-size: clamp(30px, 5vw, 42px); letter-spacing: -1px; margin: 0 0 8px;
+  background: linear-gradient(90deg, #ff6ea9, #ffd166, #7dd8ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.members-head p { color: var(--muted); margin: 0; font-size: 15px; }
+
+.roster-status { text-align: center; font-size: 14px; line-height: 1.65; }
+.roster-status.on { color: var(--muted); margin: 0 0 22px; }
+.roster-status.off { color: var(--muted); max-width: 620px; margin: 0 auto 26px;
+  background: var(--panel); border: 1px dashed var(--border-2); border-radius: var(--radius);
+  padding: 18px 24px; }
+.roster-status.off b { color: var(--text); }
+.roster-status code { font-family: var(--mono); font-size: 12.5px; color: var(--accent);
+  background: var(--panel-2); padding: 1px 6px; border-radius: 6px; }
+
+.roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 14px; }
+
+.member {
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: 20px 14px 16px;
+  text-align: center;
+  animation: cardIn 0.5s cubic-bezier(0.22, 0.75, 0.3, 1) backwards;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.member:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 12px 30px rgba(255, 110, 169, 0.16);
+}
+.member-avatar { font-size: 40px; line-height: 1; margin-bottom: 10px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4)); }
+.member-name { font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.member-title { font-size: 10.5px; font-weight: 800; color: var(--accent); margin: 5px 0 10px;
+  text-transform: uppercase; letter-spacing: 1.2px; }
+.member-joined { font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+
+.roster-retry { margin-top: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .member { animation: none !important; }
+  .member:hover { transform: none; }
+}

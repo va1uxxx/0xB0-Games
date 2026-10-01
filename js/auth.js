@@ -222,6 +222,22 @@
       users.push(user);
       saveUsers(users);
       localStorage.setItem(CURRENT_KEY, username);
+
+      /* shared Members roster (optional): publish the username so
+         everyone can see who joined. Never the password. Fail-open —
+         if the roster module/backend is off or unreachable, this is
+         a quiet no-op and the local signup still succeeds. */
+      try {
+        if (window.B0Roster) {
+          window.B0Roster.announce({
+            username: username,
+            title: user.title,
+            avatar: user.avatar,
+            createdAt: user.createdAt
+          });
+        }
+      } catch (err) { /* never let the roster break signup */ }
+
       return { ok: true, user: user };
     },
 

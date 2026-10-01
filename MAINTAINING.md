@@ -256,6 +256,42 @@ whole site, so the games ride along everywhere.
   element — no JS needed) with Proxy Links, Unblocker, Settings and About.
   To change the menu, edit the `nav-drop` block in each page's nav (all
   pages share the same markup).
+- **Members** is now a top-level nav link on all 7 nav pages (plus the
+  back-of-card footer links on `members.html` only) pointing at the new
+  `members.html` — the shared roster page (below).
+
+### 👥 Shared Members roster (optional)
+
+`members.html` can show *everyone* who signs up, on *any* Chromebook — but
+only once the one-time backend is deployed. Until then it's fully off and
+the site behaves exactly as before:
+
+- **Fail-open — off by default.** `js/roster-config.js` ships with empty
+  `url`/`token`. While empty: `js/roster.js` makes **zero network calls**,
+  `B0Roster.announce()` is a no-op, and `members.html` shows an
+  "isn't switched on" explainer. Signup/localStorage/auth are untouched.
+- **Backend = free Google Apps Script + Sheet** (`server/roster/Code.gs` +
+  `server/roster/SETUP.md`, ~3 min setup). Schools virtually never block
+  Google, it costs nothing, and no accounts are stored outside Google.
+  Deploy as a Web App (Anyone) → paste URL + token into
+  `js/roster-config.js`.
+- **What the roster stores:** username, cosmetic title, avatar emoji and
+  a join date. **Passwords never leave the device** (only SHA-256 hashes
+  exist, and they're never sent). The Sheet caps at 500 rows and rejects
+  duplicate usernames (case-insensitive); the `remove` action (with the
+  token) deletes a member.
+- **Writes:** `js/auth.js` `signup()` calls `B0Roster.announce(...)` after
+  the local save — fire-and-forget inside `try/catch` so the roster can
+  never block or break a signup.
+- **Reads:** `members.html` polls `B0Roster.list(true)` every 45 s;
+  `roster.js` caches the list in localStorage for 60 s and serves the
+  cache on failure (graceful offline state).
+- **Important:** the token ships in the site's JS, so it's a casual
+  anti-spam measure, *not* security — anyone determined can write to the
+  Sheet. Clean the Sheet directly or rotate the token (both files) if it
+  gets abused.
+- The Members page is `noindex` and deliberately **not** in
+  `sitemap.xml` (privacy: real usernames shouldn't be indexed).
 
 ---
 

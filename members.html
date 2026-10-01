@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Members — 0xB0 Games</title>
+  <meta name="description" content="Who's joined the 0xB0 arcade — the shared Members roster." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/members.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Members — 0xB0 Games" />
+  <meta property="og:description" content="Who's joined the 0xB0 arcade — the shared Members roster." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex"><svg width="26" height="30" viewBox="0 0 26 30" fill="none"><path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="#ff6ea9" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/><path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="members.html">Members</a>
+        <details class="nav-drop open-active" id="navDrop">
+          <summary>More</summary>
+          <div class="nav-drop-menu">
+            <a href="unblocker.html">🔓 Unblocker</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="about.html">🌸 About</a>
+          </div>
+        </details>
+      </div>
+      <span id="loginSlot" class="nav-login"></span>
+      <div class="nav-actions">
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:760px">
+    <div class="members-head">
+      <div class="big">👥</div>
+      <h1>Members</h1>
+      <p>Who's joined the 0xB0 arcade</p>
+    </div>
+
+    <div id="rosterStatus" class="roster-status"></div>
+
+    <div class="roster-grid" id="rosterGrid"></div>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/roster-config.js"></script>
+  <script src="js/roster.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var grid = document.getElementById('rosterGrid');
+      var statusEl = document.getElementById('rosterStatus');
+      if (!grid) return;
+
+      var FMT = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return FMT[c]; });
+      }
+      function joinedLabel(dateStr) {
+        if (!dateStr) return 'joined early';
+        var d = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? new Date(dateStr + 'T00:00:00Z') : new Date(dateStr);
+        if (isNaN(d.getTime())) return 'joined';
+        return 'joined ' + d.toISOString().slice(0, 10);
+      }
+
+      function render(users) {
+        if (users === null) {
+          grid.innerHTML = '';
+          statusEl.className = 'roster-status off';
+          if (window.B0Roster && window.B0Roster.configured()) {
+            statusEl.innerHTML =
+              '<b>Couldn&#39;t reach the roster.</b> Check your internet connection or try again in a few seconds. ' +
+              '<br><button class="btn btn-ghost roster-retry" type="button">↻ Try again</button>';
+            var retry = statusEl.querySelector('.roster-retry');
+            if (retry) retry.addEventListener('click', load);
+          } else {
+            statusEl.innerHTML =
+              '<b>The shared roster isn&#39;t switched on yet.</b> Signups still work on each device — the owner just ' +
+              'needs to connect the free Google Sheet backend (see <code>server/roster/SETUP.md</code>) to make this ' +
+              'page live. No player info is sent anywhere until that&#39;s done.';
+          }
+          return;
+        }
+        grid.innerHTML = '';
+        if (!users.length) {
+          statusEl.className = 'roster-status on';
+          statusEl.textContent = 'No members yet — be the first to sign up!';
+          return;
+        }
+        statusEl.className = 'roster-status on';
+        statusEl.textContent = users.length + ' player' + (users.length === 1 ? '' : 's') + ' on the shared roster.';
+        var sorted = users.slice().sort(function (a, b) {
+          return String(b.joined || '').localeCompare(String(a.joined || ''));
+        });
+        var html = '';
+        for (var i = 0; i < sorted.length; i++) {
+          var u = sorted[i];
+          html += '<div class="member" style="animation-delay:' + Math.min(i * 0.035, 0.9) + 's">' +
+            '<div class="member-avatar">' + esc(u.avatar || '👤') + '</div>' +
+            '<div class="member-name">' + esc(u.username) + '</div>' +
+            '<div class="member-title">' + esc(u.title || 'member') + '</div>' +
+            '<div class="member-joined">' + esc(joinedLabel(u.joined)) + '</div>' +
+            '</div>';
+        }
+        grid.innerHTML = html;
+      }
+
+      function load() {
+        B0Roster.list(true)
+          .then(render)
+          .catch(function () { render(null); });
+      }
+
+      load();
+      /* auto-refresh so new signups show up while the page is open */
+      setInterval(load, 45000);
+    })();
+  </script>
+</body>
+</html>
