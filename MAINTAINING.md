@@ -413,6 +413,31 @@ To change defaults for **everyone**, edit `DEFAULTS` at the top of
   [TitaniumNetwork](https://github.com/titaniumnetwork-dev/ultraviolet);
   Flash games run on [Ruffle](https://ruffle.rs) loaded from unpkg.
 
+## 🎨 Design system ("Neon Sakura Arcade")
+
+All styling lives in one file: `css/style.css`. The appended **ARCADE V2**
+section layers ambience on top of the base theme — nothing is ever
+removed, later rules simply win.
+
+- **Ambient backdrop** (`body::before` / `body::after`) — starfield +
+  aurora blobs + film grain. Pure CSS, no assets, and every page gets it
+  automatically.
+- **Hero** (`index.html`) — `.hero-glow` spotlight, `.orb` orbs, the
+  synthwave `.hero-floor` horizon band (it hangs just past the hero into
+  the games section boundary and paints *under* the section), vertical
+  kanji accents via `.hero::before/::after`, animated gradient shimmer on
+  the title, and a staggered entrance choreography.
+- **Cards** (generated in `js/main.js` → `cardHTML()`): every card now
+  carries `data-cat="<category>"` and `style="--n:<index>"` (`--n` capped
+  at 36). CSS uses `--n` for the cascade entrance and `data-cat` for the
+  per-category chip tint (e.g. `.card[data-cat="io"] { --cat: #4dd8ff; }`).
+  **If you ever add a new category to `js/games-data.js`, add a matching
+  `--cat` tint here or its chips fall back to the accent pink.**
+- **Bleed guard** — `html, body { overflow-x: hidden; }` keeps the wide
+  decorative layers from ever creating a horizontal scrollbar.
+- **Reduced motion** — every new animation is disabled under
+  `prefers-reduced-motion: reduce` (guarded at the end of the v2 section).
+
 ---
 
 ## ❓ Troubleshooting

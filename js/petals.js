@@ -46,7 +46,38 @@
   var COLORS = themeColors();
 
   var ctx = c.getContext('2d');
-  var W, H, petals = [], raf = null;
+  var W, H, petals = [], stars = [], raf = null;
+
+  /* ---------- ambient starfield (independent of the petal toggle) ---------- */
+  function makeStar() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.35 + Math.random() * 1.15,
+      dx: (Math.random() - 0.5) * 0.022,
+      dy: (Math.random() - 0.5) * 0.01,
+      ph: Math.random() * Math.PI * 2,
+      tws: 0.006 + Math.random() * 0.016,
+      a0: 0.10 + Math.random() * 0.32,
+      warm: Math.random() < 0.22
+    };
+  }
+
+  function drawStars(t) {
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      s.x += s.dx; s.y += s.dy;
+      if (s.x < -4) s.x = W + 4; else if (s.x > W + 4) s.x = -4;
+      if (s.y < -4) s.y = H + 4; else if (s.y > H + 4) s.y = -4;
+      var a = s.a0 * (0.55 + 0.45 * Math.sin(s.ph + t * 0.001 * (s.tws * 60)));
+      ctx.globalAlpha = Math.max(0, Math.min(1, a));
+      ctx.fillStyle = s.warm ? '#ffd9e6' : '#eef4ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
 
   function resize() {
     W = c.width = window.innerWidth;
@@ -83,8 +114,9 @@
     ctx.restore();
   }
 
-  function draw() {
+  function draw(t) {
     ctx.clearRect(0, 0, W, H);
+    if (stars.length) drawStars(t || 0);
     for (var i = 0; i < petals.length; i++) {
       var p = petals[i];
       p.y += p.vy;
@@ -105,6 +137,13 @@
     count = Math.round(count);
     petals = [];
     for (var i = 0; i < count; i++) petals.push(make(true));
+    /* stars respect the petal toggle too: petals === false disables the whole
+       layer, reduced motion turns it all off. Default on. */
+    if (typeof S.stars === 'undefined' || S.stars !== false) {
+      var sCount = Math.max(70, Math.min(150, Math.round((W * H) / 11000)));
+      stars = [];
+      for (var j = 0; j < sCount; j++) stars.push(makeStar());
+    }
     if (!raf) draw();
   }
 

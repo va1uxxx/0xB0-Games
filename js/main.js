@@ -320,17 +320,23 @@
       if (sec) sec.style.display = 'none';
       return;
     }
-    railEl.innerHTML = picks.map(cardHTML).join('');
+    railEl.innerHTML = picks.map(function (g, i) { return cardHTML(g, i); }).join('');
   }
 
   /* ---------- one card, used by both the grid and the rail ----- */
 
-  function cardHTML(g) {
+  function cardHTML(g, i) {
     var badge = g.badge ? '<span class="flag">' + esc(g.badge) + '</span>' : '';
     var newTab = '';
     try { if (B0Settings.get().newTab) newTab = ' target="_blank" rel="noopener"'; } catch (err) {}
+    /* category slug for per-category accent tinting + stagger index for
+       the cascade entrance (capped so the last card waits <= ~1s) */
+    var catCls = (g.category || 'other').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'other';
+    var n = Math.min(i || 0, 36);
     return (
-      '<a class="card" href="' + gameHref(g) + '"' + newTab +
+      '<a class="card" data-cat="' + esc(catCls) + '" style="--n:' + n +
+      '" href="' + gameHref(g) + '"' + newTab +
       ' title="Play ' + esc(g.title) + '">' +
       '<div class="thumb">' +
       badge +
@@ -376,7 +382,7 @@
     }
 
     grid.innerHTML = shown.length
-      ? shown.map(cardHTML).join('')
+      ? shown.map(function (g, i) { return cardHTML(g, i); }).join('')
       : '<div class="empty-note">No games match — try another search 👀' +
         '<br><a class="empty-request" href="https://github.com/va1uxxx/0xB0-Games/issues/new?labels=Game%20Request&title=Game%20Request%3A%20&body=**Game%20name%3A**%0A**Link%20to%20the%20game%3A**%0A**Category%3A**%0A**Why%20should%200xB0%20add%20it%3F**" target="_blank" rel="noopener">Request this game on GitHub →</a>' +
         '</div>';
