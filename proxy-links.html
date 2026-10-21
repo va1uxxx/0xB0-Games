@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Proxy Links — 0xB0 Games</title>
+  <meta name="description" content="Cloaked proxy links that get past school web filters." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/proxy-links.html" />
+  <meta name="robots" content="index, follow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Proxy Links — 0xB0 Games" />
+  <meta property="og:description" content="Cloaked proxy links that get past school web filters." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/proxy-links.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Proxy Links — 0xB0 Games" />
+  <meta name="twitter:description" content="Cloaked proxy links that get past school web filters." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .proxy-list { display: grid; gap: 10px; }
+    .proxy-link {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; text-decoration: none; color: var(--text);
+      transition: 0.15s; font-family: var(--sans);
+    }
+    .proxy-link:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+    .proxy-link .icon { font-size: 28px; flex-shrink: 0; }
+    .proxy-link .info { flex: 1; min-width: 0; }
+    .proxy-link .name { font-weight: 800; font-size: 15px; display: block; }
+    .proxy-link .url { font-size: 12px; color: var(--muted); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    .proxy-link .arrow { color: var(--accent); font-size: 18px; font-weight: 800; flex-shrink: 0; }
+    .mirror-badge {
+      font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
+      background: rgba(255,110,169,.15); color: #ffb3d1; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex"><svg width="26" height="30" viewBox="0 0 26 30" fill="none"><path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="#ff6ea9" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/><path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="members.html">Members</a>
+        <details class="nav-drop open-active" id="navDrop">
+          <summary>More</summary>
+          <div class="nav-drop-menu">
+            <a href="unblocker.html">🔓 Unblocker</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="about.html">🌸 About</a>
+          </div>
+        </details>
+      </div>
+      <span id="loginSlot" class="nav-login"></span>
+      <div class="nav-actions">
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" style="padding-top:40px;padding-bottom:60px;max-width:800px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:56px;margin-bottom:12px">🔗</div>
+      <h1 style="font-size:32px;margin:0 0 8px;letter-spacing:-1px">Proxy Links</h1>
+      <p style="color:var(--muted);font-size:15px;margin:0">Every link here is <b>cloaked</b> — disguised as school-safe stuff so filters ignore it.</p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:20px">
+      <h3>How to use</h3>
+      <p>Click a link, type what you want into its search bar, hit Enter. Mirror dies? Pick another.</p>
+    </div>
+
+    <!-- ============ CHERRI UNBLOCKER ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🍒 Cherri Unblocker — 12 mirrors</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">
+        Disguised as plain image files on jsDelivr — if one mirror gets reported, the others keep working.
+      </p>
+      <div class="proxy-list" id="cherriList"></div>
+    </section>
+
+    <!-- ============ CLOAKED COMMUNITY ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🕶️ Cloaked community links</h2></div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 14px">
+        Community proxies disguised as classwork and school sites — boring enough to skip filters.
+      </p>
+      <div class="proxy-list" id="communityList"></div>
+    </section>
+
+    <div class="info-card" style="margin-top:24px">
+      <h3>Stay safe</h3>
+      <p>
+        A proxy can see what goes through it — never log into email or school accounts inside one.
+        Dead links re-stock in the
+        <a href="https://discord.gg/unblock" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">TitaniumNetwork Discord</a>.
+      </p>
+    </div>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    /* ---- Cherri Unblocker: full proxy apps disguised as SVG images on jsDelivr ---- */
+    var CHERRI_BASE = 'https://cdn.jsdelivr.net/gh/hameslabybu-web/svg@';
+    var CHERRI_HASHES = [
+      '09af14ebc4f1838ae8cb0c668ee772a01221524a',
+      '07e679612b9bfa3d82b718b0f5d2fe0a25f83770',
+      'c6ca00e53e6d46de1af1d6a43f7721d0570c4609',
+      '9bf008da390e6e5afbcfe4b3d464df8ebbe5fabb',
+      '35bd6d80d933297f38b9f15c51259a2a1ee851c1',
+      '4315f8b3aa9613e083cd6db988e1c9baff7b22e1',
+      '2d317e4284c622e3eec9566ef3d90704b93c1bd1',
+      'b2338905d832101a4f0d8856a71f9a9fc9050512',
+      'a7a5e61ccbab2337107a6f52c77bf7711e125582',
+      'abf7d817f27c8fd8f191895e4ed34f5c71edd1eb',
+      '5866557a754f7108f3ba3fbd3e289be9e5697d20',
+      'fac06db6a519895840daf68ffad03ca2e2949a6d'
+    ];
+
+    /* ---- cloaked community proxies (all liveness-tested) ---- */
+    var COMMUNITY = [
+      { name: 'Saugatr Learning',        icon: '📚', url: 'https://saugatr.github.io/learn/',                desc: 'Looks like a study-notes site (GitHub Pages)' },
+      { name: 'Learning Games 677',      icon: '🎲', url: 'https://sites.google.com/view/learninggames677/home', desc: 'Disguised as a Google Sites games page' },
+      { name: 'Desmos Learning',         icon: '🧮', url: 'https://desm0slearning.vercel.app/',          desc: 'Poses as a Desmos-style math site' },
+      { name: 'Desmos',                  icon: '📐', url: 'https://desm0s.vercel.app/',                  desc: 'Calculator-looking frontend (Vercel)' },
+      { name: 'English Class',           icon: '📖', url: 'https://english.jswords.xyz/',               desc: 'Disguised as an English class page' },
+      { name: 'ILA Class',               icon: '✏️', url: 'https://ila.centraloff.org/',                  desc: 'Poses as Integrated Language Arts' },
+      { name: 'TIW School',              icon: '🏫', url: 'https://tiwschool.vercel.app/',                desc: 'School-site looking frontend (Vercel)' },
+      { name: 'Static Files',            icon: '🗂️', url: 'https://static.starttiw.org/static/',          desc: 'Looks like a boring file server' }
+    ];
+
+    function shortUrl(u) {
+      return u.replace(/^https?:\/\//, '').split('?')[0];
+    }
+
+    function buildCherri() {
+      var el = document.getElementById('cherriList');
+      el.innerHTML = CHERRI_HASHES.map(function (h, i) {
+        var url = CHERRI_BASE + h + '/index.svg';
+        return '<a class="proxy-link" href="' + url + '" target="_blank" rel="noopener">' +
+          '<span class="icon">🍒</span>' +
+          '<span class="info"><span class="name">Cherri Mirror #' + (i + 1) + '</span>' +
+          '<span class="url" style="display:block">cdn.jsdelivr.net/gh/hameslabybu-web/svg@' + h.slice(0, 8) + '…/index.svg</span></span>' +
+          '<span class="mirror-badge">jsDelivr</span>' +
+          '<span class="arrow">↗</span></a>';
+      }).join('');
+    }
+
+    function buildCommunity() {
+      var el = document.getElementById('communityList');
+      el.innerHTML = COMMUNITY.map(function (p) {
+        return '<a class="proxy-link" href="' + p.url + '" target="_blank" rel="noopener">' +
+          '<span class="icon">' + p.icon + '</span>' +
+          '<span class="info"><span class="name">' + p.name + '</span>' +
+          '<span class="url" style="display:block">' + p.desc + '</span></span>' +
+          '<span class="mirror-badge">' + shortUrl(p.url).split('/')[0] + '</span>' +
+          '<span class="arrow">↗</span></a>';
+      }).join('');
+    }
+
+    buildCherri();
+    buildCommunity();
+  </script>
+</body>
+</html>

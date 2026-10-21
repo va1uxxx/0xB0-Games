@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Simon — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; padding: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #101c33, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #e8f0ff; text-shadow: 0 0 18px rgba(147, 165, 200, .5); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; align-items: center; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; min-width: 74px; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #00e5a0; }
+  #simon {
+    display: grid;
+    grid-template-columns: repeat(2, var(--ss));
+    grid-template-rows: repeat(2, var(--ss));
+    gap: 10px;
+    padding: 12px;
+    background: #0c1322;
+    border: 2px solid #1d2a47;
+    border-radius: 22px;
+  }
+  :root { --ss: clamp(100px, 32vw, 150px); }
+  .pad {
+    border: none; cursor: pointer;
+    opacity: .68;
+    transition: opacity .12s, filter .12s, transform .12s;
+    position: relative;
+  }
+  .pad:hover { opacity: .85; }
+  .pad:active { transform: scale(.97); }
+  .pad.pg { background: radial-gradient(circle at 34% 30%, #2df08a, #17c964 55%, #0d8a4a); border-radius: 20px 6px 20px 6px; }
+  .pad.pr { background: radial-gradient(circle at 34% 30%, #ff8fa3, #ff5470 55%, #c22b48); border-radius: 6px 20px 6px 20px; }
+  .pad.py { background: radial-gradient(circle at 34% 30%, #ffe39a, #ffd166 55%, #d8a020); border-radius: 6px 6px 20px 20px; }
+  .pad.pb { background: radial-gradient(circle at 34% 30%, #7dc8ff, #2b8fff 55%, #1160c0); border-radius: 6px 20px 6px 20px; }
+  .pad.lit { opacity: 1; filter: brightness(1.75); transform: scale(1.03); }
+  #status { font-size: 16px; font-weight: 700; min-height: 22px; }
+  button.start {
+    background: linear-gradient(92deg, #00e5a0, #00b3ff); color: #04121c;
+    font-weight: 800; font-size: 14px; border: none; padding: 11px 22px;
+    border-radius: 10px; cursor: pointer;
+    box-shadow: 0 6px 22px rgba(0, 229, 160, .3);
+  }
+  .hint { color: #93a5c8; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>🟢 SIMON<span>0xB0 GAMES</span></h1>
+  <div class="top">
+    <div class="stat"><div class="lbl">LEVEL</div><div class="val" id="level">0</div></div>
+    <div class="stat"><div class="lbl">BEST</div><div class="val" id="best">0</div></div>
+  </div>
+  <div id="status">Press Start — watch the pattern, repeat it</div>
+  <div id="simon">
+    <button class="pad pg" data-i="0"></button>
+    <button class="pad pr" data-i="1"></button>
+    <button class="pad py" data-i="2"></button>
+    <button class="pad pb" data-i="3"></button>
+  </div>
+  <button class="start" id="startBtn">▶ Start</button>
+  <div class="hint">One more step every level. Sound on = easier 🎧</div>
+
+<script>
+(function () {
+  'use strict';
+  var TONES = [330, 415, 277, 220];       /* green, red, yellow, blue */
+  var pads = document.querySelectorAll('.pad');
+  var statusEl = document.getElementById('status');
+  var levelEl = document.getElementById('level'), bestEl = document.getElementById('best');
+  var startBtn = document.getElementById('startBtn');
+  var best = +(localStorage.getItem('0xb0-simon-best') || 0);
+  bestEl.textContent = best;
+
+  var audioCtx = null, sequence, step, accepting, playing, level;
+
+  function tone(freq, ms, buzz) {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      o.type = buzz ? 'sawtooth' : 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.22, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + ms / 1000);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + ms / 1000);
+    } catch (err) { /* audio blocked — game still works silently */ }
+  }
+
+  function light(i, ms) {
+    pads[i].classList.add('lit');
+    tone(TONES[i], ms || 380);
+    setTimeout(function () { pads[i].classList.remove('lit'); }, (ms || 380) * 0.85);
+  }
+
+  function playback() {
+    playing = true;
+    accepting = false;
+    statusEl.textContent = '👀 Watch…';
+    var i = 0;
+    var speed = Math.max(240, 520 - level * 16);
+    (function next() {
+      if (i >= sequence.length) {
+        playing = false;
+        accepting = true;
+        step = 0;
+        statusEl.textContent = '🫵 Your turn (' + sequence.length + ')';
+        return;
+      }
+      light(sequence[i], speed);
+      i++;
+      setTimeout(next, speed + 160);
+    })();
+  }
+
+  function nextLevel() {
+    level++;
+    levelEl.textContent = level;
+    sequence.push(~~(Math.random() * 4));
+    playback();
+  }
+
+  function fail() {
+    accepting = false;
+    tone(70, 500, true);
+    statusEl.textContent = '💀 Wrong! You reached level ' + level;
+    if (level > best) { best = level; localStorage.setItem('0xb0-simon-best', best); bestEl.textContent = best; }
+    startBtn.textContent = '▶ Play again';
+  }
+
+  startBtn.addEventListener('click', function () {
+    sequence = [];
+    step = 0;
+    accepting = false;
+    level = 0;
+    levelEl.textContent = 0;
+    nextLevel();
+  });
+
+  pads.forEach(function (p) {
+    p.addEventListener('pointerdown', function () {
+      if (!accepting) return;
+      var i = +p.getAttribute('data-i');
+      light(i, 220);
+      if (sequence[step] === i) {
+        step++;
+        if (step === sequence.length) {
+          accepting = false;
+          statusEl.textContent = '✅ Nice!';
+          setTimeout(nextLevel, 700);
+        }
+      } else {
+        fail();
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

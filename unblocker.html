@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unblocker — 0xB0 Games</title>
+  <meta name="description" content="The 0xB0 unblocker is being rebuilt. Check back soon." />
+  <meta name="referrer" content="no-referrer" />
+  <link rel="stylesheet" href="css/style.css" />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/unblocker.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Unblocker — 0xB0 Games" />
+  <meta property="og:description" content="The 0xB0 unblocker is being rebuilt. Check back soon." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/unblocker.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Unblocker — 0xB0 Games" />
+  <meta name="twitter:description" content="The 0xB0 unblocker is being rebuilt. Check back soon." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <style>
+    .maintenance-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(1000px 600px at 50% 115%, rgba(255, 110, 169, 0.14), transparent 60%),
+        var(--bg);
+      font-family: var(--sans);
+    }
+
+    .maintenance-box {
+      text-align: center;
+      max-width: 520px;
+      padding: 40px 24px;
+    }
+
+    .maintenance-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: maintFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes maintFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .maintenance-box h1 {
+      font-size: 32px;
+      margin: 0 0 10px;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+
+    .maintenance-box p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      margin: 0 0 28px;
+    }
+
+    .maintenance-box .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      color: var(--warn);
+      font-weight: 700;
+      margin-bottom: 28px;
+    }
+
+    .maintenance-box .status .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--warn);
+      animation: maintPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes maintPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--warn); }
+      50% { opacity: 0.4; box-shadow: 0 0 0 var(--warn); }
+    }
+
+    .maintenance-box .btn {
+      margin: 0 6px;
+    }
+
+    .maintenance-note {
+      margin-top: 36px;
+      font-size: 12.5px;
+      color: rgba(179, 156, 207, 0.55);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="petalCanvas"></canvas>
+
+  <div class="maintenance-page">
+    <div class="maintenance-box">
+      <div class="maintenance-icon">⛩️</div>
+
+      <h1>Unblocker — Under Maintenance</h1>
+
+      <div class="status">
+        <span class="dot"></span>
+        We're upgrading the proxy system
+      </div>
+
+      <p>
+        The unblocker is getting a major upgrade to make it faster and harder to block.
+        It'll be back soon — in the meantime, all <b>500+ games</b> still work perfectly.
+      </p>
+
+      <a class="btn btn-primary" href="index.html#games">▶ Play Games</a>
+      <a class="btn btn-ghost" href="settings.html">⚙ Settings</a>
+
+      <p class="maintenance-note">
+        Follow the repo for updates:<br>
+        <a href="https://github.com/va1uxxx/0xB0-Games" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 700;">github.com/va1uxxx/0xB0-Games</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="js/settings.js"></script>
+  <script src="js/petals.js"></script>
+</body>
+</html>

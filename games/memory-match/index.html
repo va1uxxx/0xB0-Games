@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Memory Match — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; padding: 18px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #2b1030, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #ffd166; text-shadow: 0 0 18px rgba(255, 209, 102, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .top { display: flex; gap: 10px; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 16px; text-align: center; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 20px; font-weight: 800; font-family: Consolas, monospace; color: #ffd166; }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, var(--cs));
+    gap: 10px;
+    padding: 14px;
+    background: #0c1322;
+    border: 2px solid #1d2a47;
+    border-radius: 16px;
+  }
+  .card {
+    width: var(--cs); height: var(--cs);
+    perspective: 600px;
+    cursor: pointer;
+    position: relative;
+  }
+  .inner {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transition: transform .4s;
+  }
+  .card.flipped .inner, .card.matched .inner { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .front {
+    background: linear-gradient(145deg, #18233f, #101a2e);
+    border: 1px solid #2a3b66;
+    font-family: Consolas, monospace;
+    font-weight: 800;
+    color: #00e5a0;
+    font-size: calc(var(--cs) * .3);
+    text-shadow: 0 0 12px rgba(0, 229, 160, .5);
+  }
+  .back {
+    transform: rotateY(180deg);
+    background: linear-gradient(145deg, #2a3f6b, #1a2b4d);
+    border: 1px solid #3b5185;
+    font-size: calc(var(--cs) * .52);
+  }
+  .card.matched .back { background: linear-gradient(145deg, #0f4d3a, #0a3a2c); border-color: #17c964; box-shadow: 0 0 16px rgba(23, 201, 100, .4); }
+  .card.matched { animation: matchPop .35s ease; }
+  @keyframes matchPop { 50% { transform: scale(1.09); } }
+  button {
+    background: linear-gradient(92deg, #ffd166, #ff9f43); color: #241505;
+    font-weight: 800; font-size: 14px; border: none; padding: 10px 20px;
+    border-radius: 10px; cursor: pointer;
+    box-shadow: 0 6px 22px rgba(255, 159, 67, .3);
+  }
+  button:active { transform: scale(.97); }
+  .hint { color: #93a5c8; font-size: 13px; }
+</style>
+</head>
+<body>
+  <h1>🃏 MEMORY MATCH<span>0xB0 GAMES</span></h1>
+  <div class="top">
+    <div class="stat"><div class="lbl">MOVES</div><div class="val" id="moves">0</div></div>
+    <div class="stat"><div class="lbl">TIME</div><div class="val" id="time">0s</div></div>
+    <div class="stat"><div class="lbl">PAIRS</div><div class="val" id="pairs">0/8</div></div>
+  </div>
+  <div class="board" id="board"></div>
+  <button id="restart">↺ New game</button>
+  <div class="hint" id="hint">Flip the cards and find all 8 pairs 🧠</div>
+
+<script>
+(function () {
+  'use strict';
+  var EMOJI = ['🎮', '👾', '🚀', '🛸', '⚡', '🌈', '🔮', '🍄'];
+  var board = document.getElementById('board');
+  var movesEl = document.getElementById('moves'), timeEl = document.getElementById('time'), pairsEl = document.getElementById('pairs');
+  var hintEl = document.getElementById('hint');
+  var deck, first, second, lock, moves, matched, started, seconds, timer;
+
+  function fit() {
+    var cs = Math.max(64, Math.min(110, ~~(Math.min(innerWidth - 70, 480) / 4)));
+    board.style.setProperty('--cs', cs + 'px');
+  }
+
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = ~~(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function start() {
+    deck = shuffle(EMOJI.concat(EMOJI));
+    first = second = null; lock = false;
+    moves = 0; matched = 0; started = false; seconds = 0;
+    clearInterval(timer);
+    movesEl.textContent = 0; timeEl.textContent = '0s'; pairsEl.textContent = '0/8';
+    hintEl.textContent = 'Flip the cards and find all 8 pairs 🧠';
+    fit();
+    render();
+  }
+
+  function render() {
+    board.innerHTML = '';
+    deck.forEach(function (e, i) {
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.i = i;
+      card.innerHTML =
+        '<div class="inner">' +
+        '<div class="face front">0xB0</div>' +
+        '<div class="face back">' + e + '</div>' +
+        '</div>';
+      board.appendChild(card);
+    });
+  }
+
+  board.addEventListener('click', function (e) {
+    var card = e.target.closest('.card');
+    if (!card || lock) return;
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    if (!started) {
+      started = true;
+      timer = setInterval(function () { seconds++; timeEl.textContent = seconds + 's'; }, 1000);
+    }
+
+    card.classList.add('flipped');
+
+    if (!first) { first = card; return; }
+    second = card;
+    moves++;
+    movesEl.textContent = moves;
+    lock = true;
+
+    var a = deck[+first.dataset.i], b = deck[+second.dataset.i];
+    if (a === b) {
+      first.classList.add('matched');
+      second.classList.add('matched');
+      first.classList.remove('flipped');
+      second.classList.remove('flipped');
+      matched++;
+      pairsEl.textContent = matched + '/8';
+      first = second = null; lock = false;
+      if (matched === 8) {
+        clearInterval(timer);
+        hintEl.textContent = '🏆 You found all pairs in ' + moves + ' moves and ' + seconds + 's!';
+        var best = +(localStorage.getItem('0xb0-memory-best') || 0);
+        if (!best || moves < best) {
+          localStorage.setItem('0xb0-memory-best', moves);
+          hintEl.textContent += ' (new best!)';
+        }
+      }
+    } else {
+      setTimeout(function () {
+        first.classList.remove('flipped');
+        second.classList.remove('flipped');
+        first = second = null; lock = false;
+      }, 700);
+    }
+  });
+
+  document.getElementById('restart').addEventListener('click', start);
+  window.addEventListener('resize', fit);
+  start();
+})();
+</script>
+</body>
+</html>

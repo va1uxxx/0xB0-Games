@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Hex Clicker — 0xB0 Games</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; padding: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% -10%, #0c2b1e, #070b14 60%);
+    color: #e8f0ff; touch-action: manipulation; user-select: none;
+    overflow-x: hidden;
+  }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -1px; color: #00e5a0; text-shadow: 0 0 18px rgba(0, 229, 160, .4); }
+  h1 span { color: #93a5c8; font-size: 11px; letter-spacing: 3px; display: block; text-align: center; }
+  .app { display: flex; gap: 26px; align-items: flex-start; justify-content: center; flex-wrap: wrap; width: 100%; max-width: 860px; }
+  .clickzone { display: flex; flex-direction: column; align-items: center; gap: 14px; flex: 0 0 auto; }
+  #hexBtn {
+    width: 220px; height: 240px; border: none; cursor: pointer; padding: 0;
+    background: none; position: relative; transition: transform .06s;
+  }
+  #hexBtn:active { transform: scale(.94); }
+  #hexBtn svg { width: 100%; height: 100%; filter: drop-shadow(0 0 26px rgba(0, 229, 160, .45)); }
+  .float {
+    position: absolute; left: 50%; top: 40%;
+    font-family: Consolas, monospace; font-weight: 800; font-size: 22px;
+    color: #7dfccd; pointer-events: none;
+    animation: floatUp .9s ease-out forwards; text-shadow: 0 0 12px rgba(0, 229, 160, .7);
+    z-index: 5;
+  }
+  @keyframes floatUp { to { transform: translate(-50%, -90px); opacity: 0; } }
+  .bigstat { text-align: center; }
+  .bigstat .count {
+    font-family: Consolas, monospace; font-size: 40px; font-weight: 800; color: #00e5a0;
+    text-shadow: 0 0 22px rgba(0, 229, 160, .35); line-height: 1;
+  }
+  .bigstat .unit { color: #93a5c8; font-size: 14px; font-weight: 700; }
+  .ministats { display: flex; gap: 10px; }
+  .stat { background: #0e1526; border: 1px solid #1d2a47; border-radius: 10px; padding: 6px 14px; text-align: center; }
+  .stat .lbl { font-size: 10px; letter-spacing: 2px; color: #93a5c8; font-weight: 700; }
+  .stat .val { font-size: 18px; font-weight: 800; font-family: Consolas, monospace; color: #00b3ff; }
+  .shop { flex: 1 1 300px; max-width: 420px; display: flex; flex-direction: column; gap: 9px; }
+  .shop h2 { margin: 0; font-size: 17px; color: #93a5c8; letter-spacing: 1px; }
+  .up {
+    display: flex; align-items: center; gap: 12px;
+    background: #0e1526; border: 1px solid #1d2a47; border-radius: 12px;
+    padding: 11px 14px; cursor: pointer; text-align: left;
+    transition: .12s; font-family: inherit; color: #e8f0ff;
+  }
+  .up .emoji { font-size: 26px; }
+  .up .info { flex: 1; }
+  .up .name { font-weight: 800; font-size: 14.5px; }
+  .up .desc { color: #93a5c8; font-size: 12.5px; margin-top: 2px; }
+  .up .cost { font-family: Consolas, monospace; font-weight: 800; color: #ffd166; font-size: 14px; white-space: nowrap; }
+  .up:not(.can):not(.owned) { opacity: .45; cursor: not-allowed; }
+  .up.can { border-color: #17c964; box-shadow: 0 0 14px rgba(23, 201, 100, .2); }
+  .up.can:hover { transform: translateY(-2px); }
+  .up.owned { opacity: .35; cursor: default; border-style: dashed; }
+  .foot { display: flex; gap: 8px; }
+  button.small {
+    background: #131c33; border: 1px solid #1d2a47; color: #93a5c8; font-weight: 700;
+    font-size: 12.5px; padding: 8px 14px; border-radius: 9px; cursor: pointer; font-family: inherit;
+  }
+  button.small:hover { color: #e8f0ff; border-color: #2a3b66; }
+  .hint { color: #93a5c8; font-size: 12.5px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>⬡ HEX CLICKER<span>0xB0 GAMES</span></h1>
+
+  <div class="app">
+    <div class="clickzone">
+      <div class="bigstat">
+        <div class="count" id="count">0</div>
+        <div class="unit">hexes</div>
+      </div>
+      <button id="hexBtn" aria-label="Click for hexes">
+        <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#00e5a0"/>
+              <stop offset="0.55" stop-color="#00b3ff"/>
+              <stop offset="1" stop-color="#0077cc"/>
+            </linearGradient>
+          </defs>
+          <path d="M100 6L186 55v110L100 214 14 165V55z" fill="url(#hg)" opacity=".92"/>
+          <path d="M100 26L168 65v90L100 194 32 155V65z" fill="rgba(4,18,28,.55)"/>
+          <text x="100" y="122" text-anchor="middle" font-family="Consolas, monospace" font-size="46" font-weight="800" fill="#e8f0ff">0x</text>
+        </svg>
+      </button>
+      <div class="ministats">
+        <div class="stat"><div class="lbl">PER TAP</div><div class="val" id="perTap">1</div></div>
+        <div class="stat"><div class="lbl">PER SEC</div><div class="val" id="perSec">0</div></div>
+      </div>
+    </div>
+
+    <div class="shop">
+      <h2>UPGRADES</h2>
+      <div id="shopList"></div>
+      <div class="foot">
+        <button class="small" id="saveBtn">💾 Save</button>
+        <button class="small" id="wipeBtn">🗑 Reset progress</button>
+      </div>
+      <div class="hint">Progress saves automatically every few seconds ⬡</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var SAVE_KEY = '0xb0-hexclicker-save';
+
+  var S = {
+    count: 0, taps: 0, perClick: 1, cps: 0,
+    goldenCursor: false, quantumCore: false,
+    owned: { t1: 0, t10: 0, a1: 0, a10: 0 }
+  };
+
+  var UPGRADES = [
+    { id: 't1',  emoji: '👆', name: 'Tap Power',     desc: '+1 hex per tap',            base: 15,   growth: 1.5,
+      can: function () { return true; },
+      buy: function () { S.perClick += 1; S.owned.t1++; } },
+    { id: 't10', emoji: '✋', name: 'Mega Tap',      desc: '+10 hexes per tap',         base: 400,  growth: 1.55,
+      can: function () { return true; },
+      buy: function () { S.perClick += 10; S.owned.t10++; } },
+    { id: 'a1',  emoji: '🤖', name: 'Auto Hexer',    desc: '+1 hex per second',         base: 50,   growth: 1.5,
+      can: function () { return true; },
+      buy: function () { S.cps += 1; S.owned.a1++; } },
+    { id: 'a10', emoji: '🏭', name: 'Hex Farm',     desc: '+10 hexes per second',      base: 1500, growth: 1.6,
+      can: function () { return true; },
+      buy: function () { S.cps += 10; S.owned.a10++; } },
+    { id: 'gc',  emoji: '✨', name: 'Golden Cursor', desc: 'Doubles all tap income',   base: 5000, growth: 1, once: true,
+      can: function () { return !S.goldenCursor; },
+      buy: function () { S.goldenCursor = true; } },
+    { id: 'qc',  emoji: '⚛️', name: 'Quantum Core',  desc: 'Doubles EVERYTHING',       base: 50000, growth: 1, once: true,
+      can: function () { return !S.quantumCore; },
+      buy: function () { S.quantumCore = true; } },
+  ];
+
+  var shopList = document.getElementById('shopList');
+  var countEl = document.getElementById('count');
+  var perTapEl = document.getElementById('perTap');
+  var perSecEl = document.getElementById('perSec');
+  var hexBtn = document.getElementById('hexBtn');
+
+  function fmt(n) {
+    n = Math.floor(n);
+    if (n < 1000) return n.toString();
+    var units = ['K', 'M', 'B', 'T', 'Qa', 'Qi'];
+    var u = -1;
+    while (n >= 1000 && u < units.length - 1) { n /= 1000; u++; }
+    return (n >= 100 ? n.toFixed(0) : n.toFixed(1)) + units[u];
+  }
+
+  function effPerClick() {
+    return S.perClick * (S.goldenCursor ? 2 : 1) * (S.quantumCore ? 2 : 1);
+  }
+  function effCps() {
+    return S.cps * (S.quantumCore ? 2 : 1);
+  }
+
+  function cost(u) {
+    var ownedCount = u.once ? (u.can() ? 0 : 1) : S.owned[u.id];
+    return Math.ceil(u.base * Math.pow(u.growth, ownedCount));
+  }
+
+  function renderShop() {
+    if (!shopList.childElementCount) {
+      UPGRADES.forEach(function (u) {
+        var b = document.createElement('button');
+        b.className = 'up';
+        b.dataset.id = u.id;
+        b.innerHTML =
+          '<span class="emoji">' + u.emoji + '</span>' +
+          '<span class="info"><div class="name">' + u.name + '</div>' +
+          '<div class="desc">' + u.desc + '</div></span>' +
+          '<span class="cost"></span>';
+        b.addEventListener('click', function () { buy(u); });
+        shopList.appendChild(b);
+      });
+    }
+    UPGRADES.forEach(function (u) {
+      var el = shopList.querySelector('[data-id="' + u.id + '"]');
+      var c = cost(u);
+      var bought = u.once && !u.can();
+      el.querySelector('.cost').textContent = bought ? 'OWNED' : fmt(c) + ' ⬡';
+      el.classList.toggle('owned', bought);
+      el.classList.toggle('can', !bought && S.count >= c);
+    });
+  }
+
+  function render() {
+    countEl.textContent = fmt(S.count);
+    perTapEl.textContent = fmt(effPerClick());
+    perSecEl.textContent = fmt(effCps());
+    renderShop();
+  }
+
+  function buy(u) {
+    var c = cost(u);
+    if (u.once && !u.can()) return;
+    if (S.count < c) return;
+    S.count -= c;
+    u.buy();
+    render();
+  }
+
+  hexBtn.addEventListener('click', function (e) {
+    var gain = effPerClick();
+    S.count += gain;
+    S.taps++;
+    var f = document.createElement('div');
+    f.className = 'float';
+    f.textContent = '+' + fmt(gain);
+    f.style.left = (30 + Math.random() * 40) + '%';
+    hexBtn.appendChild(f);
+    setTimeout(function () { f.remove(); }, 900);
+    render();
+  });
+
+  /* income tick (10x/sec) */
+  setInterval(function () {
+    if (effCps() > 0) {
+      S.count += effCps() / 10;
+      countEl.textContent = fmt(S.count);
+      renderShop();
+    }
+  }, 100);
+
+  /* save / load */
+  function save() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      ['count', 'taps', 'perClick', 'cps', 'goldenCursor', 'quantumCore'].forEach(function (k) {
+        if (typeof d[k] !== 'undefined') S[k] = d[k];
+      });
+      if (d.owned) ['t1', 't10', 'a1', 'a10'].forEach(function (k) { S.owned[k] = d.owned[k] || 0; });
+    } catch (err) {}
+  }
+
+  setInterval(save, 3000);
+  window.addEventListener('beforeunload', save);
+  document.getElementById('saveBtn').addEventListener('click', function () {
+    save();
+    this.textContent = '✓ Saved';
+    var btn = this;
+    setTimeout(function () { btn.textContent = '💾 Save'; }, 1200);
+  });
+  document.getElementById('wipeBtn').addEventListener('click', function () {
+    if (confirm('Reset ALL clicker progress?')) {
+      localStorage.removeItem(SAVE_KEY);
+      S = { count: 0, taps: 0, perClick: 1, cps: 0, goldenCursor: false, quantumCore: false, owned: { t1: 0, t10: 0, a1: 0, a10: 0 } };
+      render();
+    }
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>

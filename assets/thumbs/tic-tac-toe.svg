@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00e5a0"/>
+      <stop offset="1" stop-color="#07281e"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="14" fill="url(#bg)"/>
+  <g stroke="#0c1322" stroke-width="4" stroke-linecap="round" opacity=".9">
+    <path d="M130 34v104"/>
+    <path d="M192 34v104"/>
+    <path d="M98 68h126"/>
+    <path d="M98 106h126"/>
+  </g>
+  <g stroke-linecap="round" stroke-width="7">
+    <g stroke="#04121c">
+      <path d="M108 41l26 26"/>
+      <path d="M134 41l-26 26"/>
+    </g>
+    <circle cx="161" cy="87" r="13" fill="none" stroke="#ff5470"/>
+    <g stroke="#04121c">
+      <path d="M206 74l26 26"/>
+      <path d="M232 74l-26 26"/>
+    </g>
+    <circle cx="129" cy="130" r="13" fill="none" stroke="#04121c" stroke-width="6"/>
+  </g>
+  <text x="18" y="168" font-family="'Segoe UI', Arial, sans-serif" font-size="23" font-weight="800" fill="#fff">Tic-Tac-Toe</text>
+  <text x="302" y="168" text-anchor="end" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#04121c">0xB0</text>
+</svg>

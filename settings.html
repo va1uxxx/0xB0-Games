@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings — 0xB0 Games</title>
+  <meta name="description" content="Themes, tab disguise, panic key, petals and your profile, all in one place." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/settings.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Settings — 0xB0 Games" />
+  <meta property="og:description" content="Themes, tab disguise, panic key, petals and your profile, all in one place." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/settings.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Settings — 0xB0 Games" />
+  <meta name="twitter:description" content="Themes, tab disguise, panic key, petals and your profile, all in one place." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <canvas id="petalCanvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="hex">
+          <svg width="26" height="30" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hexg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff6ea9"/>
+                <stop offset="1" stop-color="#b46bff"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 1L24.5 7.75V21.25L13 28L1.5 21.25V7.75L13 1Z" stroke="url(#hexg)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,110,169,0.08)"/>
+            <path d="M7.5 11h7M7.5 15h4.5" stroke="#ff6ea9" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span><span class="mono">0xB0</span> GAMES</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="index.html#games">Games</a>
+        <a href="members.html">Members</a>
+        <details class="nav-drop open-active" id="navDrop">
+          <summary>More</summary>
+          <div class="nav-drop-menu">
+            <a href="unblocker.html">🔓 Unblocker</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="about.html">🌸 About</a>
+          </div>
+        </details>
+      </div>
+      <span id="loginSlot" class="nav-login"></span>
+      <div class="nav-actions">
+        <button class="icon-btn" id="cloakBtn" title="Disguise this tab as Google Docs">🕶️ <span class="label">Cloak</span></button>
+        <button class="icon-btn danger" id="panicBtn" title="Panic! (or press `)" aria-label="Panic">🛡️</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap settings-main">
+
+    <div class="section-head" style="margin-top:30px">
+      <h1 style="margin:0;font-size:32px">⚙️ Settings</h1>
+    </div>
+    <p class="settings-note">
+      Everything here is saved <b>on this device only</b> — your browser's local storage.
+    </p>
+
+    <!-- live preview -->
+    <div class="tab-preview-wrap">
+      <div class="tab-preview">
+        <div class="chrome-dots"><span></span><span></span><span></span></div>
+        <div class="fake-tab" id="fakeTab">
+          <img id="pvIcon" src="assets/favicon.svg" alt="" />
+          <span id="pvTitle">0xB0 Games — Unblocked Games</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="section" id="profileSection">
+      <div class="section-head"><h2>👤 Profile</h2></div>
+      <p class="settings-sub" id="profileLoggedOut">
+        <a href="login.html"><b>Log in or sign up</b></a> to pick an avatar and save your high scores.
+      </p>
+
+      <div id="profileEditor" style="display:none">
+        <div class="profile-usercard">
+          <span class="profile-usercard-avatar" id="pfAvatar">👤</span>
+          <div class="profile-usercard-info">
+            <div class="profile-usercard-name" id="pfName">…</div>
+            <span class="title-badge" id="pfTitleBadge">👤 Member</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pfNameInput">Display name</label>
+          <input id="pfNameInput" type="text" maxlength="20" placeholder="2-20 letters, numbers, _ or -" />
+          <div class="row-actions">
+            <button class="btn btn-primary" id="pfSaveName" style="font-size:13px;padding:9px 16px">Save name</button>
+            <span id="pfNameMsg" class="profile-msg"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Avatar</label>
+          <div class="avatar-grid" id="pfAvatarGrid"></div>
+          <div class="row-actions">
+            <input id="pfCustomAvatar" type="text" maxlength="8" placeholder="or paste any emoji" style="max-width:180px" />
+            <button class="btn btn-ghost" id="pfSaveAvatar" style="font-size:13px;padding:9px 16px">Set avatar</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Badge title</label>
+          <p class="settings-sub" style="margin:0">
+            Badges are assigned by the site owner and show next to your name (see your card above).
+          </p>
+        </div>
+
+        <div class="row-actions" style="margin-top:18px">
+          <button class="btn btn-ghost" id="pfSettingsBtn" style="font-size:13px;padding:9px 18px">⚙️ Account &amp; badges</button>
+          <a class="btn btn-ghost" id="pfAdminBtn" href="admin.html" style="font-size:13px;padding:9px 18px;display:none">⚡ Admin panel</a>
+          <button class="btn btn-ghost" id="pfLogout" style="font-size:13px;padding:9px 18px;color:var(--danger);border-color:var(--danger)">Log out</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RECORDS ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🏆 Your records</h2></div>
+      <p class="settings-sub" style="margin-top:0">Your bests on the local originals — saved on this device.</p>
+      <div class="records-list" id="recordsList"></div>
+    </section>
+
+    <!-- ============ TAB DISGUISE ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🕶️ Tab disguise (favicon + title)</h2></div>
+      <p class="settings-sub">Make this site look like anything. Pick a preset — applied instantly on every page.</p>
+      <div class="profile-grid" id="profileGrid"></div>
+
+      <div class="custom-panel" id="customPanel" style="display:none">
+        <div class="field">
+          <label for="customTitle">Custom tab title</label>
+          <input id="customTitle" type="text" maxlength="40" placeholder="e.g. My Math Homework" />
+        </div>
+        <div class="field">
+          <label for="customIcon">Custom favicon — type any emoji or paste an image URL</label>
+          <input id="customIcon" type="text" maxlength="300" placeholder="e.g. 📊 or https://example.com/icon.png" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANIC KEY ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🛡️ Panic key</h2></div>
+      <p class="settings-sub">Press <b>`</b> (backtick, under Esc) anywhere to teleport instantly.</p>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="panicEnabled" />
+          <span>Panic key enabled</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="panicUrl">Panic destination</label>
+        <input id="panicUrl" type="text" placeholder="https://classroom.google.com/h" />
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="panicTest" style="font-size:13px;padding:9px 16px">Test ↗</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THEMES ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🎨 Themes</h2></div>
+      <p class="settings-sub">Full site palettes — applied instantly, on every page.</p>
+      <div class="theme-grid" id="themeGrid"></div>
+    </section>
+
+    <!-- ============ EFFECTS ============ -->
+    <section class="section">
+      <div class="section-head"><h2>✨ Effects</h2></div>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="petalsOn" />
+          <span>🌸 Falling petals</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="petalDensity">Petal density</label>
+        <select id="petalDensity">
+          <option value="few">Breezy (few)</option>
+          <option value="normal" selected>Normal</option>
+          <option value="lots">Petal storm (lots)</option>
+        </select>
+        <p class="settings-sub">Petal options apply on the next page load.</p>
+      </div>
+    </section>
+
+    <!-- ============ SITE ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🧩 Site</h2></div>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="bossMode" />
+          <span>🕶️ Boss mode — cover the screen with a “Paused” card the moment the tab loses focus</span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="toggle-row">
+          <input type="checkbox" id="newTab" />
+          <span>↗️ Open game tiles in a new tab</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="gridDensity">Grid density</label>
+        <select id="gridDensity">
+          <option value="comfortable" selected>Comfortable</option>
+          <option value="compact">Compact (more per row)</option>
+        </select>
+        <p class="settings-sub">Site options apply on the next page load.</p>
+      </div>
+    </section>
+
+    <!-- ============ UNBLOCKER ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🔎 Unblocker search</h2></div>
+      <div class="field">
+        <label for="searchEngine">Search engine used for non-URL queries</label>
+        <select id="searchEngine">
+          <option value="google" selected>Google</option>
+          <option value="duckduckgo">DuckDuckGo</option>
+          <option value="bing">Bing</option>
+          <option value="brave">Brave Search</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ============ DATA ============ -->
+    <section class="section">
+      <div class="section-head"><h2>🗑️ Reset</h2></div>
+      <p class="settings-sub" style="margin-top:0">
+        Puts the theme, disguise, panic key, petals and grid density back to their defaults.
+        Your account and high scores are <b>not</b> touched.
+      </p>
+      <button class="btn btn-ghost" id="resetAll" style="color:var(--danger);border-color:var(--danger)">
+        Reset all 0xB0 settings
+      </button>
+    </section>
+
+    <div style="height:40px"></div>
+  </main>
+
+  <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/games-data.js"></script>
+  <script src="js/records.js"></script>
+  <script src="js/petals.js"></script>
+  <script src="js/settings-page.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

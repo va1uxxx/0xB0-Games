@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unity Game — 0xB0 Games</title>
+  <meta name="description" content="Play a Unity WebGL game, streamed straight into your browser." />
+  <meta name="theme-color" content="#0d0714" />
+  <link rel="canonical" href="https://va1uxxx.github.io/0xB0-Games/unity.html" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="0xB0" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="0xB0 Games" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Unity Game — 0xB0 Games" />
+  <meta property="og:description" content="Play a Unity WebGL game, streamed straight into your browser." />
+  <meta property="og:url" content="https://va1uxxx.github.io/0xB0-Games/unity.html" />
+  <meta property="og:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="0xB0 Games" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Unity Game — 0xB0 Games" />
+  <meta name="twitter:description" content="Play a Unity WebGL game, streamed straight into your browser." />
+  <meta name="twitter:image" content="https://va1uxxx.github.io/0xB0-Games/assets/og.png" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; background: #05080f; overflow: hidden; }
+    .unity-stage { position: fixed; inset: 0; background: #05080f; }
+    .unity-stage iframe { width: 100%; height: 100%; border: 0; display: block; background: #05080f; }
+    .unity-loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column; gap: 14px;
+      align-items: center; justify-content: center; color: var(--muted);
+      font-family: var(--sans); font-size: 14px; font-weight: 600; background: #05080f;
+      z-index: 5; transition: opacity .3s;
+    }
+    .unity-loading.hide { opacity: 0; pointer-events: none; }
+    .player-bar {
+      position: fixed; left: 10px; bottom: 10px; z-index: 10;
+      display: flex; gap: 6px; padding: 6px;
+      background: rgba(13, 20, 38, 0.85); border: 1px solid var(--border);
+      border-radius: 13px; backdrop-filter: blur(8px);
+    }
+    .player-bar button {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--text); cursor: pointer;
+      font-family: var(--sans); font-weight: 700; font-size: 13.5px;
+      padding: 9px 12px; border-radius: 9px; transition: .15s;
+    }
+    .player-bar button:hover { background: var(--panel-2); color: var(--accent); }
+    .u-error {
+      position: fixed; inset: 0; display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center; text-align: center; padding: 20px;
+      color: var(--muted); font-family: var(--sans); background: #05080f; z-index: 20;
+    }
+    .u-error .code { font-family: var(--mono); font-size: 44px; color: var(--accent); font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <div class="unity-stage" id="stageWrap">
+    <!-- "cross-origin-isolated" is not a valid Permissions-Policy feature
+         and only produced a console warning; the real requirement for
+         SharedArrayBuffer (some Unity builds want it) is a server header,
+         which a static host cannot set.
+         The motion sensors are listed because several Unity builds
+         request them and otherwise log hard permission-policy errors.
+         `allowfullscreen` is omitted on purpose: it duplicates
+         allow="fullscreen" and Chrome warns about the conflict. -->
+    <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking; clipboard-write; accelerometer; gyroscope; magnetometer"></iframe>
+  </div>
+
+  <div class="unity-loading" id="loading">
+    <div class="spinner"></div>
+    <span>Loading Unity game… (they're chunky, give it a sec)</span>
+  </div>
+
+  <div class="player-bar">
+    <button id="backBtn" title="Back to 0xB0 Games">← All games</button>
+    <button id="fullBtn" title="Fullscreen">⛶</button>
+    <button id="reloadBtn" title="Reload game">⟳</button>
+    <button id="cloakTabBtn" title="Open in a hidden about:blank tab">🕶️</button>
+  </div>
+
+  <script src="js/settings.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/games-data.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var params = new URLSearchParams(location.search);
+      var src = params.get('game');
+
+      /* if the param is a slug (not a URL), resolve it from the registry */
+      if (src && !/^https?:\/\//i.test(src)) {
+        var g = (typeof findGame === 'function') ? findGame(src) : null;
+        if (g && g.src) {
+          src = g.src;
+          B0Settings.setPageTitle(g.title + ' — 0xB0 Games');
+        }
+      }
+
+      var frame = document.getElementById('gameFrame');
+      var loading = document.getElementById('loading');
+
+      if (!src || !/^https?:\/\//i.test(src)) {
+        loading.style.display = 'none';
+        var err = document.createElement('div');
+        err.className = 'u-error';
+        err.innerHTML = '<div class="code">404</div><div>No game URL — use unity.html?game=<slug or url></div>';
+        document.body.appendChild(err);
+        return;
+      }
+
+      frame.addEventListener('load', function () {
+        /* a dead host still fires "load" (for the browser's error page) —
+           never let that wipe the error panel */
+        if (errored) return;
+        /* the initial about:blank of a fresh iframe also fires "load" —
+           never treat that as a booted game (see play.js for the full
+           note on why frame.src can't be compared directly). */
+        var here = '';
+        try { here = frame.contentWindow.location.href; } catch (e) { here = frame.src; }
+        if (!here || here === 'about:blank') return;
+        booted = true;
+        clearTimeout(window.__bootTimer);
+        loading.classList.remove('boot-fail');
+        loading.classList.add('hide');
+      });
+
+      /* boot watchdog — Unity games are chunky so allow 60s,
+         but never spin forever on a blocked/dead host          */
+      var booted = false;
+      var errored = false;
+      var LOADING_HTML = loading.innerHTML;
+
+      function bootGame() {
+        booted = false;
+        errored = false;
+        loading.classList.remove('hide');
+        loading.classList.remove('boot-fail');
+        loading.innerHTML = LOADING_HTML;
+        frame.src = src;
+        clearTimeout(window.__bootTimer);
+        window.__bootTimer = setTimeout(function () {
+          if (!booted) showBootError();
+        }, 60000);
+      }
+
+      function showBootError(reason) {
+        clearTimeout(window.__bootTimer);
+        errored = true;
+        loading.classList.remove('hide');
+        loading.classList.add('boot-fail');
+        loading.innerHTML =
+          '<div class="boot-error">' +
+          '<div class="boot-emoji">\u26A0\uFE0F</div>' +
+          '<h3>This game won\u2019t load</h3>' +
+          '<p>' + (reason || 'The Unity build didn\u2019t arrive in 60s — the host may be blocked on this network or down.') + '</p>' +
+          '<div class="boot-actions">' +
+          '<button class="btn btn-primary" id="bootRetry">\u21BB Retry</button>' +
+          '<a class="btn btn-ghost" href="' + src + '" target="_blank" rel="noopener">\u2197 Open direct</a>' +
+          '<a class="btn btn-ghost" href="proxy-links.html">🔗 Proxy links</a>' +
+          '</div></div>';
+        var retry = document.getElementById('bootRetry');
+        if (retry) retry.addEventListener('click', bootGame);
+      }
+
+      /* instant reachability check */
+      fetch(src, { mode: 'no-cors', redirect: 'follow' }).catch(function () {
+        if (!booted) showBootError('This game\u2019s host can\u2019t be reached from this network \u2014 it looks blocked here.');
+      });
+
+      bootGame();
+
+      document.getElementById('backBtn').addEventListener('click', function () {
+        location.href = 'index.html';
+      });
+      document.getElementById('reloadBtn').addEventListener('click', bootGame);
+      document.getElementById('fullBtn').addEventListener('click', function () {
+        var el = document.getElementById('stageWrap');
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (el.requestFullscreen) el.requestFullscreen();
+      });
+      document.getElementById('cloakTabBtn').addEventListener('click', function () {
+        var w = window.open('about:blank', '_blank');
+        if (!w) { alert('Allow pop-ups to use cloaked tabs.'); return; }
+        w.document.write(
+          '<!DOCTYPE html><html><head><title>Course materials</title>' +
+          '<style>html,body{margin:0;height:100%;overflow:hidden;background:#05080f}' +
+          'iframe{border:0;width:100%;height:100%}</style></head>' +
+          '<body><iframe src="' + location.href + '" allow="autoplay; fullscreen; gamepad"></iframe></body></html>'
+        );
+        w.document.close();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00e5a0"/>
+      <stop offset="0.55" stop-color="#00b3ff"/>
+      <stop offset="1" stop-color="#07283f"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="14" fill="url(#bg)"/>
+  <rect x="40" y="132" width="66" height="12" rx="6" fill="#00e5a0" stroke="#7dfccd" stroke-width="2"/>
+  <rect x="150" y="96" width="66" height="12" rx="6" fill="#00b3ff" stroke="#7de3ff" stroke-width="2"/>
+  <rect x="70" y="58" width="66" height="12" rx="6" fill="#ff5470" stroke="#ffb0c0" stroke-width="2"/>
+  <rect x="210" y="30" width="66" height="12" rx="6" fill="#00e5a0" stroke="#7dfccd" stroke-width="2"/>
+  <g transform="translate(188 118)">
+    <path d="M0-15L13.5-7v14L0 15l-13.5-7v-14z" fill="#04121c" stroke="#7dfccd" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="-4" cy="-2" r="2.6" fill="#7dfccd"/>
+    <circle cx="4" cy="-2" r="2.6" fill="#7dfccd"/>
+  </g>
+  <path d="M56 66c0-8 6-14 14-14" stroke="#fff" stroke-opacity=".4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <text x="18" y="168" font-family="'Segoe UI', Arial, sans-serif" font-size="23" font-weight="800" fill="#fff">Hex Jump</text>
+  <text x="302" y="168" text-anchor="end" font-family="Consolas, monospace" font-size="12" font-weight="700" fill="#04121c">0xB0</text>
+</svg>
