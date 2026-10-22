@@ -71,7 +71,9 @@
     var b = document.createElement('button'); b.textContent = btn; b.onclick = onclick;
     overlay.appendChild(b); overlay.classList.add('show');
   }
-  function hideOverlay() { overlay.classList.remove('show'); }
+  /* clearing the DOM (not just hiding) also drops the focused button,
+     so Space/Enter can never re-click a dead "Serve" button mid-flight. */
+  function hideOverlay() { overlay.classList.remove('show'); overlay.innerHTML = ''; }
 
   function buildBricks() {
     bricks = [];
@@ -101,6 +103,9 @@
   }
 
   function launch() {
+    hideOverlay(); /* the overlay also comes down for Space/tap serves —
+                       otherwise it sits on top of the canvas blocking the
+                       mouse/touch paddle while the ball drains lives. */
     state = 'play';
     ball.stuck = false;
     var ang = -Math.PI / 2 + (Math.random() - 0.5) * 0.7;
@@ -244,6 +249,9 @@
   var keys = {};
   document.addEventListener('keydown', function (e) {
     keys[e.key] = true;
+    /* stop arrows/space from scrolling the page inside the iframe */
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowDown' ||
+        e.code === 'Space' || e.key === 'Enter') e.preventDefault();
     if ((e.code === 'Space' || e.key === 'Enter') && state === 'ready') { e.preventDefault(); launch(); }
   });
   document.addEventListener('keyup', function (e) { keys[e.key] = false; });

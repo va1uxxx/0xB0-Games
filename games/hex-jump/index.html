@@ -251,6 +251,9 @@
   /* ---- input ---- */
   var keys = { left: false, right: false };
   document.addEventListener('keydown', function (e) {
+    /* arrows steer AND must not scroll the game page inside the iframe */
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+        e.key === 'a' || e.key === 'A' || e.key === 'd' || e.key === 'D') e.preventDefault();
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
   });
@@ -258,14 +261,24 @@
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
   });
-  function touchDir(clientX) {
+  function pointDir(clientX) {
     var rect = cv.getBoundingClientRect();
     var x = (clientX - rect.left) * (W / rect.width);
     keys.left = x < W / 2;
     keys.right = !keys.left;
   }
-  cv.addEventListener('touchstart', function (e) { touchDir(e.touches[0].clientX); }, { passive: true });
-  cv.addEventListener('touchmove', function (e) { touchDir(e.touches[0].clientX); }, { passive: true });
+  /* mouse steering — the game used to be touch + keyboard only, so a
+     mouse-only player couldn't steer at all. Hold the button on the
+     half you want, exactly like touch. */
+  var mouseHeld = false;
+  cv.addEventListener('mousedown', function (e) { mouseHeld = true; pointDir(e.clientX); });
+  document.addEventListener('mouseup', function () {
+    mouseHeld = false;
+    keys.left = keys.right = false;
+  });
+  cv.addEventListener('mousemove', function (e) { if (mouseHeld) pointDir(e.clientX); });
+  cv.addEventListener('touchstart', function (e) { pointDir(e.touches[0].clientX); }, { passive: true });
+  cv.addEventListener('touchmove', function (e) { pointDir(e.touches[0].clientX); }, { passive: true });
   cv.addEventListener('touchend', function () { keys.left = keys.right = false; }, { passive: true });
 
   reset();

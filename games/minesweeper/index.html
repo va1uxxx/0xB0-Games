@@ -95,7 +95,10 @@
   }
 
   function sizeCells() {
-    var cs = Math.max(24, Math.min(38, ~~(Math.min(innerWidth - 60, 560) / COLS)));
+    /* wide boards need a smaller floor, or hard mode (16 columns)
+       overflows the screen on ~360px phones and scrolls sideways */
+    var floor = COLS > 10 ? 16 : 24;
+    var cs = Math.max(floor, Math.min(38, ~~(Math.min(innerWidth - 60, 560) / COLS)));
     gridEl.style.setProperty('--cs', cs + 'px');
   }
 
@@ -222,16 +225,23 @@
 
   gridEl.addEventListener('contextmenu', function (e) {
     var b = e.target.closest('.cell');
-    if (b) { e.preventDefault(); toggleFlag(+b.dataset.i); }
+    if (!b) return;
+    e.preventDefault();
+    /* Android fires BOTH our long-press timer AND contextmenu for a
+       single long press — without this guard the flag toggled twice
+       and never stuck. */
+    if (lpFired) { lpFired = false; return; }
+    toggleFlag(+b.dataset.i);
   });
 
   /* long-press flag for touch */
-  var lpTimer = null, lpIdx = -1;
+  var lpTimer = null, lpIdx = -1, lpFired = false;
   gridEl.addEventListener('touchstart', function (e) {
     var b = e.target.closest('.cell');
     if (!b) return;
     lpIdx = +b.dataset.i;
-    lpTimer = setTimeout(function () { toggleFlag(lpIdx); lpTimer = null; }, 380);
+    lpFired = false;
+    lpTimer = setTimeout(function () { toggleFlag(lpIdx); lpFired = true; lpTimer = null; }, 380);
   }, { passive: true });
   gridEl.addEventListener('touchend', function () {
     if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }

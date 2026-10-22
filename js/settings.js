@@ -29,6 +29,7 @@
     bossMode: false,       /* blur the page when the window loses focus */
     gridDensity: 'comfortable', /* comfortable | compact */
     newTab: false,         /* open game tiles in a new tab */
+    lite: false,           /* performance mode: kills heavy fx for weak laptops */
     searchEngine: 'google' /* google | duckduckgo | bing | brave (unblocker) */
   };
 
@@ -256,10 +257,18 @@
     });
   }
 
+  /* Lite mode: one switch for every expensive effect. The class lives on
+     <html> so CSS can gate animations and any script can check it with a
+     cheap classList lookup. Petals, 3D tilt and shine all respect it. */
+  function applyLite() {
+    document.documentElement.classList.toggle('b0-lite', settings.lite === true);
+  }
+
   function applyAll() {
     applyFavicon();
     applyTitle();
     applyTheme();
+    applyLite();
   }
 
   function save() {

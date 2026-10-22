@@ -95,8 +95,11 @@
 
   function die() {
     state = 'dead';
-    if (score > best) { best = score; localStorage.setItem('0xb0-flappy-best', best); bestEl.textContent = best; }
-    showOverlay('💀 Crash!', 'Score: ' + score + (score >= best && score > 0 ? ' 🏆 new best!' : ''), 'Retry', function () {
+    var isNew = score > best;
+    if (isNew) { best = score; localStorage.setItem('0xb0-flappy-best', best); bestEl.textContent = best; }
+    /* only a genuinely BEATEN record is "new best" — ties used to
+       claim the trophy too, because best had already been overwritten */
+    showOverlay('💀 Crash!', 'Score: ' + score + (isNew && score > 0 ? ' 🏆 new best!' : ''), 'Retry', function () {
       hideOverlay(); reset();
     });
   }

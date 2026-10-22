@@ -105,7 +105,9 @@
     overlay.appendChild(b);
     overlay.classList.add('show');
   }
-  function hideOverlay() { overlay.classList.remove('show'); }
+  /* clearing the DOM (not just hiding) also drops the focused button,
+     so Enter/Space can never re-click a dead "Start"/"Resume" mid-game. */
+  function hideOverlay() { overlay.classList.remove('show'); overlay.innerHTML = ''; }
 
   function refillBag() {
     bag = KEYS.slice();
@@ -213,7 +215,10 @@
     clearInterval(timer);
     var ms = Math.max(90, 800 - (level - 1) * 65);
     timer = setInterval(function () {
-      if (!paused && started && !over) moveDown();
+      /* draw() here is what makes gravity visible — without it the
+         board only repaints when a key is pressed and pieces fall
+         invisibly off-screen. */
+      if (!paused && started && !over) { moveDown(); draw(); }
     }, ms);
   }
 
@@ -293,6 +298,8 @@
       started = true;
       spawn();
       setSpeed();
+      draw();
+      drawNext();
     });
     draw();
     drawNext();

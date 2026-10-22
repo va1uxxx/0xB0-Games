@@ -141,6 +141,12 @@
       userGrid[pos] = 0;
       removed++;
     }
+    /* the loop above marks the cells it REMOVED, but every other
+       part of the game treats given[i] === true as a fixed clue.
+       Flip the polarity so both meanings agree — without this the
+       empty cells were styled immutable and the puzzle could never
+       be filled or solved. */
+    for (var gi = 0; gi < 81; gi++) given[gi] = !given[gi];
   }
 
   function buildGrid() {

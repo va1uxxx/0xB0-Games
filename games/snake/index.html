@@ -76,13 +76,29 @@
     var b = document.createElement('button'); b.textContent = btnLabel; b.onclick = onclick;
     overlay.appendChild(b); overlay.classList.add('show');
   }
-  function hideOverlay() { overlay.classList.remove('show'); }
+  function hideOverlay() { overlay.classList.remove('show'); overlay.innerHTML = ''; }
 
   function placeFood() {
-    while (true) {
-      var f = { x: ~~(Math.random() * COLS), y: ~~(Math.random() * ROWS) };
-      if (!snake.some(function (s) { return s.x === f.x && s.y === f.y; })) { food = f; return; }
+    /* collect the free cells first — a "pick until lucky" loop would
+       spin forever the moment the snake fills the entire board. */
+    var free = [];
+    for (var fy = 0; fy < ROWS; fy++) {
+      for (var fx = 0; fx < COLS; fx++) {
+        var taken = false;
+        for (var si = 0; si < snake.length; si++) {
+          if (snake[si].x === fx && snake[si].y === fy) { taken = true; break; }
+        }
+        if (!taken) free.push({ x: fx, y: fy });
+      }
     }
+    if (!free.length) {
+      /* board completely full — that is a WIN, not a hang */
+      dead = true; clearInterval(timer);
+      if (score > best) { best = score; localStorage.setItem('0xb0-snake-best', best); bestEl.textContent = best; }
+      showOverlay('🏆 You win!', 'You filled the whole board. Final score: ' + score, 'Play again', reset);
+      return;
+    }
+    food = free[~~(Math.random() * free.length)];
   }
 
   function reset() {
@@ -110,9 +126,13 @@
     if (dead || paused || !started) return;
     dir = nextDir;
     var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    var eating = head.x === food.x && head.y === food.y;
 
+    /* when not eating, the tail tip vacates its cell THIS tick — moving
+       into it is legal snake, so exclude the last segment there. */
+    var solid = eating ? snake : snake.slice(0, -1);
     if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS ||
-        snake.some(function (s) { return s.x === head.x && s.y === head.y; })) {
+        solid.some(function (s) { return s.x === head.x && s.y === head.y; })) {
       dead = true; clearInterval(timer);
       if (score > best) { best = score; localStorage.setItem('0xb0-snake-best', best); bestEl.textContent = best; }
       showOverlay('💀 Game over', 'Score: ' + score, 'Play again', reset);
@@ -120,7 +140,7 @@
     }
 
     snake.unshift(head);
-    if (head.x === food.x && head.y === food.y) {
+    if (eating) {
       score++; scoreEl.textContent = score;
       placeFood();
       if (speed > 70) { speed -= 2.5; clearInterval(timer); timer = setInterval(tick, speed); }

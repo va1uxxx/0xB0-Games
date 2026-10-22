@@ -217,7 +217,13 @@
     var g = grid();
     if (!won && !keepPlaying && g.flat().some(function (t) { return t && t.value >= 2048; })) {
       won = true;
-      showOverlay('You win! 🎉', 'Keep going for a higher score', 'Keep playing', function () { keepPlaying = true; hideOverlay(); });
+      showOverlay('You win! 🎉', 'Keep going for a higher score', 'Keep playing', function () {
+        keepPlaying = true;
+        hideOverlay();
+        /* the winning move can also be the one that dead-locks the
+           board — re-check so the game-over overlay still shows. */
+        checkEnd();
+      });
       return;
     }
     if (!canMove(g)) {
@@ -236,7 +242,7 @@
     overlay.appendChild(b);
     overlay.classList.add('show');
   }
-  function hideOverlay() { overlay.classList.remove('show'); }
+  function hideOverlay() { overlay.classList.remove('show'); overlay.innerHTML = ''; }
 
   function reset() {
     tiles.forEach(function (t) { if (els[t.id]) { els[t.id].remove(); delete els[t.id]; } });

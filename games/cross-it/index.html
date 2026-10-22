@@ -87,10 +87,11 @@
     var nr = Math.max(0, Math.min(11, player.row + dy));
     player.col = nc;
     player.row = nr;
-    if (nr < score / 10) { /* moving forward */
-      score = Math.max(score, (11 - nr) * 10);
-      scoreEl.textContent = score;
-    }
+    /* progress score — Math.max alone remembers the best row reached.
+       The old guard (`nr < score/10`) was never true while score was 0,
+       so the progress score never moved until the goal bonus. */
+    score = Math.max(score, (11 - nr) * 10);
+    scoreEl.textContent = score;
   }
 
   function step() {
@@ -129,7 +130,11 @@
           var l = logs[j];
           if (l.row === player.row && Math.abs(l.x + CELL - px) < CELL * 0.9) {
             onLog = true;
-            player.col += l.dir * l.speed * 0.15;
+            /* ride WITH the log: it moves l.speed pixels per frame, so
+               the rider must move l.speed/CELL columns per frame. The
+               old 0.15 multiplier pushed the frog ~6x faster than the
+               log — water rows killed you within half a second. */
+            player.col += (l.dir * l.speed) / CELL;
             if (player.col < -0.5 || player.col > 7.5) { die(); }
             break;
           }
@@ -254,6 +259,20 @@
                  w: [0,-1], s: [0,1], a: [-1,0], d: [1,0] };
     var dir = dirs[e.key];
     if (dir) { e.preventDefault(); move(dir[0], dir[1]); }
+  });
+
+  /* click-to-hop for mouse players — the game used to be touch +
+     keyboard only, so a mouse-only player couldn't move at all.
+     Each click hops one cell toward the clicked square. */
+  cv.addEventListener('mousedown', function (e) {
+    var rect = cv.getBoundingClientRect();
+    var gx = (e.clientX - rect.left) * (W / rect.width);
+    var gy = (e.clientY - rect.top) * (H / rect.height);
+    var dc = (gx / CELL - 0.5 | 0) - player.col;
+    var dr = (gy / CELL - 0.5 | 0) - player.row;
+    if (!dc && !dr) return;
+    if (Math.abs(dc) > Math.abs(dr)) move(dc > 0 ? 1 : -1, 0);
+    else move(0, dr > 0 ? 1 : -1);
   });
 
   restartBtn.addEventListener('click', function () {

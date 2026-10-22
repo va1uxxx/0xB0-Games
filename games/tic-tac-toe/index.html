@@ -76,6 +76,9 @@
   var sxEl = document.getElementById('sx'), soEl = document.getElementById('so'), sdEl = document.getElementById('sd');
   var level = 'hard';
   var b, over, turn;   /* b: array of 9: '' | 'X' | 'O' */
+  var round = 0;      /* bumped by newRound — lets a pending AI move
+                         detect that its round is gone */
+  var busy = false;   /* true during the AI's 260ms thinking window */
   var scores = JSON.parse(localStorage.getItem('0xb0-ttt-scores') || '{"x":0,"o":0,"d":0}');
 
   var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -150,6 +153,8 @@
   function newRound() {
     b = ['', '', '', '', '', '', '', '', ''];
     over = false; turn = 'X';
+    round++;
+    busy = false; /* any pending AI move now belongs to a dead round */
     statusEl.textContent = 'Your move — you are X';
     render();
   }
@@ -157,6 +162,8 @@
   boardEl.addEventListener('click', function (e) {
     var sq = e.target.closest('.sq');
     if (!sq || over) return;
+    if (busy) return; /* the AI is mid-move — clicking now meant two X's
+                        (and later two O's) landed in one turn */
     var i = +sq.dataset.i;
     if (b[i]) return;
 
@@ -165,8 +172,12 @@
     if (w) { finish(w); return; }
 
     statusEl.textContent = '🤖 AI thinking…';
+    busy = true;
+    var myRound = round;
     setTimeout(function () {
+      if (round !== myRound || over) { busy = false; return; }
       aiMove();
+      busy = false;
       var w2 = winnerOf(b);
       if (w2) { finish(w2); return; }
       statusEl.textContent = 'Your move — you are X';

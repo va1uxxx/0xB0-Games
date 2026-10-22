@@ -21,7 +21,7 @@
   var S = {};
   try { S = window.B0Settings ? window.B0Settings.get() : {}; } catch (err) {}
 
-  if (S.petals === false || reduce) return;
+  if (S.petals === false || reduce || S.lite === true) return;
 
   /* density multiplier */
   var dens = { few: 0.5, normal: 1, lots: 1.9 }[S.petalDensity] || 1;

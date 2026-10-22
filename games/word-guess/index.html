@@ -62,7 +62,7 @@
 <script>
 (function () {
   'use strict';
-  var WORDS = ['apple','beach','candy','dream','eagle','flame','ghost','happy','ivory','joker','knife','lemon','magic','night','ocean','pixel','quest','robot','sugar','tiger','ultra','vivid','water','xenon','yield','zebra','blaze','crisp','dough','earth','frost','gloom','haven','index','jelly','karma','lunar','mount','noble','orbit','prism','quilt','raven','spice','track','unity','vapor','waltz','yield'];
+  var WORDS = ['apple','beach','candy','dream','eagle','flame','ghost','happy','ivory','joker','knife','lemon','magic','night','ocean','pixel','quest','robot','sugar','tiger','ultra','vivid','water','xenon','yield','zebra','blaze','crisp','dough','earth','frost','gloom','haven','index','jelly','karma','lunar','mount','noble','orbit','prism','quilt','raven','spice','track','unity','vapor','waltz'];
   var word, row, col, over, guesses;
   var boardEl = document.getElementById('board');
   var msgEl = document.getElementById('msg');
@@ -146,9 +146,12 @@
       return;
     }
     if (col < 5 && /^[a-z]$/.test(key)) {
-      tiles[row][col].textContent = key;
-      tiles[row][col].classList.add('pop');
-      setTimeout(function () { tiles[row][col].classList.remove('pop'); }, 180);
+      var t = tiles[row][col];
+      t.textContent = key;
+      t.classList.add('pop');
+      /* capture THIS tile — the old closure read the live row/col at
+         fire time, so fast typing un-popped the wrong tile */
+      setTimeout(function () { t.classList.remove('pop'); }, 180);
       col++;
     }
   }
@@ -170,7 +173,16 @@
       if (used[j]) continue;
       var idx = word.indexOf(guess[j]);
       var found = false;
-      while (idx !== -1) { if (!used[idx]) { found = true; break; } idx = word.indexOf(guess[j], idx + 1); }
+      while (idx !== -1) {
+        if (!used[idx]) {
+          found = true;
+          /* consume the slot — without this, one 'p' in the answer
+             could light up as yellow for several guess 'p's */
+          used[idx] = true;
+          break;
+        }
+        idx = word.indexOf(guess[j], idx + 1);
+      }
       tiles[row][j].classList.add(found ? 'near' : 'miss');
     }
 
@@ -189,6 +201,10 @@
       over = true;
       streak++;
       if (streak > best) { best = streak; localStorage.setItem('0xb0-word-streak', best); }
+      /* persist NOW: the player page's Reload button can wipe the
+         iframe at any moment — waiting for the New Word click lost
+         the increment */
+      try { sessionStorage.setItem('word-streak', streak); } catch (err) {}
       msgEl.textContent = '🎉 Correct! Streak: ' + streak + ' (best: ' + best + ')';
       msgEl.className = 'msg win';
       return;
@@ -197,6 +213,7 @@
     if (row >= 6) {
       over = true;
       streak = 0;
+      try { sessionStorage.setItem('word-streak', 0); } catch (err) {}
       msgEl.textContent = '💀 The word was "' + word.toUpperCase() + '"';
     } else {
       msgEl.textContent = 'Attempt ' + (row + 1) + ' of 6';
@@ -204,8 +221,10 @@
   }
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { press('ENTER'); }
-    else if (e.key === 'Backspace') { press('BACK'); }
+    /* Backspace must not fall through — in some browsers it navigates
+       back through history, killing the game mid-word */
+    if (e.key === 'Enter') { e.preventDefault(); press('ENTER'); }
+    else if (e.key === 'Backspace') { e.preventDefault(); press('BACK'); }
     else if (/^[a-zA-Z]$/.test(e.key)) { press(e.key.toLowerCase()); }
   });
 

@@ -81,6 +81,8 @@
   bestEl.textContent = best;
 
   var audioCtx = null, sequence, step, accepting, playing, level;
+  var runId = 0; /* bumped on every Start/fail — stale playback chains
+                    check it and bow out instead of doubling up */
 
   function tone(freq, ms, buzz) {
     try {
@@ -108,8 +110,12 @@
     accepting = false;
     statusEl.textContent = '👀 Watch…';
     var i = 0;
+    var my = runId;
     var speed = Math.max(240, 520 - level * 16);
     (function next() {
+      /* a new Start during playback used to leave this old chain
+         running too — doubled flashes and a bogus "Your turn" */
+      if (my !== runId) return;
       if (i >= sequence.length) {
         playing = false;
         accepting = true;
@@ -132,6 +138,7 @@
 
   function fail() {
     accepting = false;
+    runId++; /* kill any in-flight chain still scheduled */
     tone(70, 500, true);
     statusEl.textContent = '💀 Wrong! You reached level ' + level;
     if (level > best) { best = level; localStorage.setItem('0xb0-simon-best', best); bestEl.textContent = best; }
@@ -139,6 +146,7 @@
   }
 
   startBtn.addEventListener('click', function () {
+    runId++;
     sequence = [];
     step = 0;
     accepting = false;
@@ -148,7 +156,9 @@
   });
 
   pads.forEach(function (p) {
-    p.addEventListener('pointerdown', function () {
+    /* click (not pointerdown) so keyboard activation works too — the
+       pads are <button>s and used to do nothing on Enter/Space */
+    p.addEventListener('click', function () {
       if (!accepting) return;
       var i = +p.getAttribute('data-i');
       light(i, 220);
@@ -157,7 +167,8 @@
         if (step === sequence.length) {
           accepting = false;
           statusEl.textContent = '✅ Nice!';
-          setTimeout(nextLevel, 700);
+          var my = runId;
+          setTimeout(function () { if (my === runId) nextLevel(); }, 700);
         }
       } else {
         fail();

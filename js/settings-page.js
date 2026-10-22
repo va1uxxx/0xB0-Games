@@ -30,6 +30,7 @@
   var themeGrid = document.getElementById('themeGrid');
   var petalsOn = document.getElementById('petalsOn');
   var petalDensity = document.getElementById('petalDensity');
+  var liteMode = document.getElementById('liteMode');
   var bossMode = document.getElementById('bossMode');
   var newTab = document.getElementById('newTab');
   var gridDensity = document.getElementById('gridDensity');
@@ -88,6 +89,7 @@
     /* effects + site + unblocker */
     petalsOn.checked = s.petals !== false;
     if (document.activeElement !== petalDensity) petalDensity.value = s.petalDensity;
+    if (liteMode) liteMode.checked = s.lite === true;
     bossMode.checked = !!s.bossMode;
     newTab.checked = !!s.newTab;
     if (document.activeElement !== gridDensity) gridDensity.value = s.gridDensity;
@@ -159,6 +161,11 @@
   petalDensity.addEventListener('change', function () {
     B0Settings.set({ petalDensity: petalDensity.value });
   });
+  if (liteMode) {
+    liteMode.addEventListener('change', function () {
+      B0Settings.set({ lite: liteMode.checked });
+    });
+  }
 
   /* ---- site ---- */
   bossMode.addEventListener('change', function () {

@@ -121,6 +121,10 @@
       h.type = roll < 0.15 ? 'gold' : roll < 0.35 ? 'bomb' : 'mole';
       h.mole.textContent = h.type === 'gold' ? '🌟' : h.type === 'bomb' ? '💣' : '🐹';
       h.busy = true;
+      /* a leftover 'bonk' animation (from a whack <260ms ago) overrides
+         the 'up' transform and keeps this mole invisible — clear it */
+      clearTimeout(h.bonkTimer);
+      h.mole.classList.remove('bonk');
       h.mole.classList.add('up');
 
       var stay = Math.max(480, 1050 - elapsed() * 20);
@@ -154,7 +158,7 @@
     }
     h.mole.classList.remove('up');
     h.mole.classList.add('bonk');
-    setTimeout(function () { h.mole.classList.remove('bonk'); }, 260);
+    h.bonkTimer = setTimeout(function () { h.mole.classList.remove('bonk'); }, 260);
   }
 
   function end() {
@@ -163,15 +167,33 @@
     clearInterval(tickTimer);
     holes.forEach(function (h) {
       clearTimeout(h.hideTimer);
+      clearTimeout(h.bonkTimer);
       h.mole.classList.remove('up');
+      h.mole.classList.remove('bonk');
       h.busy = false;
     });
-    if (score > best) { best = score; localStorage.setItem('0xb0-mole-best', best); bestEl.textContent = best; }
+    var isNew = score > best;
+    if (isNew) { best = score; localStorage.setItem('0xb0-mole-best', best); bestEl.textContent = best; }
     startBtn.textContent = '▶ Play again';
-    alert('⏱ Time! Final score: ' + score + (score >= best && score > 0 ? ' — new best! 🏆' : ''));
+    /* only a genuinely BEATEN record is "new best" — a tie used to
+       claim it too, because best had already been overwritten */
+    alert('⏱ Time! Final score: ' + score + (isNew && score > 0 ? ' — new best! 🏆' : ''));
   }
 
   startBtn.addEventListener('click', function () {
+    /* a second press mid-round used to leak the old timers: the clock
+       then ran double-speed and end() re-fired alert() every second,
+       forever. Guard + full cleanup before every start. */
+    if (running) return;
+    clearInterval(tickTimer);
+    clearTimeout(spawnTimer);
+    holes.forEach(function (h) {
+      clearTimeout(h.hideTimer);
+      clearTimeout(h.bonkTimer);
+      h.mole.classList.remove('up');
+      h.mole.classList.remove('bonk');
+      h.busy = false;
+    });
     score = 0;
     scoreEl.textContent = 0;
     timeLeft = DURATION;

@@ -48,6 +48,9 @@
     top: calc(var(--slot) * -1);
     transition: top .3s cubic-bezier(.34, 1.3, .6, 1);
     z-index: 2;
+    /* discs sit ON TOP of the holes — let clicks fall through to the
+       hole below, or a tall column becomes impossible to click */
+    pointer-events: none;
   }
   .disc.p1 { background: radial-gradient(circle at 36% 30%, #7dfccd, #00e5a0 60%, #009d6e); box-shadow: 0 0 14px rgba(0, 229, 160, .45); }
   .disc.p2 { background: radial-gradient(circle at 36% 30%, #d4c5ff, #a78bfa 60%, #6d4fd0); box-shadow: 0 0 14px rgba(167, 139, 250, .45); }
@@ -216,9 +219,19 @@
         if (winInfo(1)) s -= 1000;
         g2[r - 1][c] = 0;
       }
-      /* reward making our own threats */
-      g2[r][c] = 2;
-      if (winInfo(2)) s += 60;
+      /* reward making our own threats: after this move, would we have
+         a winning reply in some column next turn? (The old check here
+         re-tested the placement itself — already returned at step 1 —
+         so it could never fire; this one finds real threats.) */
+      for (var t = 0; t < COLS; t++) {
+        if (g2[0][t]) continue; /* full column */
+        var tr = -1;
+        for (var rr2 = ROWS - 1; rr2 >= 0; rr2--) { if (!g2[rr2][t]) { tr = rr2; break; } }
+        if (tr < 0) continue;
+        g2[tr][t] = 2;
+        if (winInfo(2)) { s += 60; g2[tr][t] = 0; break; }
+        g2[tr][t] = 0;
+      }
       grid = save;
       if (s > bestScore) { bestScore = s; bestCol = c; }
     });

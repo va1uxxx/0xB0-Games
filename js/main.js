@@ -123,6 +123,51 @@
     });
   }
 
+  /* ---------------- Game of the day ---------------- */
+  /* Deterministic daily pick — same game for everyone, changes at
+     midnight. No storage, no backend: the date IS the seed. */
+  var gotdBtn = $('gotdBtn');
+  if (gotdBtn && typeof ALL_GAMES !== 'undefined' && ALL_GAMES.length) {
+    var daySeed = Math.floor(Date.now() / 86400000);
+    var gotd = null;
+    /* prefer visible games (asset gate / owner-hidden) */
+    for (var gi = 0; gi < ALL_GAMES.length; gi++) {
+      var cand = ALL_GAMES[(daySeed + gi) % ALL_GAMES.length];
+      if (isVisible(cand)) { gotd = cand; break; }
+    }
+    gotd = gotd || ALL_GAMES[daySeed % ALL_GAMES.length];
+    gotdBtn.href = gameHref(gotd);
+    gotdBtn.innerHTML = '🎯 Today: ' + esc(gotd.title);
+    gotdBtn.title = 'Game of the day — a new pick every day';
+  }
+
+  /* ---------------- Konami code ---------------- */
+  /* ↑↑↓↓←→←→ba — the arcade pays its respects with a surprise game. */
+  (function () {
+    var SEQ = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+               'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    var pos = 0;
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) { pos = 0; return; }
+      var t = e.target;
+      if (t && (t.isContentEditable ||
+          /^(input|textarea|select)$/i.test(t.tagName || ''))) { pos = 0; return; }
+      var want = SEQ[pos];
+      var got = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (got === want) {
+        pos++;
+        if (pos === SEQ.length) {
+          pos = 0;
+          if (typeof ALL_GAMES !== 'undefined' && ALL_GAMES.length) {
+            location.href = gameHref(ALL_GAMES[~~(Math.random() * ALL_GAMES.length)]);
+          }
+        }
+      } else {
+        pos = got === SEQ[0] ? 1 : 0;
+      }
+    });
+  })();
+
   /* ---------------- Login state in nav ---------------------------- */
 
   var loginSlot = $('loginSlot');
@@ -154,7 +199,8 @@
     }
   }
 
-  if (window.matchMedia('(hover: hover)').matches) {
+  if (window.matchMedia('(hover: hover)').matches &&
+      !document.documentElement.classList.contains('b0-lite')) {
     var tiltCard = null;
     document.addEventListener('mousemove', function (e) {
       var card = e.target && e.target.closest ? e.target.closest('.card, .profile-card') : null;
@@ -208,7 +254,8 @@
       }).join('');
 
       /* the whole stage subtly rotates toward the cursor */
-      if (window.matchMedia('(hover: hover)').matches) {
+      if (window.matchMedia('(hover: hover)').matches &&
+          !document.documentElement.classList.contains('b0-lite')) {
         document.addEventListener('mousemove', function (e) {
           var rx = (e.clientY / window.innerHeight - 0.5) * -7;
           var ry = (e.clientX / window.innerWidth - 0.5) * 9;

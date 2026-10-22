@@ -93,10 +93,12 @@
   var board = document.getElementById('board');
   var movesEl = document.getElementById('moves'), timeEl = document.getElementById('time'), pairsEl = document.getElementById('pairs');
   var hintEl = document.getElementById('hint');
-  var deck, first, second, lock, moves, matched, started, seconds, timer;
+  var deck, first, second, lock, moves, matched, started, seconds, timer, flipTimer;
 
   function fit() {
-    var cs = Math.max(64, Math.min(110, ~~(Math.min(innerWidth - 70, 480) / 4)));
+    /* the board frame eats ~98px (gaps + padding + border) — reserve
+       it all or the cards overflow sideways on phones */
+    var cs = Math.max(64, Math.min(110, ~~(Math.min(innerWidth - 98, 480) / 4)));
     board.style.setProperty('--cs', cs + 'px');
   }
 
@@ -113,6 +115,10 @@
     first = second = null; lock = false;
     moves = 0; matched = 0; started = false; seconds = 0;
     clearInterval(timer);
+    /* kill a pending mismatch flip — without this, restarting within
+       0.7s of a mismatch flipped new-game cards back over (or crashed
+       on null cards). */
+    clearTimeout(flipTimer);
     movesEl.textContent = 0; timeEl.textContent = '0s'; pairsEl.textContent = '0/8';
     hintEl.textContent = 'Flip the cards and find all 8 pairs 🧠';
     fit();
@@ -171,9 +177,13 @@
         }
       }
     } else {
-      setTimeout(function () {
-        first.classList.remove('flipped');
-        second.classList.remove('flipped');
+      /* capture THIS pair — `first`/`second` are reassigned by the next
+         game; the timeout must flip back the cards it was scheduled for */
+      var mA = first, mB = second;
+      clearTimeout(flipTimer);
+      flipTimer = setTimeout(function () {
+        mA.classList.remove('flipped');
+        mB.classList.remove('flipped');
         first = second = null; lock = false;
       }, 700);
     }

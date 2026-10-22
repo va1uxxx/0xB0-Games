@@ -185,7 +185,8 @@
 
     /* difficulty ramp */
     if (frame % 600 === 0 && spawnEvery > 40) {
-      spawnEvery -= 8;
+      /* clamp at the 40 floor — the plain -= 8 overshot to 34 */
+      spawnEvery = Math.max(40, spawnEvery - 8);
       wave++;
       waveEl.textContent = wave;
       rocks.forEach(function (r) { r.vy *= 1.06; });
@@ -258,6 +259,9 @@
   /* ---- input ---- */
   var keys = { left: false, right: false };
   document.addEventListener('keydown', function (e) {
+    /* arrows steer AND must not scroll the game page inside the iframe */
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+        e.key === 'a' || e.key === 'A' || e.key === 'd' || e.key === 'D') e.preventDefault();
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
   });
