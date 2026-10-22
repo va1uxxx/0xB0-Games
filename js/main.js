@@ -414,8 +414,26 @@
     if (!window.B0Roster || !B0Roster.configured()) return;
     B0Roster.list(true).then(function () {
       if (window.B0Roster.config) applySiteConfig(window.B0Roster.config());
+      refreshOnline();
     }).catch(function () {});
   }
+
+  /* ---------------- live player count ---------------------------
+     Anonymous presence via the roster backend: "N playing right
+     now" in the hero stats. No backend / not configured / not yet
+     answered => the badge simply stays hidden (fail-open). */
+  var onlineWrap = $('onlineWrap');
+  var statOnline = $('statOnline');
+
+  function refreshOnline() {
+    if (!statOnline || !onlineWrap) return;
+    if (!window.B0Roster || !B0Roster.configured()) return;
+    var n = B0Roster.online();
+    if (typeof n !== 'number' || n < 0) return;
+    onlineWrap.hidden = false;
+    statOnline.textContent = n;
+  }
+  if (statOnline) setInterval(refreshOnline, 30000);
 
   /* Homepage grid + homepage helpers (used above by applySiteConfig) */
   var grid = $('grid');

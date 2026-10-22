@@ -25,6 +25,8 @@
 
 var SHEET_NAME = 'roster';
 var CONFIG_SHEET = 'config';
+var PRESENCE_SHEET = 'presence';
+var ONLINE_WINDOW_MS = 5 * 60 * 1000; /* "playing right now" = seen in the last 5 min */
 var WRITE_TOKEN = 'CHANGE_ME_to_a_long_random_string';
 /* Private admin token — used ONLY for destructive/shared-edit actions
    (remove, set title/avatar). Never ship this in the site's JS: the
@@ -44,8 +46,8 @@ function sheet_() {
 }
 
 /* Optional key/value "config" sheet — holds the sitewide
-   announcement text and the hidden/flagged game lists. Missing
-   sheet just means "no config", never an error. */
+   announcement text, the hidden/flagged game lists and the partners
+   list. Missing sheet just means "no config", never an error. */
 function configSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(CONFIG_SHEET);
@@ -56,8 +58,54 @@ function configSheet_() {
   return sh;
 }
 
+/* Anonymous presence sheet: one row per device {id, seen (epoch ms)}.
+   Never holds usernames — just "someone is on the site right now". */
+function presenceSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(PRESENCE_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(PRESENCE_SHEET);
+    sh.getRange(1, 1, 1, 2).setValues([['id', 'seen']]);
+  }
+  return sh;
+}
+
+/* Count devices seen inside the online window (read-only). */
+function online_() {
+  try {
+    var sh = presenceSheet_();
+    var now = Date.now();
+    var data = sh.getDataRange().getValues();
+    var count = 0;
+    for (var i = 1; i < data.length; i++) {
+      if (now - (Number(data[i][1]) || 0) <= ONLINE_WINDOW_MS) count++;
+    }
+    return count;
+  } catch (err) {
+    return 0;
+  }
+}
+
+/* Keep only sane partner objects: {name, url, emoji, blurb}. */
+function sanitizePartners_(arr) {
+  var out = [];
+  if (!Array.isArray(arr)) return out;
+  for (var i = 0; i < arr.length && out.length < 30; i++) {
+    var p = arr[i] || {};
+    var url = String(p.url || '');
+    if (!/^https?:\/\//i.test(url)) continue;
+    out.push({
+      name: String(p.name || '').slice(0, 30),
+      emoji: String(p.emoji || '🔗').slice(0, 8),
+      url: url.slice(0, 140),
+      blurb: String(p.blurb || '').slice(0, 140)
+    });
+  }
+  return out;
+}
+
 function getConfig_() {
-  var out = { announcement: '', hidden: [], flagged: [] };
+  var out = { announcement: '', hidden: [], flagged: [], partners: [] };
   try {
     var sh = configSheet_();
     var data = sh.getDataRange().getValues();
@@ -72,10 +120,14 @@ function getConfig_() {
         } else if (Array.isArray(v)) {
           out[k] = v;
         }
+      } else if (k === 'partners') {
+        if (typeof v === 'string' && v.charAt(0) === '[') {
+          try { out.partners = sanitizePartners_(JSON.parse(v)); } catch (err) { out.partners = []; }
+        }
       }
     }
   } catch (err) {
-    return { announcement: '', hidden: [], flagged: [] };
+    return { announcement: '', hidden: [], flagged: [], partners: [] };
   }
   return out;
 }
@@ -94,7 +146,7 @@ function doGet(e) {
         joined: String(data[i][3] || '')
       });
     }
-    return json_({ ok: true, users: users, config: getConfig_() });
+    return json_({ ok: true, users: users, config: getConfig_(), online: online_() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
@@ -117,6 +169,14 @@ function doPost(e) {
 
     var sh = sheet_();
     var action = String(body.action || 'add');
+
+    /* anonymous presence heartbeat — write-token level, no username */
+    if (action === 'heartbeat') {
+      if (body.token !== WRITE_TOKEN) {
+        return json_({ ok: false, error: 'bad token' });
+      }
+      return heartbeat_(body);
+    }
 
     /* owner-only actions: require the private admin token, which is
        never shipped in the site's public JS */
@@ -169,6 +229,40 @@ function add_(sh, body) {
   return json_({ ok: true, username: username });
 }
 
+/* Anonymous presence heartbeat: upsert {id -> now} and reply with
+   the current online count. Rows older than 15 minutes are pruned
+   whenever the sheet grows past 800 rows (so it can never bloat). */
+function heartbeat_(body) {
+  var id = String(body.id || '').replace(/[^\w-]/g, '').slice(0, 20);
+  if (!id) return json_({ ok: false, error: 'bad id' });
+  var sh = presenceSheet_();
+  var now = Date.now();
+  var data = sh.getDataRange().getValues();
+
+  if (data.length - 1 > 800) {
+    var keep = [['id', 'seen']];
+    for (var i = 1; i < data.length; i++) {
+      if (now - (Number(data[i][1]) || 0) <= 15 * 60 * 1000) {
+        keep.push([String(data[i][0]), Number(data[i][1]) || 0]);
+      }
+    }
+    sh.clearContents();
+    sh.getRange(1, 1, keep.length, 2).setValues(keep);
+    data = sh.getDataRange().getValues();
+  }
+
+  for (var j = 1; j < data.length; j++) {
+    if (String(data[j][0]) === id) {
+      sh.getRange(j + 1, 2).setValue(now);
+      return json_({ ok: true, online: online_() });
+    }
+  }
+  if (data.length - 1 < 1000) {
+    sh.appendRow([id, now]);
+  }
+  return json_({ ok: true, online: online_() });
+}
+
 function remove_(sh, body) {
   var username = String(body.username || '').trim();
   var data = sh.getDataRange().getValues();
@@ -214,7 +308,7 @@ function json_(obj) {
    the body is stored (others are left untouched). */
 function setConfig_(body) {
   var sh = configSheet_();
-  var locks = { announcement: 'text', hidden: 'list', flagged: 'list' };
+  var locks = { announcement: 'text', hidden: 'list', flagged: 'list', partners: 'json' };
   var keys = Object.keys(locks);
   var deleteRows = [];
   var data = sh.getDataRange().getValues();
@@ -232,6 +326,8 @@ function setConfig_(body) {
             if (s && clean.indexOf(s) === -1) clean.push(s);
           }
           sh.getRange(i + 1, 2).setValue(JSON.stringify(clean));
+        } else if (locks[k] === 'json') {
+          sh.getRange(i + 1, 2).setValue(JSON.stringify(sanitizePartners_(body[k])));
         } else {
           sh.getRange(i + 1, 2).setValue(String(body[k]).slice(0, 200));
         }
@@ -260,6 +356,8 @@ function setConfig_(body) {
         if (s2 && cl.indexOf(s2) === -1) cl.push(s2);
       }
       val = JSON.stringify(cl);
+    } else if (locks[keys[n]] === 'json') {
+      val = JSON.stringify(sanitizePartners_(body[keys[n]]));
     } else {
       val = String(body[keys[n]] === undefined ? '' : body[keys[n]]).slice(0, 200);
     }

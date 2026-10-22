@@ -91,6 +91,30 @@ that device's `localStorage`. Do this on each device you use as owner.
 - The `roster` sheet is capped at 500 rows and rejects duplicate
   usernames (case-insensitive).
 
+## Live player count ("N playing right now")
+
+The same backend powers the homepage's live count — no extra setup:
+
+- Every visitor's browser sends an **anonymous heartbeat** once a
+  minute while their tab is visible. It carries only a random
+  per-device ID from `localStorage` — **no username, no password,
+  nothing identifying**.
+- The backend counts devices seen in the last 5 minutes and returns
+  that number; the homepage shows it as "N playing right now".
+- Rows older than 15 minutes are pruned automatically (the `presence`
+  sheet is capped and can't grow forever).
+- Backend off / blocked => the badge simply stays hidden (fail-open).
+
+## Partners (owner)
+
+`admin.html` has a **Partners** box: add a site (emoji, name, link,
+one-line blurb), hit **Publish partners**, and it appears on
+`partners.html` for everyone. Partners are stored in the `config`
+sheet as a sanitized JSON list — publishing always re-sends your
+flags/announcement too, so the sheet stays in sync. A small static
+list in `js/partners-data.js` shows even with the backend off.
+
+
 ## Managing shared members (owner)
 
 `admin.html → > shared_members` shows everyone from all devices and lets

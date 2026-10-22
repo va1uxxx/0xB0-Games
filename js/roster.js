@@ -76,6 +76,7 @@
       .then(function (d) {
         var users = (d && d.ok && d.users) || [];
         cfgCache = (d && d.config) || cfgCache;
+        if (d && typeof d.online === 'number') lastOnline = d.online;
         writeCache(users);
         return users;
       })
@@ -89,8 +90,9 @@
     return cfgCache;
   }
 
-  /* Owner-only: replace announcement / hidden / flagged in the sheet.
-     Sends the full intended values for each key you include. */
+  /* Owner-only: replace announcement / hidden / flagged / partners
+     in the sheet. Sends the full intended values for each key you
+     include. */
   function setConfig(patch) {
     var body = { action: 'setconfig' };
     if (patch && typeof patch.announcement === 'string') {
@@ -101,6 +103,17 @@
     }
     if (patch && Array.isArray(patch.flagged)) {
       body.flagged = patch.flagged.map(function (s) { return crop(s, 40); }).slice(0, 200);
+    }
+    if (patch && Array.isArray(patch.partners)) {
+      body.partners = patch.partners.slice(0, 30).map(function (p) {
+        p = p || {};
+        return {
+          name: crop(p.name, 30),
+          emoji: crop(p.emoji || '🔗', 8),
+          url: /^https?:\/\//i.test(String(p.url || '')) ? String(p.url).slice(0, 140) : '',
+          blurb: crop(p.blurb, 140)
+        };
+      });
     }
     return admin(body).then(function (res) {
       if (res.ok) cfgCache = null; /* next config() call re-reads fresh */
@@ -177,6 +190,58 @@
     return admin(body);
   }
 
+  /* ---------- live presence (anonymous) ----------
+     Each device pings the roster once a minute while its tab is
+     visible, using a random per-device ID from localStorage — no
+     username, no password, nothing identifying. The backend replies
+     with the number of devices seen in the last 5 minutes, which
+     the homepage shows as "N playing right now". Fail-open: not
+     configured / blocked => nothing happens, the badge stays hidden. */
+
+  var PRESENCE_KEY = '0xb0-presence-id';
+  var lastOnline = null;
+  var hbTimer = null;
+
+  function presenceId() {
+    try {
+      var id = localStorage.getItem(PRESENCE_KEY);
+      if (!id) {
+        id = 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        localStorage.setItem(PRESENCE_KEY, id);
+      }
+      return id;
+    } catch (err) { return null; }
+  }
+
+  function heartbeat() {
+    if (!configured() || document.hidden) return;
+    var id = presenceId();
+    if (!id) return;
+    fetch(CFG.url, {
+      method: 'POST',
+      body: JSON.stringify({ token: CFG.token, action: 'heartbeat', id: id })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.ok && typeof d.online === 'number') lastOnline = d.online;
+      })
+      .catch(function () { /* offline is fine */ });
+  }
+
+  function startHeartbeat() {
+    if (hbTimer || !configured()) return;
+    heartbeat();
+    hbTimer = setInterval(heartbeat, 60000);
+    document.addEventListener('visibilitychange', heartbeat);
+  }
+
+  /* Most recent online count seen (from list() or a heartbeat), or null. */
+  function online() {
+    return lastOnline;
+  }
+
+  startHeartbeat();
+
   window.B0Roster = {
     configured: configured,
     list: list,
@@ -186,6 +251,8 @@
     adminToken: adminToken,
     setAdminToken: setAdminToken,
     remove: remove,
-    update: update
+    update: update,
+    heartbeat: heartbeat,
+    online: online
   };
 })();

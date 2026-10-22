@@ -117,6 +117,31 @@
         <div id="flagsMsg" class="admin-msg" role="status" aria-live="polite"></div>
       </div>
 
+      <div class="info-card" style="margin-bottom:16px">
+        <h3>Partners</h3>
+        <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 12px">
+          Sites shown on the <a href="partners.html" style="color:var(--accent)">Partners page</a> — add them here, then hit Publish.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <input id="ptEmoji" type="text" maxlength="4" placeholder="🕹️" autocomplete="off" aria-label="Partner emoji"
+                 style="width:64px;background:var(--bg-2);border:1px solid var(--border-2);color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;border-radius:10px;outline:none" />
+          <input id="ptName" type="text" maxlength="30" placeholder="Site name" autocomplete="off" aria-label="Partner name"
+                 style="flex:1;min-width:160px;background:var(--bg-2);border:1px solid var(--border-2);color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;border-radius:10px;outline:none" />
+        </div>
+        <input id="ptUrl" type="text" maxlength="140" placeholder="https://their-site.example" autocomplete="off" aria-label="Partner URL"
+               style="width:100%;box-sizing:border-box;background:var(--bg-2);border:1px solid var(--border-2);color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;border-radius:10px;margin-bottom:10px;outline:none" />
+        <input id="ptBlurb" type="text" maxlength="140" placeholder="One line about them…" autocomplete="off" aria-label="Partner blurb"
+               style="width:100%;box-sizing:border-box;background:var(--bg-2);border:1px solid var(--border-2);color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;border-radius:10px;margin-bottom:12px;outline:none" />
+        <button class="admin-btn" id="ptAdd" type="button">+ Add partner</button>
+        <div id="ptList" style="display:flex;flex-direction:column;gap:8px;margin-top:12px"></div>
+        <div style="border-top:1px solid var(--border);margin:16px 0 12px"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="admin-btn" id="ptPublish" type="button">Publish partners</button>
+          <span style="color:var(--muted);font-size:12px">Publishes partners + your flags/announcement together, so the sheet stays in sync.</span>
+        </div>
+        <div id="ptMsg" class="admin-msg" role="status" aria-live="polite"></div>
+      </div>
+
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-ghost" id="logoutBtn" style="color:var(--danger);border-color:var(--danger)">Log out</button>
         <a class="btn btn-ghost" href="index.html">← Back to the site</a>
@@ -129,6 +154,7 @@
   <script src="js/petals.js"></script>
   <script src="js/games-data.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/fun.js"></script>
   <script src="js/roster-config.js"></script>
   <script src="js/roster.js"></script>
   <script>
@@ -594,6 +620,102 @@
       var flaggedList = [];
       var fTimer = null;
 
+      /* ---------- partners ---------- */
+      var ptEmoji = document.getElementById('ptEmoji');
+      var ptName = document.getElementById('ptName');
+      var ptUrl = document.getElementById('ptUrl');
+      var ptBlurb = document.getElementById('ptBlurb');
+      var ptAdd = document.getElementById('ptAdd');
+      var ptListEl = document.getElementById('ptList');
+      var ptPublish = document.getElementById('ptPublish');
+      var ptMsgEl = document.getElementById('ptMsg');
+      var partnersList = [];
+      var ptTimer = null;
+
+      function ptSay(text, kind) {
+        if (!ptMsgEl) return;
+        ptMsgEl.textContent = text;
+        ptMsgEl.className = 'admin-msg show ' + (kind || 'ok');
+        clearTimeout(ptTimer);
+        ptTimer = setTimeout(function () {
+          ptMsgEl.className = 'admin-msg';
+          ptMsgEl.textContent = '';
+        }, 4000);
+      }
+
+      function renderPartners() {
+        if (!ptListEl) return;
+        if (!partnersList.length) {
+          ptListEl.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No partners yet — add the first one above.</p>';
+          return;
+        }
+        ptListEl.innerHTML = partnersList.map(function (p, i) {
+          return (
+            '<div class="flag-row">' +
+              '<span class="flag-name">' + esc(String(p.emoji || '🔗')) + ' ' + esc(p.name || 'Partner') + '</span>' +
+              '<span class="flag-kinds" style="max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.url || '') + '</span>' +
+              '<span class="flag-acts"><button class="admin-btn" data-ptdel="' + i + '" type="button">Remove</button></span>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      if (ptAdd) {
+        ptAdd.addEventListener('click', function () {
+          var name = (ptName.value || '').trim();
+          var url = (ptUrl.value || '').trim();
+          if (!name) { ptSay('Give the partner a name.', 'warn'); return; }
+          if (!/^https?:\/\//i.test(url)) { ptSay('The link has to start with http:// or https://', 'warn'); return; }
+          partnersList.push({
+            name: name.slice(0, 30),
+            emoji: (ptEmoji.value || '🔗').slice(0, 4),
+            url: url.slice(0, 140),
+            blurb: (ptBlurb.value || '').slice(0, 140)
+          });
+          ptName.value = ''; ptUrl.value = ''; ptBlurb.value = ''; ptEmoji.value = '';
+          renderPartners();
+          ptSay('Added to the list — hit Publish to make it live.', 'ok');
+        });
+      }
+
+      if (ptListEl) {
+        ptListEl.addEventListener('click', function (e) {
+          var btn = e.target.closest('button[data-ptdel]');
+          if (!btn) return;
+          var i = parseInt(btn.getAttribute('data-ptdel'), 10);
+          if (i >= 0 && i < partnersList.length) {
+            partnersList.splice(i, 1);
+            renderPartners();
+          }
+        });
+      }
+
+      if (ptPublish) {
+        ptPublish.addEventListener('click', function () {
+          if (!window.B0Roster || !window.B0Roster.configured()) {
+            ptSay('Switch the shared roster on first.', 'warn');
+            return;
+          }
+          ptPublish.disabled = true;
+          B0Roster.setConfig({
+            hidden: hiddenList,
+            flagged: flaggedList,
+            announcement: announceInput ? announceInput.value.trim() : '',
+            partners: partnersList
+          }).then(function (res) {
+            ptPublish.disabled = false;
+            if (!res.ok) {
+              ptSay(res.error === 'forbidden' ? 'Wrong or missing admin secret.' : (res.error || 'Save failed'), 'err');
+            } else {
+              ptSay('Partners published — live on the Partners page.', 'ok');
+            }
+          }).catch(function () {
+            ptPublish.disabled = false;
+            ptSay('Could not reach the roster.', 'err');
+          });
+        });
+      }
+
       function flagsSay(text, kind) {
         if (!flagsMsgEl) return;
         flagsMsgEl.textContent = text;
@@ -616,8 +738,10 @@
           var cfg = window.B0Roster.config() || {};
           hiddenList = (cfg.hidden || []).slice();
           flaggedList = (cfg.flagged || []).slice();
+          partnersList = Array.isArray(cfg.partners) ? cfg.partners.slice() : [];
           if (announceInput) announceInput.value = cfg.announcement || '';
           renderFlags();
+          renderPartners();
         }).catch(function () {});
       }
 
@@ -688,7 +812,8 @@
           B0Roster.setConfig({
             hidden: hiddenList,
             flagged: flaggedList,
-            announcement: announceInput ? announceInput.value.trim() : ''
+            announcement: announceInput ? announceInput.value.trim() : '',
+            partners: partnersList
           }).then(function (res) {
             announceSave.disabled = false;
             if (!res.ok) {

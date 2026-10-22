@@ -78,3 +78,44 @@ html { scroll-behavior: smooth; }
   .hero h1, .hero-badge, .hero-search, .hero-cta, .hero-stats, .hero-stage { transform: none; text-shadow: none; }
   html { scroll-behavior: auto; }
 }
+
+/* ==================== v5 LAYER: FUN + PARTNERS + PRESENCE ==================== */
+
+/* --- confetti + sparkles + toast (js/fun.js) --- */
+#b0-confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+.b0-spark { position: fixed; z-index: 9998; pointer-events: none; font-size: 13px; animation: b0Spark 0.72s ease-out forwards; }
+@keyframes b0Spark {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-26px) scale(0.4); }
+}
+#b0-toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 16px); z-index: 9999; background: rgba(23, 13, 38, 0.92); border: 1px solid var(--border-2); color: var(--text); font-size: 13.5px; font-weight: 600; padding: 11px 18px; border-radius: 999px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; backdrop-filter: blur(8px); max-width: min(86vw, 480px); text-align: center; }
+#b0-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* --- party mode (type "party") --- */
+html.b0-party body::before,
+html.b0-party .orb,
+html.b0-party .hero-glow { animation: b0PartyHue 5s linear infinite; }
+@keyframes b0PartyHue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+html.b0-party .hero h1 { animation: b0PartyTitle 2.2s ease-in-out infinite alternate; }
+@keyframes b0PartyTitle { from { filter: hue-rotate(0deg) saturate(1); } to { filter: hue-rotate(-45deg) saturate(1.7); } }
+html.b0-party .card:hover { box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5), 0 0 26px rgba(255, 110, 169, 0.4); }
+.b0-lite #b0-confetti, .b0-lite .b0-spark { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #b0-confetti, .b0-spark { display: none; }
+  html.b0-party body::before, html.b0-party .orb, html.b0-party .hero-glow, html.b0-party .hero h1 { animation: none; }
+}
+
+/* --- partners page --- */
+.partners-wrap { max-width: 860px; }
+.partner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.partner-card { display: flex; flex-direction: column; gap: 8px; background: linear-gradient(150deg, var(--panel), var(--panel-2)); border: 1px solid var(--border-2); border-radius: 16px; padding: 22px 20px; text-decoration: none; color: var(--text); position: relative; overflow: hidden; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s, border-color 0.3s; }
+.partner-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 110, 169, 0.18); }
+.partner-card .pc-emoji { font-size: 34px; line-height: 1; }
+.partner-card .pc-name { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.partner-card .pc-blurb { font-size: 12.8px; color: var(--muted); line-height: 1.5; flex: 1; }
+.partner-card .pc-visit { font-size: 12px; font-weight: 700; color: var(--accent); }
+.partner-empty { text-align: center; color: var(--muted); padding: 30px 0 6px; }
+
+/* --- live player count badge (hero stats) --- */
+#onlineWrap b { color: #6fe88a; }
+#onlineWrap { white-space: nowrap; }
